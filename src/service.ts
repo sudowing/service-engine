@@ -16,20 +16,19 @@ import {
 } from "./validation";
 
 export const Service = class implements ts.IService {
-    public db: ts.IDatabase;
-    public logger: any;
+    db: ts.IDatabase;
+    logger: any;
 
     constructor(options: ts.IQueryConfig) {
         this.db = options.db;
         this.logger = options.logger;
     }
 
-    public async readRecords({
+    async readRecords({
         query,
         validator,
         options,
         reqId,
-        requestor,
         resourceMiddleware,
         subQuery
     }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
@@ -165,7 +164,6 @@ export const Service = class implements ts.IService {
                     err,
                     query,
                     reqId,
-                    requestor
                 },
                 cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
             );
@@ -179,12 +177,11 @@ export const Service = class implements ts.IService {
         }
     }
 
-    public async readRecord({
+    async readRecord({
         query,
         validator,
         options,
         reqId,
-        requestor,
         resourceMiddleware
     }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
         const { table } = query;
@@ -283,7 +280,6 @@ export const Service = class implements ts.IService {
                     err,
                     query,
                     reqId,
-                    requestor
                 },
                 cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
             );
@@ -297,12 +293,11 @@ export const Service = class implements ts.IService {
         }
     }
 
-    public async countRecords({
+    async countRecords({
         query,
         validator,
         options,
         reqId,
-        requestor,
         resourceMiddleware,
         subQuery
     }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
@@ -345,7 +340,6 @@ export const Service = class implements ts.IService {
                     err,
                     query,
                     reqId,
-                    requestor
                 },
                 cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
             );
