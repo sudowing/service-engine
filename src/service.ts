@@ -293,65 +293,65 @@ export const Service = class implements ts.IService {
         }
     }
 
-    async countRecords({
-        query,
-        validator,
-        options,
-        reqId,
-        resourceMiddleware,
-        subQuery
-    }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
+    // async countRecords({
+    //     query,
+    //     validator,
+    //     options,
+    //     reqId,
+    //     resourceMiddleware,
+    //     subQuery
+    // }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
 
-        const callSpecs = { logger: this.logger, reqId, options };
+    //     const callSpecs = { logger: this.logger, reqId, options };
 
-        const queries = (subQuery
-            ? [{ query, validator }, subQuery]
-            : [{ query, validator }]
-        ).map(item => addOptionsToQueries({ options, ...item }));
+    //     const queries = (subQuery
+    //         ? [{ query, validator }, subQuery]
+    //         : [{ query, validator }]
+    //     ).map(item => addOptionsToQueries({ options, ...item }));
 
-        const serviceResponses = queries.map(item =>
-            validateAttributesWhereGeoInFilters({ ...item, ...callSpecs })
-        );
+    //     const serviceResponses = queries.map(item =>
+    //         validateAttributesWhereGeoInFilters({ ...item, ...callSpecs })
+    //     );
 
-        for (const srvcResponse of serviceResponses) {
-            if (srvcResponse.status !== statusCodes.OK) {
-                return srvcResponse;
-            }
-        }
+    //     for (const srvcResponse of serviceResponses) {
+    //         if (srvcResponse.status !== statusCodes.OK) {
+    //             return srvcResponse;
+    //         }
+    //     }
 
-        const [serviceResponse] = serviceResponses;
-        if (subQuery) query.subQuery = subQuery.query;
+    //     const [serviceResponse] = serviceResponses;
+    //     if (subQuery) query.subQuery = subQuery.query;
 
-        try {
-            const [{ count }] = await this.db.countRecords({
-                userQuery: resourceMiddleware
-                    ? await resourceMiddleware({ query, tableOptions: options })
-                    : query,
-                tableOptions: options,
-                reqId
-            });
-            serviceResponse.status = statusCodes.OK;
-            serviceResponse.body = { count };
-            return serviceResponse;
-        } catch (err) {
-            // log error here....
-            this.logger.error(
-                {
-                    err,
-                    query,
-                    reqId,
-                },
-                cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
-            );
+    //     try {
+    //         const [{ count }] = await this.db.countRecords({
+    //             userQuery: resourceMiddleware
+    //                 ? await resourceMiddleware({ query, tableOptions: options })
+    //                 : query,
+    //             tableOptions: options,
+    //             reqId
+    //         });
+    //         serviceResponse.status = statusCodes.OK;
+    //         serviceResponse.body = { count };
+    //         return serviceResponse;
+    //     } catch (err) {
+    //         // log error here....
+    //         this.logger.error(
+    //             {
+    //                 err,
+    //                 query,
+    //                 reqId,
+    //             },
+    //             cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
+    //         );
 
-            serviceResponse.status = statusCodes.INTERNAL_SERVER_ERROR;
-            serviceResponse.body = {
-                message: cnst.INTERNAL_ERROR_MESSAGE,
-                timestamp: Date.now()
-            };
-            return serviceResponse;
-        }
-    }
+    //         serviceResponse.status = statusCodes.INTERNAL_SERVER_ERROR;
+    //         serviceResponse.body = {
+    //             message: cnst.INTERNAL_ERROR_MESSAGE,
+    //             timestamp: Date.now()
+    //         };
+    //         return serviceResponse;
+    //     }
+    // }
 
 };
 
