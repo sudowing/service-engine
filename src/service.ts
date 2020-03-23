@@ -1,6 +1,5 @@
 import * as Joi from "@hapi/joi";
 import * as statusCodes from "http-status-codes";
-import * as jwt from "jsonwebtoken";
 
 import * as cnst from "./const";
 import * as ts from "./interfaces";
@@ -25,7 +24,7 @@ export const Service = class implements ts.IService {
         this.logger = options.logger;
     }
 
-    public async queryTableRecords({
+    public async readRecords({
         query,
         validator,
         options,
@@ -115,14 +114,14 @@ export const Service = class implements ts.IService {
                 ? await resourceMiddleware({ query, tableOptions: options })
                 : query;
 
-            const dbQuery = this.db.queryTableRecords({
+            const dbQuery = this.db.readRecords({
                 userQuery,
                 tableOptions: options,
                 reqId
             });
 
             if (query.options.count || query.options.countOnly) {
-                const countResponse = await this.db.countTableRecords({
+                const countResponse = await this.db.countRecords({
                     userQuery,
                     tableOptions: options,
                     reqId
@@ -180,7 +179,7 @@ export const Service = class implements ts.IService {
         }
     }
 
-    public async queryTableRecord({
+    public async readRecord({
         query,
         validator,
         options,
@@ -251,7 +250,7 @@ export const Service = class implements ts.IService {
         }
 
         try {
-            const dbQuery: object = this.db.queryTableRecord({
+            const dbQuery: object = this.db.readRecord({
                 userQuery: resourceMiddleware
                     ? await resourceMiddleware({ query })
                     : query,
@@ -298,7 +297,7 @@ export const Service = class implements ts.IService {
         }
     }
 
-    public async countTableRecords({
+    public async countRecords({
         query,
         validator,
         options,
@@ -329,7 +328,7 @@ export const Service = class implements ts.IService {
         if (subQuery) query.subQuery = subQuery.query;
 
         try {
-            const [{ count }] = await this.db.countTableRecords({
+            const [{ count }] = await this.db.countRecords({
                 userQuery: resourceMiddleware
                     ? await resourceMiddleware({ query, tableOptions: options })
                     : query,
