@@ -1,3 +1,5 @@
+import * as Joi from '@hapi/joi';
+import {cloneDeep} from "lodash";
 
 const queryParser = (field, value, operation) => ({
     field,
@@ -36,17 +38,69 @@ const query = {
     'field.geo_geojson': 'field.geo_geojson',
 };
 
-const queryComponents = Object.entries(query)
-    .reduce((accum, [key, value]) => {
-        const [field, operation] = key.split('.');
-        return [...accum, queryParser(field, value, operation)]
-    }, []);
+const queryComponents = (query) =>
+    Object.entries(query)
+        .reduce((accum, [key, value]) => {
+            const [field, operation] = key.split('.');
+            return [...accum, queryParser(field, value, operation)]
+        }, []);
 
 
-// console.log('**********');
-// console.log('oooo.queryComponents');
-// console.log(JSON.stringify(queryComponents));
-// console.log('**********');
+const typecastFn = (type) => {
+    switch(type){
+        case 'string':
+            return String;
+        case 'number':
+            return Number;
+        case 'boolean':
+            return Boolean;
+        default:
+            return (arg) => arg
+    }
+}
+
+const validatorInspector = (validator) =>
+    Array.from(validator['_ids']['_byKey'].values())
+        .reduce((accum: object, {id, schema: {type, _flags}}) => ({...accum, [id]: {
+            type, required: !!(_flags && _flags.presence), typecast: typecastFn(type)
+        }}), {})
+
+
+const modifyValidator = (validator: any) => {
+    const weakValidator = cloneDeep(validator);
+    weakValidator['_ids']['_byKey'].forEach(({schema: {_flags}}) => {
+        if (_flags && _flags.presence) delete _flags.presence;
+    })
+    return weakValidator;
+};
+
+
+
+
+const v = Joi.object({
+    alpha: Joi.string().required(),
+    bravo: Joi.string(),
+    charlie: Joi.number(),
+    // delta: Joi.number().integer(),
+    echo: Joi.boolean(),
+    // foxtrot: Joi.string(),
+    // golf: Joi.string(),
+    hotel: Joi.string().required(),
+});
+
+const weakValidator = validatorInspector(modifyValidator(v));
+console.log('**********');
+console.log('oooo.weakValidator');
+console.log(weakValidator);
+console.log('**********');
+
+const mainValidator = validatorInspector(v);
+console.log('**********');
+console.log('oooo.mainValidator');
+console.log(mainValidator);
+console.log('**********');
+
+
 
 /*
 
@@ -91,43 +145,3 @@ query
     geo_geojson
 
 */
-
-import * as Joi from '@hapi/joi';
-const v = Joi.object({
-    alpha: Joi.string().required(),
-    bravo: Joi.string(),
-    charlie: Joi.number(),
-    // delta: Joi.number().integer(),
-    echo: Joi.boolean(),
-    // foxtrot: Joi.string(),
-    // golf: Joi.string(),
-    hotel: Joi.string().required(),
-});
-
-// const wip = v['_ids']['_byKey'].entries()
-
-const typecastFn = (type) => {
-    switch(type){
-        case 'string':
-            return String;
-        case 'number':
-            return Number;
-        case 'boolean':
-            return Boolean;
-        default:
-            return (arg) => arg
-    }
-}
-
-const validatorInspector = (validator) =>
-    Array.from(v['_ids']['_byKey'].values())
-        .reduce((accum: object, {id, schema: {type, _flags}}) => ({...accum, [id]: {
-            type, required: !!(_flags && _flags.presence), typecast: typecastFn(type)
-        }}), {})
-
-const wip = validatorInspector(v);
-console.log('**********');
-console.log('oooo.wip');
-console.log(wip);
-console.log('**********');
-
