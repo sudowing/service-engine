@@ -4,7 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx tsc",
+    "lint": "npm run lint:tslint",
+    "lint:fix": "npm run lint:prettier:fix && npm run lint:tslint:fix",
+    "lint:prettier": "npx prettier -l 'src/**/*.ts'",
+    "lint:prettier:fix": "npx prettier --write 'src/**/*.ts'",
+    "lint:tslint": "npx run tslint -p tsconfig.json",
+    "lint:tslint:fix": "npx run tslint -p tsconfig.json --fix",
+    "test": "mocha --timeout 25000 --exit -r ts-node/register -- \"src/**/*.spec.ts\"",
+    "test:coverage": "nyc mocha --timeout 25000 --exit -r ts-node/register -- \"src/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",
@@ -57,7 +65,9 @@
     "chai": "^4.2.0",
     "mocha": "^7.1.1",
     "nyc": "^15.0.0",
+    "prettier": "^2.0.2",
     "prettylint": "^1.0.0",
-    "sinon": "^9.0.1"
+    "sinon": "^9.0.1",
+    "tslint": "^6.1.0"
   }
 }

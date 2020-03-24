@@ -5,354 +5,350 @@ import * as cnst from "./const";
 import * as ts from "./interfaces";
 
 import {
-    addOptionsToQueries,
-    findGeoFields,
-    whitelistedDirections,
-    wkbToGeoJson
+  addOptionsToQueries,
+  findGeoFields,
+  whitelistedDirections,
+  wkbToGeoJson,
 } from "./utils";
 import {
-    validateAttributesWhereGeoInFilters,
-    validateSubmittedAgainstWhitelist
+  validateAttributesWhereGeoInFilters,
+  validateSubmittedAgainstWhitelist,
 } from "./validation";
 
 export const Service = class implements ts.IService {
-    db: ts.IDatabase;
-    logger: any;
+  db: ts.IDatabase;
+  logger: any;
 
-    constructor(options: ts.IQueryConfig) {
-        this.db = options.db;
-        this.logger = options.logger;
+  constructor(options: ts.IQueryConfig) {
+    this.db = options.db;
+    this.logger = options.logger;
+  }
+
+  async readRecords({
+    query,
+    validator,
+    options,
+    reqId,
+    resourceMiddleware,
+    subQuery,
+  }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
+    const callSpecs = { logger: this.logger, reqId, options };
+
+    const queries = (subQuery
+      ? [{ query, validator }, subQuery]
+      : [{ query, validator }]
+    ).map((item) => addOptionsToQueries({ options, ...item }));
+
+    const serviceResponses = queries.map((item) =>
+      validateAttributesWhereGeoInFilters({ ...item, ...callSpecs })
+    );
+
+    for (const srvcResponse of serviceResponses) {
+      if (srvcResponse.status !== statusCodes.OK) {
+        return srvcResponse;
+      }
     }
 
-    async readRecords({
-        query,
-        validator,
-        options,
-        reqId,
-        resourceMiddleware,
-        subQuery
-    }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
+    const { tableFields, geoFields } = queries[0];
+    const [serviceResponse] = serviceResponses;
 
-        const callSpecs = { logger: this.logger, reqId, options };
+    // query only
+    const { pagination } = query.options;
+    // validation ORDER_BY
+    if (pagination && pagination.orderBy) {
+      const { orderBy } = pagination;
 
-        const queries = (subQuery
-            ? [{ query, validator }, subQuery]
-            : [{ query, validator }]
-        ).map(item => addOptionsToQueries({ options, ...item }));
+      let errorResponse = {
+        message: cnst.VALIDATION_ERROR_MSG_ORDER_BY,
+        detail: cnst.VALIDATION_ERROR_MSG_ORDER_BY_DETAIL,
+      };
 
-        const serviceResponses = queries.map(item =>
-            validateAttributesWhereGeoInFilters({ ...item, ...callSpecs })
+      // let submission =
+      let test = validateSubmittedAgainstWhitelist({
+        submission: orderBy.map((x: ts.IOrderBy) => x.column),
+        whitelist: tableFields,
+        errorResponse,
+      });
+
+      if (!test.valid && test.error) {
+        this.logger.error(
+          { ...test, orderBy, reqId },
+          cnst.VALIDATION_ERROR_MSG_ORDER_BY_UNSUPPORTED_FIELD
         );
 
-        for (const srvcResponse of serviceResponses) {
-            if (srvcResponse.status !== statusCodes.OK) {
-                return srvcResponse;
-            }
-        }
+        serviceResponse.status = statusCodes.BAD_REQUEST;
+        serviceResponse.body = test.error;
+        return serviceResponse;
+      }
 
-        const { tableFields, geoFields } = queries[0];
-        const [serviceResponse] = serviceResponses;
+      errorResponse = {
+        message: cnst.VALIDATION_ERROR_MSG_ORDER_BY,
+        detail: cnst.VALIDATION_ERROR_MSG_ORDER_BY_UNSUPPORTED_DIRECTION,
+      };
 
-        // query only
-        const { pagination } = query.options;
-        // validation ORDER_BY
-        if (pagination && pagination.orderBy) {
-            const { orderBy } = pagination;
+      test = validateSubmittedAgainstWhitelist({
+        submission: orderBy.map((x: ts.IOrderBy) => x.order),
+        whitelist: whitelistedDirections,
+        errorResponse,
+      });
 
-            let errorResponse = {
-                message: cnst.VALIDATION_ERROR_MSG_ORDER_BY,
-                detail: cnst.VALIDATION_ERROR_MSG_ORDER_BY_DETAIL
-            };
+      if (!test.valid && test.error) {
+        this.logger.error(
+          { ...test, orderBy, reqId },
+          cnst.VALIDATION_ERROR_MSG_ORDER_BY_UNSUPPORTED_FIELD
+        );
 
-            // let submission =
-            let test = validateSubmittedAgainstWhitelist({
-                submission: orderBy.map((x: ts.IOrderBy) => x.column),
-                whitelist: tableFields,
-                errorResponse
-            });
-
-            if (!test.valid && test.error) {
-                this.logger.error(
-                    { ...test, orderBy, reqId },
-                    cnst.VALIDATION_ERROR_MSG_ORDER_BY_UNSUPPORTED_FIELD
-                );
-
-                serviceResponse.status = statusCodes.BAD_REQUEST;
-                serviceResponse.body = test.error;
-                return serviceResponse;
-            }
-
-            errorResponse = {
-                message: cnst.VALIDATION_ERROR_MSG_ORDER_BY,
-                detail: cnst.VALIDATION_ERROR_MSG_ORDER_BY_UNSUPPORTED_DIRECTION
-            };
-
-            test = validateSubmittedAgainstWhitelist({
-                submission: orderBy.map((x: ts.IOrderBy) => x.order),
-                whitelist: whitelistedDirections,
-                errorResponse
-            });
-
-            if (!test.valid && test.error) {
-                this.logger.error(
-                    { ...test, orderBy, reqId },
-                    cnst.VALIDATION_ERROR_MSG_ORDER_BY_UNSUPPORTED_FIELD
-                );
-
-                serviceResponse.status = statusCodes.BAD_REQUEST;
-                serviceResponse.body = test.error;
-                return serviceResponse;
-            }
-        }
-
-        query.options.attributes = query.options.attributes || tableFields;
-        if (subQuery) query.subQuery = subQuery.query;
-
-        try {
-            const userQuery = resourceMiddleware
-                ? await resourceMiddleware({ query, tableOptions: options })
-                : query;
-
-            const dbQuery = this.db.readRecords({
-                userQuery,
-                tableOptions: options,
-                reqId
-            });
-
-            if (query.options.count || query.options.countOnly) {
-                const countResponse = await this.db.countRecords({
-                    userQuery,
-                    tableOptions: options,
-                    reqId
-                });
-                const count = countResponse[0].count;
-                serviceResponse.count = count;
-
-                if (query.options.countOnly) {
-                    serviceResponse.status = statusCodes.OK;
-                    serviceResponse.body = { count };
-                    return serviceResponse;
-                }
-            }
-
-            const sql = dbQuery.toString();
-
-            if (query.options.sql) {
-                serviceResponse.sql = sql;
-            }
-
-            if (query.options.sqlOnly) {
-                serviceResponse.status = statusCodes.OK;
-                serviceResponse.body = { sql };
-                return serviceResponse;
-            }
-
-            serviceResponse.status = statusCodes.OK;
-            serviceResponse.body = await dbQuery;
-
-            const rawResults = await dbQuery;
-
-            const results = geoFields.length
-                ? wkbToGeoJson(rawResults, geoFields)
-                : rawResults;
-            serviceResponse.body = results;
-
-            return serviceResponse;
-        } catch (err) {
-            this.logger.error(
-                {
-                    err,
-                    query,
-                    reqId,
-                },
-                cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
-            );
-
-            serviceResponse.status = statusCodes.INTERNAL_SERVER_ERROR;
-            serviceResponse.body = {
-                message: cnst.INTERNAL_ERROR_MESSAGE,
-                timestamp: Date.now()
-            };
-            return serviceResponse;
-        }
+        serviceResponse.status = statusCodes.BAD_REQUEST;
+        serviceResponse.body = test.error;
+        return serviceResponse;
+      }
     }
 
-    async readRecord({
-        query,
-        validator,
-        options,
+    query.options.attributes = query.options.attributes || tableFields;
+    if (subQuery) query.subQuery = subQuery.query;
+
+    try {
+      const userQuery = resourceMiddleware
+        ? await resourceMiddleware({ query, tableOptions: options })
+        : query;
+
+      const dbQuery = this.db.readRecords({
+        userQuery,
+        tableOptions: options,
         reqId,
-        resourceMiddleware
-    }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
-        const { table } = query;
+      });
 
-        const serviceResponse: ts.IServiceResponse = {
-            ...cnst.DEFAULT_SERVICE_RESPONSE
-        };
+      if (query.options.count || query.options.countOnly) {
+        const countResponse = await this.db.countRecords({
+          userQuery,
+          tableOptions: options,
+          reqId,
+        });
+        const count = countResponse[0].count;
+        serviceResponse.count = count;
 
-        // validation WHERE
-        const validation = Joi.validate(query.where, validator);
-
-        if (validation.error) {
-            this.logger.error(
-                {
-                    detail: validation.error,
-                    reqId
-                },
-                cnst.VALIDATION_ERROR
-            );
-            const validationError = {
-                message: cnst.VALIDATION_ERROR_MSG_WHERE,
-                detail: validation.error
-            };
-
-            serviceResponse.status = statusCodes.BAD_REQUEST;
-            serviceResponse.body = validationError;
-            return serviceResponse;
+        if (query.options.countOnly) {
+          serviceResponse.status = statusCodes.OK;
+          serviceResponse.body = { count };
+          return serviceResponse;
         }
+      }
 
-        // define table column list from JOI schema
-        // used in validating ORDER_BY, ATTRIBUTES, FILTERING
-        const tableFields = Object.keys(validator.describe().children);
+      const sql = dbQuery.toString();
 
-        // validation ATTRIBUTES
-        if (query.options.attributes) {
-            const attrs = Array.isArray(query.options.attributes)
-                ? query.options.attributes
-                : [query.options.attributes];
+      if (query.options.sql) {
+        serviceResponse.sql = sql;
+      }
 
-            const errorResponse = {
-                message: cnst.VALIDATION_ERROR_MSG_ATTRIBUTES,
-                detail: cnst.VALIDATION_ERROR_MSG_ATTRIBUTES_DETAIL
-            };
-            const submission = attrs.map((x: any) => x);
-            const test = validateSubmittedAgainstWhitelist({
-                submission,
-                whitelist: tableFields,
-                errorResponse
-            });
+      if (query.options.sqlOnly) {
+        serviceResponse.status = statusCodes.OK;
+        serviceResponse.body = { sql };
+        return serviceResponse;
+      }
 
-            if (!test.valid && test.error) {
-                this.logger.error(
-                    { ...test, attrs, reqId },
-                    cnst.VALIDATION_ERROR_MSG_ATTRIBUTES_UNSUPPORTED_FIELD
-                );
+      serviceResponse.status = statusCodes.OK;
+      serviceResponse.body = await dbQuery;
 
-                serviceResponse.status = statusCodes.BAD_REQUEST;
-                serviceResponse.body = test.error;
-                return serviceResponse;
-            }
-        } else {
-            query.options.attributes = tableFields;
-        }
+      const rawResults = await dbQuery;
 
-        try {
-            const dbQuery: object = this.db.readRecord({
-                userQuery: resourceMiddleware
-                    ? await resourceMiddleware({ query })
-                    : query,
-                reqId
-            });
+      const results = geoFields.length
+        ? wkbToGeoJson(rawResults, geoFields)
+        : rawResults;
+      serviceResponse.body = results;
 
-            if (query.options.sql) {
-                serviceResponse.sql = dbQuery.toString();
-            }
+      return serviceResponse;
+    } catch (err) {
+      this.logger.error(
+        {
+          err,
+          query,
+          reqId,
+        },
+        cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
+      );
 
-            const record: object = await dbQuery;
+      serviceResponse.status = statusCodes.INTERNAL_SERVER_ERROR;
+      serviceResponse.body = {
+        message: cnst.INTERNAL_ERROR_MESSAGE,
+        timestamp: Date.now(),
+      };
+      return serviceResponse;
+    }
+  }
 
-            let geoFields: string[] = [];
-            if (options && options.geoquery) {
-                geoFields = findGeoFields(validator);
-            }
+  async readRecord({
+    query,
+    validator,
+    options,
+    reqId,
+    resourceMiddleware,
+  }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
+    const { table } = query;
 
-            const result = geoFields.length
-                ? wkbToGeoJson([record], geoFields)[0]
-                : record;
+    const serviceResponse: ts.IServiceResponse = {
+      ...cnst.DEFAULT_SERVICE_RESPONSE,
+    };
 
-            serviceResponse.status = statusCodes.OK;
-            serviceResponse.body = result;
+    // validation WHERE
+    const validation = Joi.validate(query.where, validator);
 
-            return serviceResponse;
-        } catch (err) {
-            // log error here....
-            this.logger.error(
-                {
-                    err,
-                    query,
-                    reqId,
-                },
-                cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
-            );
+    if (validation.error) {
+      this.logger.error(
+        {
+          detail: validation.error,
+          reqId,
+        },
+        cnst.VALIDATION_ERROR
+      );
+      const validationError = {
+        message: cnst.VALIDATION_ERROR_MSG_WHERE,
+        detail: validation.error,
+      };
 
-            serviceResponse.status = statusCodes.INTERNAL_SERVER_ERROR;
-            serviceResponse.body = {
-                message: cnst.INTERNAL_ERROR_MESSAGE,
-                timestamp: Date.now()
-            };
-            return serviceResponse;
-        }
+      serviceResponse.status = statusCodes.BAD_REQUEST;
+      serviceResponse.body = validationError;
+      return serviceResponse;
     }
 
-    // async countRecords({
-    //     query,
-    //     validator,
-    //     options,
-    //     reqId,
-    //     resourceMiddleware,
-    //     subQuery
-    // }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
+    // define table column list from JOI schema
+    // used in validating ORDER_BY, ATTRIBUTES, FILTERING
+    const tableFields = Object.keys(validator.describe().children);
 
-    //     const callSpecs = { logger: this.logger, reqId, options };
+    // validation ATTRIBUTES
+    if (query.options.attributes) {
+      const attrs = Array.isArray(query.options.attributes)
+        ? query.options.attributes
+        : [query.options.attributes];
 
-    //     const queries = (subQuery
-    //         ? [{ query, validator }, subQuery]
-    //         : [{ query, validator }]
-    //     ).map(item => addOptionsToQueries({ options, ...item }));
+      const errorResponse = {
+        message: cnst.VALIDATION_ERROR_MSG_ATTRIBUTES,
+        detail: cnst.VALIDATION_ERROR_MSG_ATTRIBUTES_DETAIL,
+      };
+      const submission = attrs.map((x: any) => x);
+      const test = validateSubmittedAgainstWhitelist({
+        submission,
+        whitelist: tableFields,
+        errorResponse,
+      });
 
-    //     const serviceResponses = queries.map(item =>
-    //         validateAttributesWhereGeoInFilters({ ...item, ...callSpecs })
-    //     );
+      if (!test.valid && test.error) {
+        this.logger.error(
+          { ...test, attrs, reqId },
+          cnst.VALIDATION_ERROR_MSG_ATTRIBUTES_UNSUPPORTED_FIELD
+        );
 
-    //     for (const srvcResponse of serviceResponses) {
-    //         if (srvcResponse.status !== statusCodes.OK) {
-    //             return srvcResponse;
-    //         }
-    //     }
+        serviceResponse.status = statusCodes.BAD_REQUEST;
+        serviceResponse.body = test.error;
+        return serviceResponse;
+      }
+    } else {
+      query.options.attributes = tableFields;
+    }
 
-    //     const [serviceResponse] = serviceResponses;
-    //     if (subQuery) query.subQuery = subQuery.query;
+    try {
+      const dbQuery: object = this.db.readRecord({
+        userQuery: resourceMiddleware
+          ? await resourceMiddleware({ query })
+          : query,
+        reqId,
+      });
 
-    //     try {
-    //         const [{ count }] = await this.db.countRecords({
-    //             userQuery: resourceMiddleware
-    //                 ? await resourceMiddleware({ query, tableOptions: options })
-    //                 : query,
-    //             tableOptions: options,
-    //             reqId
-    //         });
-    //         serviceResponse.status = statusCodes.OK;
-    //         serviceResponse.body = { count };
-    //         return serviceResponse;
-    //     } catch (err) {
-    //         // log error here....
-    //         this.logger.error(
-    //             {
-    //                 err,
-    //                 query,
-    //                 reqId,
-    //             },
-    //             cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
-    //         );
+      if (query.options.sql) {
+        serviceResponse.sql = dbQuery.toString();
+      }
 
-    //         serviceResponse.status = statusCodes.INTERNAL_SERVER_ERROR;
-    //         serviceResponse.body = {
-    //             message: cnst.INTERNAL_ERROR_MESSAGE,
-    //             timestamp: Date.now()
-    //         };
-    //         return serviceResponse;
-    //     }
-    // }
+      const record: object = await dbQuery;
 
+      let geoFields: string[] = [];
+      if (options && options.geoquery) {
+        geoFields = findGeoFields(validator);
+      }
+
+      const result = geoFields.length
+        ? wkbToGeoJson([record], geoFields)[0]
+        : record;
+
+      serviceResponse.status = statusCodes.OK;
+      serviceResponse.body = result;
+
+      return serviceResponse;
+    } catch (err) {
+      // log error here....
+      this.logger.error(
+        {
+          err,
+          query,
+          reqId,
+        },
+        cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
+      );
+
+      serviceResponse.status = statusCodes.INTERNAL_SERVER_ERROR;
+      serviceResponse.body = {
+        message: cnst.INTERNAL_ERROR_MESSAGE,
+        timestamp: Date.now(),
+      };
+      return serviceResponse;
+    }
+  }
+
+  // async countRecords({
+  //     query,
+  //     validator,
+  //     options,
+  //     reqId,
+  //     resourceMiddleware,
+  //     subQuery
+  // }: ts.IServiceSelect___TableRecords): Promise<ts.IServiceResponse> {
+
+  //     const callSpecs = { logger: this.logger, reqId, options };
+
+  //     const queries = (subQuery
+  //         ? [{ query, validator }, subQuery]
+  //         : [{ query, validator }]
+  //     ).map(item => addOptionsToQueries({ options, ...item }));
+
+  //     const serviceResponses = queries.map(item =>
+  //         validateAttributesWhereGeoInFilters({ ...item, ...callSpecs })
+  //     );
+
+  //     for (const srvcResponse of serviceResponses) {
+  //         if (srvcResponse.status !== statusCodes.OK) {
+  //             return srvcResponse;
+  //         }
+  //     }
+
+  //     const [serviceResponse] = serviceResponses;
+  //     if (subQuery) query.subQuery = subQuery.query;
+
+  //     try {
+  //         const [{ count }] = await this.db.countRecords({
+  //             userQuery: resourceMiddleware
+  //                 ? await resourceMiddleware({ query, tableOptions: options })
+  //                 : query,
+  //             tableOptions: options,
+  //             reqId
+  //         });
+  //         serviceResponse.status = statusCodes.OK;
+  //         serviceResponse.body = { count };
+  //         return serviceResponse;
+  //     } catch (err) {
+  //         // log error here....
+  //         this.logger.error(
+  //             {
+  //                 err,
+  //                 query,
+  //                 reqId,
+  //             },
+  //             cnst.SERVICE_ERROR_QUERY_TABLE_RECORDS
+  //         );
+
+  //         serviceResponse.status = statusCodes.INTERNAL_SERVER_ERROR;
+  //         serviceResponse.body = {
+  //             message: cnst.INTERNAL_ERROR_MESSAGE,
+  //             timestamp: Date.now()
+  //         };
+  //         return serviceResponse;
+  //     }
+  // }
 };
-
-
