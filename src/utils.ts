@@ -1,52 +1,40 @@
 import * as Joi from '@hapi/joi';
 import {cloneDeep} from "lodash";
+import {
+    UNDERSCORE_IDS,
+    UNDERSCORE_BYKEY,
+    DOT
+} from './const';
+import * as ts from './interfaces';
 
-const queryParser = (field, value, operation) => ({
-    field,
-    operation: operation ? operation : 'equal',
-    value,
-})
+/**
+ * @description Parses REST query/body and builds array of standardized query objects that will be used to later define the actual SQL query
+ * @param {string} field
+ * @param {string} value
+ * @param {string} operation
+ * @returns {ts.IParamsToQueryString}
+ */
+const toQueryObject = (field: string, value: string, operation: string): ts.IParamsToQueryString =>
+    ({ field, operation, value })
 
-const query = {
-    'field_gt': 'field__gt',
-    'field_gte': 'field__gte',
-    'field_lt': 'field__lt',
-    'field_lte': 'field__lte',
-    'field_not': 'field__not',
-    'field_range': 'field__range',
-    'field_in': 'field__in',
-    'field_not_in': 'field__not_in',
-    'field_like': 'field__like',
-    'field_or': 'field__or',
-    'field_geo_bbox': 'field__geo_bbox',
-    'field_geo_radius': 'field__geo_radius',
-    'field_geo_polygon': 'field__geo_polygon',
-    'field_geo_geojson': 'field__geo_geojson',
-    'field.gt': 'field.gt',
-    'field.gte': 'field.gte',
-    'field.lt': 'field.lt',
-    'field.lte': 'field.lte',
-    'field.not': 'field.not',
-    'field.range': 'field.range',
-    'field.in': 'field.in',
-    'field.not_in': 'field.not_in',
-    'field.like': 'field.like',
-    'field.or': 'field.or',
-    'field.geo_bbox': 'field.geo_bbox',
-    'field.geo_radius': 'field.geo_radius',
-    'field.geo_polygon': 'field.geo_polygon',
-    'field.geo_geojson': 'field.geo_geojson',
-};
+/**
+ * @description
+ * @param {ts.IParamsQueryParser} query
+ * @returns {ts.IParamsToQueryString[]}
+ */
+const queryParser = (query: ts.IParamsQueryParser): ts.IParamsToQueryString[] =>
+    Object.entries(query).map(([key, value]) => {
+        const [field, operation] = key.split(DOT);
+        return toQueryObject(field, value, operation)
+    });
 
-const queryComponents = (query) =>
-    Object.entries(query)
-        .reduce((accum, [key, value]) => {
-            const [field, operation] = key.split('.');
-            return [...accum, queryParser(field, value, operation)]
-        }, []);
-
-
-const typecastFn = (type) => {
+/**
+ * @description
+ * @param {string} type
+ * @returns {(StringConstructor|NumberConstructor|BooleanConstructor|ts.IDefaultTypeCast)}
+ */
+const typecastFn = (type: string):
+    StringConstructor|NumberConstructor|BooleanConstructor|ts.IDefaultTypeCast => {
     switch(type){
         case 'string':
             return String;
@@ -59,89 +47,47 @@ const typecastFn = (type) => {
     }
 }
 
-const validatorInspector = (validator) =>
-    Array.from(validator['_ids']['_byKey'].values())
-        .reduce((accum: object, {id, schema: {type, _flags}}) => ({...accum, [id]: {
-            type, required: !!(_flags && _flags.presence), typecast: typecastFn(type)
-        }}), {})
-
-
-const modifyValidator = (validator: any) => {
+/**
+ * @description
+ * @param {Joi.Schema} validator
+ * @returns {Joi.Schema}
+ */
+const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
     const weakValidator = cloneDeep(validator);
-    weakValidator['_ids']['_byKey'].forEach(({schema: {_flags}}) => {
+    weakValidator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].forEach(({schema: {_flags}}) => {
         if (_flags && _flags.presence) delete _flags.presence;
     })
     return weakValidator;
 };
 
+/**
+ * @description
+ * @param {object} accum
+ * @param {*} {id, schema: {type, _flags}}
+ * @returns {ts.IValidatorInspectorReport}
+ */
+const reducerValidatorInspector = (accum: object, {id, schema: {type, _flags}}): ts.IValidatorInspectorReport =>
+    ({
+        ...accum,
+        [id]: {
+            type, required: !!(_flags && _flags.presence), typecast: typecastFn(type)
+        }
+    })
 
+/**
+ * @description
+ * @param {Joi.Schema} validator
+ * @returns {ts.IValidatorInspectorReport}
+ */
+const validatorInspector = (validator: Joi.Schema): ts.IValidatorInspectorReport =>
+    (Array.from(validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].values()) as any)
+        .reduce(reducerValidatorInspector, {})
 
-
-const v = Joi.object({
-    alpha: Joi.string().required(),
-    bravo: Joi.string(),
-    charlie: Joi.number(),
-    // delta: Joi.number().integer(),
-    echo: Joi.boolean(),
-    // foxtrot: Joi.string(),
-    // golf: Joi.string(),
-    hotel: Joi.string().required(),
-});
-
-const weakValidator = validatorInspector(modifyValidator(v));
-console.log('**********');
-console.log('oooo.weakValidator');
-console.log(weakValidator);
-console.log('**********');
-
-const mainValidator = validatorInspector(v);
-console.log('**********');
-console.log('oooo.mainValidator');
-console.log(mainValidator);
-console.log('**********');
-
-
-
-/*
-
-
-
-
-query
-    #fields=alpha,bravo,charlie
-    #subquery?=query
-    field.gt
-    field.gte
-    field.lt
-    field.lte
-    field.not
-    field.range=5-9
-    field.in
-    field.not_in
-    field.like
-    field.or
-    field.geo_bbox=minLong, minLat, maxLong, maxLat
-    field.geo_radius=lat, long, meters
-    field.geo_polygon=polygon // also supports multipolygons
-    field.geo_geojson=geojson
-
-
-
-    if contains `.`
-
-    gt
-    gte
-    lt
-    lte
-    not
-    range
-    in
-    not_in
-    like
-    or
-    geo_bbox
-    geo_radius
-    geo_polygon
-    geo_geojson
-
-*/
+export {
+    toQueryObject,
+    queryParser,
+    typecastFn,
+    validatorInspector,
+    modifyValidator,
+    reducerValidatorInspector,
+}
