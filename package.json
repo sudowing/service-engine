@@ -9,8 +9,8 @@
     "lint:fix": "npm run lint:prettier:fix && npm run lint:tslint:fix",
     "lint:prettier": "npx prettier -l 'src/**/*.ts'",
     "lint:prettier:fix": "npx prettier --write 'src/**/*.ts'",
-    "lint:tslint": "npx run tslint -p tsconfig.json",
-    "lint:tslint:fix": "npx run tslint -p tsconfig.json --fix",
+    "lint:tslint": "npx tslint -p tsconfig.json",
+    "lint:tslint:fix": "npx tslint -p tsconfig.json --fix",
     "test": "mocha --timeout 25000 --exit -r ts-node/register -- \"src/**/*.spec.ts\"",
     "test:coverage": "nyc mocha --timeout 25000 --exit -r ts-node/register -- \"src/**/*.spec.ts\""
   },
