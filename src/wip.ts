@@ -1,7 +1,6 @@
 import * as Joi from "@hapi/joi";
 
 // import { UNDERSCORE_IDS, UNDERSCORE_BYKEY } from "./const";
-
 import * as utils from "./utils";
 
 const v = Joi.object({
@@ -16,60 +15,9 @@ const v = Joi.object({
 });
 
 const weakValidator = utils.validatorInspector(utils.modifyValidator(v));
-console.log("**********");
-console.log("oooo.weakValidator");
-console.log(weakValidator);
-console.log("**********");
 
-const mainValidator = utils.validatorInspector(v);
-console.log("**********");
-console.log("oooo.mainValidator");
-console.log(mainValidator);
-console.log("**********");
+// const mainValidator = utils.validatorInspector(v);
 
-/*
-
-
-
-
-query
-    #fields=alpha,bravo,charlie
-    #subquery?=query
-    field.gt
-    field.gte
-    field.lt
-    field.lte
-    field.not
-    field.range=5-9
-    field.in
-    field.not_in
-    field.like
-    field.or
-    field.geo_bbox=minLong, minLat, maxLong, maxLat
-    field.geo_radius=lat, long, meters
-    field.geo_polygon=polygon // also supports multipolygons
-    field.geo_geojson=geojson
-
-
-
-    if contains `.`
-
-    gt
-    gte
-    lt
-    lte
-    not
-    range
-    in
-    not_in
-    like
-    or
-    geo_bbox
-    geo_radius
-    geo_polygon
-    geo_geojson
-
-*/
 
 // const query = {
 //   field_gt: "field__gt",
@@ -110,22 +58,31 @@ query
 // console.log("**********");
 
 
-// const items = v[UNDERSCORE_IDS][UNDERSCORE_BYKEY];
 
-// const demo = {
-//   alpha: 'alpha',
-//   bravo: 'bravo',
-//   charlie: '42',
-//   echo: false,
-//   hotel: 'hotel',
-// };
+const demo = {
+  alpha: 'alpha',
+  bravo: 'bravo',
+  charlie: '42',
+  echo: false,
+  hotel: 'hotel',
+};
 
 // this is how to pull individual keys from object and test it.
 // instead of looping -- just use the map directly.
 // maybe run as promise all ? 
 
-// const tests = Array.from(items.values())
-//   .map(({ schema, id }) => schema.validate(demo[id]))
+
+const validations = Object.entries(demo).map(([field, value]) => weakValidator[field].validate(value));
+
+Promise.all(validations)
+.then(console.log)
+.catch(err => {
+  console.log('err')
+  console.log(err)
+})
+
+
+
 
 // console.log('**********');
 // console.log('oooo.tests');

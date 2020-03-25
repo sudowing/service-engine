@@ -81,7 +81,7 @@ const reducerValidatorInspector = (
     type: schema.type,
     required: !!(schema._flags && schema._flags.presence),
     typecast: typecastFn(schema.type),
-    validate: (value: string) => schema.validate((typecastFn(schema.type) as any)(value))
+    validate: (value: string) => schema.validateAsync((typecastFn(schema.type) as any)(value))
   },
 });
 
