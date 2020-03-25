@@ -72,14 +72,15 @@ const demo = {
 // maybe run as promise all ? 
 
 
-const validations = Object.entries(demo).map(([field, value]) => weakValidator[field].validate(value));
+const validations = Object.entries(demo)
+  .map(([field, value]) => weakValidator[field].validate(value));
 
 Promise.all(validations)
-.then(console.log)
-.catch(err => {
-  console.log('err')
-  console.log(err)
-})
+  .then(console.log)
+  .catch(err => {
+    console.log('err')
+    console.log(err)
+  });
 
 
 
