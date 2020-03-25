@@ -19,5 +19,7 @@ export interface IValidatorInspectorReport {
       | NumberConstructor
       | BooleanConstructor
       | IDefaultTypeCast;
+      validate: any;
+      
   };
 }

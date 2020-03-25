@@ -74,18 +74,19 @@ const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
  */
 const reducerValidatorInspector = (
   accum: object,
-  { id, schema: { type, _flags } }
+  { id, schema }
 ): ts.IValidatorInspectorReport => ({
   ...accum,
   [id]: {
-    type,
-    required: !!(_flags && _flags.presence),
-    typecast: typecastFn(type),
+    type: schema.type,
+    required: !!(schema._flags && schema._flags.presence),
+    typecast: typecastFn(schema.type),
+    validate: (value: string) => schema.validate((typecastFn(schema.type) as any)(value))
   },
 });
 
 /**
- * @description
+ * @description Used for swagger generation and for validating user queries. Real validator cannot be used as those are plain objects and may need to validate field multiple times (sql where field <= 5 and >= 12) <-- need to validate values against field twice.
  * @param {Joi.Schema} validator
  * @returns {ts.IValidatorInspectorReport}
  */
@@ -95,6 +96,14 @@ const validatorInspector = (
   (Array.from(
     validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].values()
   ) as any).reduce(reducerValidatorInspector, {});
+
+
+// const oooo = (validator: Joi.Schema, fields: string[]) =>
+//   fields.map(field =>
+//     validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].get(field)
+//   )
+
+
 
 export {
   toQueryObject,

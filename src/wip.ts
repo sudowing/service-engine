@@ -1,6 +1,8 @@
 import * as Joi from "@hapi/joi";
 
-// import * as utils from "./utils";
+// import { UNDERSCORE_IDS, UNDERSCORE_BYKEY } from "./const";
+
+import * as utils from "./utils";
 
 const v = Joi.object({
   alpha: Joi.string().required(),
@@ -13,17 +15,17 @@ const v = Joi.object({
   hotel: Joi.string().required(),
 });
 
-// const weakValidator = utils.validatorInspector(utils.modifyValidator(v));
-// console.log("**********");
-// console.log("oooo.weakValidator");
-// console.log(weakValidator);
-// console.log("**********");
+const weakValidator = utils.validatorInspector(utils.modifyValidator(v));
+console.log("**********");
+console.log("oooo.weakValidator");
+console.log(weakValidator);
+console.log("**********");
 
-// const mainValidator = utils.validatorInspector(v);
-// console.log("**********");
-// console.log("oooo.mainValidator");
-// console.log(mainValidator);
-// console.log("**********");
+const mainValidator = utils.validatorInspector(v);
+console.log("**********");
+console.log("oooo.mainValidator");
+console.log(mainValidator);
+console.log("**********");
 
 /*
 
@@ -108,33 +110,25 @@ query
 // console.log("**********");
 
 
-import { UNDERSCORE_IDS, UNDERSCORE_BYKEY } from "./const";
-const items = v[UNDERSCORE_IDS][UNDERSCORE_BYKEY];
+// const items = v[UNDERSCORE_IDS][UNDERSCORE_BYKEY];
 
-
-console.log('**********');
-console.log('oooo.items');
-console.log(items);
-console.log('**********');
-console.log('oooo.v');
-console.log(v);
-console.log('**********');
-
-const demo = {
-  alpha: 'alpha',
-  bravo: 'bravo',
-  charlie: '42',
-  echo: false,
-  hotel: 'hotel',
-};
+// const demo = {
+//   alpha: 'alpha',
+//   bravo: 'bravo',
+//   charlie: '42',
+//   echo: false,
+//   hotel: 'hotel',
+// };
 
 // this is how to pull individual keys from object and test it.
 // instead of looping -- just use the map directly.
-const tests = Array.from(items.values())
-  .map(({ schema, id }) => schema.validate(demo[id]))
+// maybe run as promise all ? 
 
-console.log('**********');
-console.log('oooo.tests');
-console.log(tests);
-console.log('**********');
+// const tests = Array.from(items.values())
+//   .map(({ schema, id }) => schema.validate(demo[id]))
+
+// console.log('**********');
+// console.log('oooo.tests');
+// console.log(tests);
+// console.log('**********');
 
