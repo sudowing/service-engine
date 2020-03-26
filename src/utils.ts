@@ -3,41 +3,6 @@ import { cloneDeep } from "lodash";
 import { SUPPORTED_OPERATIONS, UNDERSCORE_IDS, UNDERSCORE_BYKEY, DOT } from "./const";
 import * as ts from "./interfaces";
 
-/**
- * @description Parses REST query/body and builds array of standardized query objects that will be used to later define the actual SQL query
- * @param {string} field
- * @param {string} value
- * @param {string} operation
- * @returns {ts.IParamsToQueryString}
- */
-const toQueryObject = (
-  field: string,
-  value: string,
-  operation: string,
-  schema: any = undefined,
-): ts.IParamsToQueryString => ({
-  field,
-  operation: operation ? operation : 'equal',
-  value,
-  schema,
-});
-
-/**
- * @description
- * @param {ts.IParamsQueryParser} query
- * @returns {ts.IParamsToQueryString[]}
- */
-const queryParser = (query: ts.IParamsQueryParser): ts.IParamsToQueryString[] =>
-  Object.entries(query).map(([key, value]) => {
-    const [field, operation] = key.split(DOT);
-    return toQueryObject(field, value, operation);
-  });
-
-/**
- * @description
- * @param {string} type
- * @returns {(StringConstructor|NumberConstructor|BooleanConstructor|ts.IDefaultTypeCast)}
- */
 const typecastFn = (
   type: string,
   schema?: any
@@ -62,11 +27,6 @@ const typecastFn = (
   }
 };
 
-/**
- * @description
- * @param {Joi.Schema} validator
- * @returns {Joi.Schema}
- */
 const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
   const weakValidator = cloneDeep(validator);
   weakValidator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].forEach(
@@ -77,18 +37,13 @@ const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
   return weakValidator;
 };
 
-/**
- * @description
- * @param {object} accum
- * @param {*} {id, schema: {type, _flags}}
- * @returns {ts.IValidatorInspectorReport}
- */
 const reducerValidatorInspector = (
   accum: object,
   { id, schema }
 ): ts.IValidatorInspectorReport => ({
   ...accum,
   [id]: {
+    // need to also eval geoqueries
     type: schema.type,
     required: !!(schema._flags && schema._flags.presence),
     typecast: typecastFn(schema.type),
@@ -110,12 +65,7 @@ const validatorInspector = (
   ) as any).reduce(reducerValidatorInspector, {});
 
 
-// const oooo = (validator: Joi.Schema, fields: string[]) =>
-//   fields.map(field =>
-//     validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].get(field)
-//   )
-
-const queryParser2 = (validator: Joi.Schema, query: ts.IParamsQueryParser) => {
+const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryParser) => {
   const errors = [];
   const components = [];
   Object.entries(query).map(([key, rawValue]) => {
@@ -125,7 +75,7 @@ const queryParser2 = (validator: Joi.Schema, query: ts.IParamsQueryParser) => {
     const { schema } = validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].get(field) || {};
     const { type } = schema || {};
 
-    const typecast: any = typecastFn(type, schema);
+    const typecast: any = !operation.startsWith('geo_') ? typecastFn(type) : typecastFn(type, schema);
 
     // if true -- support multiple values
     if (SUPPORTED_OPERATIONS[operation]) {
@@ -134,6 +84,7 @@ const queryParser2 = (validator: Joi.Schema, query: ts.IParamsQueryParser) => {
       console.log('oooo.values');
       console.log(operation, field, values);
       console.log('**********');
+      // Joi.array().items(ooooo),
     }
 
     // need to handle comma seperated multi values in `in` & etc
@@ -141,28 +92,29 @@ const queryParser2 = (validator: Joi.Schema, query: ts.IParamsQueryParser) => {
     const { value, error } = valid;
 
   // unsupported record fields && sql operations need to go to errors
-  if (error || !type || SUPPORTED_OPERATIONS.hasOwnProperty(operation)) errors.push({
+  if (error || !type || SUPPORTED_OPERATIONS.hasOwnProperty(operation)) {
+    errors.push({
       field,
       error: error ? error.message.replace('"value"', `'${field}'`) : !type ? `'${field}' is not a supported property on this resource` : `'${operation}' operation not supported`
     });
-    components.push({
-      field, rawValue, operation,
-      type,
-      value
-    });
+  }
 
+  components.push({
+    field, rawValue, operation,
+    type,
+    value
   });
+
+});
 
   return {errors, components}
 
 }
 
 export {
-  toQueryObject,
-  queryParser,
   typecastFn,
   validatorInspector,
   modifyValidator,
   reducerValidatorInspector,
-  queryParser2
+  searchQueryParser
 };

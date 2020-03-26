@@ -50,7 +50,7 @@ const query = {
 
 };
 
-const { components } = utils.queryParser2(v, query);
+const { components } = utils.searchQueryParser(v, query);
 
 console.log("**********");
 console.log("oooo.components");

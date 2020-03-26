@@ -18,7 +18,7 @@ export const SUPPORTED_OPERATIONS = {
     not_in: true,
     geo_bbox: true,
     geo_radius: true,
-    geo_polygon: true,
-    geo_geojson: true,
+    // geo_polygon: true,
+    // geo_geojson: true,
   }
   

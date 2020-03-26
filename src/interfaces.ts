@@ -5,7 +5,7 @@ export interface IParamsToQueryString {
   schema?: any;
 }
 
-export interface IParamsQueryParser {
+export interface IParamsSearchQueryParser {
   [index: string]: string;
 }
 
