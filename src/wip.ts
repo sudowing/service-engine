@@ -42,13 +42,10 @@ const query = {
   "golf.in": "braves,marlins,nationals,mets,phillies",
   "hotel.not_in": "braves,marlins,nationals,mets,phillies",
   "alpha.like": "field.like",
-  "bravo.or": "field.or",
-  // "mike.geo_bbox": "1.1,2.2,3.3,4.4",
-  // "november.geo_radius": "1.2,2.3,111000",
-  "mike.geo_bbox": "one, two, three, four",
-  "november.geo_radius": "one, two, three",
-  "oscar.geo_polygon": "field.geo_polygon",
-  "papa.geo_geojson": "field.geo_geojson",
+  "mike.geo_bbox": "1.1,2.2,3.3,4.4",
+  "november.geo_radius": "1.2,2.3,111000",
+  // "mike.geo_bbox": "one, two, three, four",
+  // "november.geo_radius": "one, two, three",
 
 };
 
@@ -59,6 +56,12 @@ console.log('**********');
 console.log('oooo.errors');
 console.log(errors);
 console.log('**********');
+
+console.log("**********");
+console.log("oooo.components");
+console.log(components);
+console.log("**********");
+
 
 console.log("**********");
 console.log("oooo.components");

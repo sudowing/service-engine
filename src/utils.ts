@@ -3,21 +3,13 @@ import { cloneDeep } from "lodash";
 import { SUPPORTED_OPERATIONS, UNDERSCORE_IDS, UNDERSCORE_BYKEY, DOT } from "./const";
 import * as ts from "./interfaces";
 
-const typecastFn = (
-  type: string,
-  schema?: any
-):
+const typecastFn = (type: string):
   | StringConstructor
   | NumberConstructor
   | BooleanConstructor
   | ts.IDefaultTypeCast => {
-
-  // only pass schema on qeoquery ops to reduce these checks
-  // const geoquery = schema && schema._invalids && schema._invalids._values.has('geoquery')
-
   switch (type) {
     case "string":
-      // return geoquery ? Number: String;
       return String;
     case "number":
       return Number;
@@ -70,7 +62,7 @@ const validatorInspector = (
 const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryParser) => {
   const errors = [];
   const components = [];
-  Object.entries(query).map(([key, rawValue]) => {
+  Object.entries(query).forEach(([key, rawValue]) => {
     const [field, op] = key.split(DOT);
     const operation = op ? op : 'equal';
 
@@ -79,21 +71,15 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
 
     const record = {field, rawValue, operation, type};
 
-    const typecast: any = !operation.startsWith('geo_') ? typecastFn(type) : typecastFn(type, schema);
+    const typecast: any = typecastFn(type);
 
     // if true -- support multiple values
     let valid: any = {};
+    
+    // need to handle comma seperated multi values in `in` & etc
     if (SUPPORTED_OPERATIONS[operation]) {
       const values = rawValue.split(',').map(typecast)
 
-
-      // THIS ISN'T RIGHT. ONLY WANT A SINGLE ERROR FOR A FIELD AND WANT THE VALUES ALL TOGETHER
-      console.log('**********');
-      console.log('oooo.values');
-      console.log(operation, field, values);
-      console.log('**********');
-
-      // Joi.array().items(ooooo),
       const wip = schema ? values.map(value => schema.validate(value)) : [];
       const error = wip.reduce((accum, {error}, i) => [...accum, ...( error ? [
         error.message.replace('"value"', `'${field}' argument #${i}`)
@@ -103,16 +89,17 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
       components.push({ ...record, value: values });
     }
     else {
-      // need to handle comma seperated multi values in `in` & etc
       valid = schema ? schema.validate(typecast(rawValue)) : {}
 
       const { value, error } = valid;
 
       // unsupported record fields && sql operations need to go to errors
-      if (error || !type || SUPPORTED_OPERATIONS.hasOwnProperty(operation)) {
+      if (error || !type || !SUPPORTED_OPERATIONS.hasOwnProperty(operation)) {
         errors.push({
           field,
-          error: error ? error_message_invalid_value(error, field) : !type ? `'${field}' is not a supported property on this resource` : `'${operation}' operation not supported`
+          error: error ? error_message_invalid_value(error, field) :
+            !type ? `'${field}' is not a supported property on this resource` :
+              `'${operation}' operation not supported`
         });
       }
 
