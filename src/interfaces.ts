@@ -2,6 +2,7 @@ export interface IParamsToQueryString {
   field: string;
   operation: string;
   value?: string;
+  schema?: any;
 }
 
 export interface IParamsQueryParser {
