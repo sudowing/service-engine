@@ -65,15 +65,11 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
   Object.entries(query).forEach(([key, rawValue]) => {
     const [field, op] = key.split(DOT);
     const operation = op ? op : 'equal';
-
     const { schema } = validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].get(field) || {};
     const { type } = schema || {};
-
     const record = {field, rawValue, operation, type};
-
     const typecast: any = typecastFn(type);
 
-    // if true -- support multiple values
     let valid: any = {};
     
     // need to handle comma seperated multi values in `in` & etc

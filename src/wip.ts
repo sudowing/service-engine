@@ -51,24 +51,10 @@ const query = {
 
 const { errors, components } = utils.searchQueryParser(v, query);
 
-
 console.log('**********');
-console.log('oooo.errors');
-console.log(errors);
+console.log('oooo.{ errors, components }');
+console.log(JSON.stringify({ errors, components }));
 console.log('**********');
-
-console.log("**********");
-console.log("oooo.components");
-console.log(components);
-console.log("**********");
-
-
-console.log("**********");
-console.log("oooo.components");
-console.log(components.length);
-console.log("**********");
-
-
 
 
 
