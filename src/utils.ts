@@ -13,11 +13,12 @@ const typecastFn = (
   | ts.IDefaultTypeCast => {
 
   // only pass schema on qeoquery ops to reduce these checks
-  const geoquery = schema && schema._invalids && schema._invalids._values.has('geoquery')
+  // const geoquery = schema && schema._invalids && schema._invalids._values.has('geoquery')
 
   switch (type) {
     case "string":
-      return geoquery ? Number: String;
+      // return geoquery ? Number: String;
+      return String;
     case "number":
       return Number;
     case "boolean":
@@ -64,6 +65,7 @@ const validatorInspector = (
     validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].values()
   ) as any).reduce(reducerValidatorInspector, {});
 
+  const error_message_invalid_value = (error: Error, field: string) => error.message.replace('"value"', `'${field}'`)
 
 const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryParser) => {
   const errors = [];
@@ -75,35 +77,43 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
     const { schema } = validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].get(field) || {};
     const { type } = schema || {};
 
+    const record = {field, rawValue, operation, type};
+
     const typecast: any = !operation.startsWith('geo_') ? typecastFn(type) : typecastFn(type, schema);
 
     // if true -- support multiple values
+    let valid: any = {};
     if (SUPPORTED_OPERATIONS[operation]) {
       const values = rawValue.split(',').map(typecast)
       console.log('**********');
       console.log('oooo.values');
       console.log(operation, field, values);
       console.log('**********');
+
       // Joi.array().items(ooooo),
+      const wip = schema ? values.map(value => schema.validate(value)) : [];
+      wip.forEach(({value, error}) => {
+
+        if (error) errors.push({ field, error: error_message_invalid_value(error, field) });
+        components.push({ ...record, value });
+      })
     }
+    else {
+      // need to handle comma seperated multi values in `in` & etc
+      valid = schema ? schema.validate(typecast(rawValue)) : {}
 
-    // need to handle comma seperated multi values in `in` & etc
-    const valid = schema ? schema.validate(typecast(rawValue)) : {}
-    const { value, error } = valid;
+      const { value, error } = valid;
 
-  // unsupported record fields && sql operations need to go to errors
-  if (error || !type || SUPPORTED_OPERATIONS.hasOwnProperty(operation)) {
-    errors.push({
-      field,
-      error: error ? error.message.replace('"value"', `'${field}'`) : !type ? `'${field}' is not a supported property on this resource` : `'${operation}' operation not supported`
-    });
-  }
+      // unsupported record fields && sql operations need to go to errors
+      if (error || !type || SUPPORTED_OPERATIONS.hasOwnProperty(operation)) {
+        errors.push({
+          field,
+          error: error ? error_message_invalid_value(error, field) : !type ? `'${field}' is not a supported property on this resource` : `'${operation}' operation not supported`
+        });
+      }
 
-  components.push({
-    field, rawValue, operation,
-    type,
-    value
-  });
+      components.push({ ...record, value });
+    }
 
 });
 
