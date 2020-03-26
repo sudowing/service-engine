@@ -85,6 +85,9 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
     let valid: any = {};
     if (SUPPORTED_OPERATIONS[operation]) {
       const values = rawValue.split(',').map(typecast)
+
+
+      // THIS ISN'T RIGHT. ONLY WANT A SINGLE ERROR FOR A FIELD AND WANT THE VALUES ALL TOGETHER
       console.log('**********');
       console.log('oooo.values');
       console.log(operation, field, values);
@@ -92,11 +95,12 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
 
       // Joi.array().items(ooooo),
       const wip = schema ? values.map(value => schema.validate(value)) : [];
-      wip.forEach(({value, error}) => {
+      const error = wip.reduce((accum, {error}, i) => [...accum, ...( error ? [
+        error.message.replace('"value"', `'${field}' argument #${i}`)
+      ] : [])], []).join(',');
 
-        if (error) errors.push({ field, error: error_message_invalid_value(error, field) });
-        components.push({ ...record, value });
-      })
+      if (error) errors.push({ field, error });
+      components.push({ ...record, value: values });
     }
     else {
       // need to handle comma seperated multi values in `in` & etc
