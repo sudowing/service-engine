@@ -40,18 +40,19 @@ const queryParser = (query: ts.IParamsQueryParser): ts.IParamsToQueryString[] =>
  */
 const typecastFn = (
   type: string,
-  schema?: Joi.Schema
+  schema?: any
 ):
   | StringConstructor
   | NumberConstructor
   | BooleanConstructor
   | ts.IDefaultTypeCast => {
-  const geoquery = schema && schema._invalids._values.has('geoquery')
 
+  // only pass schema on qeoquery ops to reduce these checks
+  const geoquery = schema && schema._invalids && schema._invalids._values.has('geoquery')
 
   switch (type) {
     case "string":
-      return String;
+      return geoquery ? Number: String;
     case "number":
       return Number;
     case "boolean":
@@ -133,14 +134,6 @@ const queryParser2 = (validator: Joi.Schema, query: ts.IParamsQueryParser) => {
       console.log('oooo.values');
       console.log(operation, field, values);
       console.log('**********');
-    }
-
-    if (operation.startsWith('geo_')) {
-      console.log('**********');
-      console.log('oooo._invalids._values.has');
-      console.log(sss);
-      console.log('**********');
-
     }
 
     // need to handle comma seperated multi values in `in` & etc
