@@ -6,6 +6,7 @@ import { SUPPORTED_OPERATIONS, UNDERSCORE_IDS, UNDERSCORE_BYKEY, DOT, DEFINED_AR
   BOOLEAN,
   EQUAL,
   QUOTED_VALUE,
+  COMMA,
 
 } from "./const";
 import * as ts from "./interfaces";
@@ -64,57 +65,56 @@ const validatorInspector = (
     validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].values()
   ) as any).reduce(reducerValidatorInspector, {});
 
-const error_message_invalid_value = (error: Error, field: string) => error.message.replace(QUOTED_VALUE, `'${field}'`)
+const error_message_invalid_value = (error: Error, field: string) =>
+  error.message.replace(QUOTED_VALUE, `'${field}'`)
+
+const generateSearchQueryError = ({error, field, type, operation}) =>
+  error ? error_message_invalid_value(error, field) :
+    !type ? `'${field}' is not a supported property on this resource` :
+      `'${operation}' operation not supported`
+const badArgsLengthError = (operation: string, values: any[]) =>
+`'${operation}' operation requires ${DEFINED_ARG_LENGTHS[operation]} args. ${values.length} were provided.`
+
+const concatErrorMessages = (field: string) => (accum, {error}, i) => [...accum, ...( error ? [
+  error.message.replace(QUOTED_VALUE, `'${field}' argument #${i}`)
+] : [])]
+
+
+const validArgsforOperation = (operation: string, values: any[]) =>
+  DEFINED_ARG_LENGTHS[operation] && DEFINED_ARG_LENGTHS[operation] === values.length;
+const supportMultipleValues = (operation: string) => SUPPORTED_OPERATIONS[operation];
+const supportedOperation = (operation: string) => SUPPORTED_OPERATIONS.hasOwnProperty(operation);
+
+const parseFieldAndOperation = (key: string) => {
+  const [field, op] = key.split(DOT);
+  return { field, operation: op ? op : EQUAL }
+};
 
 const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryParser) => {
   const errors = [];
   const components = [];
   Object.entries(query).forEach(([key, rawValue]) => {
-    const [field, op] = key.split(DOT);
-    const operation = op ? op : EQUAL;
+    const { field, operation } = parseFieldAndOperation(key);
     const { schema } = validator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].get(field) || {};
-    const { type } = schema || {};
+    const { type } = schema || {}; // all fields have types. if undefined -- simply not a field on the resource
     const record = {field, rawValue, operation, type};
     const typecast: any = typecastFn(type);
-
-    let valid: any = {};
-    
-    // need to handle comma seperated multi values in `in` & etc
-    if (SUPPORTED_OPERATIONS[operation]) {
-      const values = rawValue.split(',').map(typecast)
-
-      // report error if operation has wrong arg length
-      if (DEFINED_ARG_LENGTHS[operation] && DEFINED_ARG_LENGTHS[operation] !== values.length) {
-        errors.push({ field, error: `'${operation}' operation requires ${DEFINED_ARG_LENGTHS[operation]} args. ${values.length} were provided.` });
-      }
-
-      const wip = schema ? values.map(value => schema.validate(value)) : [];
-      const error = wip.reduce((accum, {error}, i) => [...accum, ...( error ? [
-        error.message.replace(QUOTED_VALUE, `'${field}' argument #${i}`)
-      ] : [])], []).join(',');
-
+    if (supportMultipleValues(operation)) {
+      const values = rawValue.split(COMMA).map(typecast)
+      if  (!validArgsforOperation(operation, values)) errors.push({ field, error: badArgsLengthError(operation, values) });
+      const validatedValues = schema ? values.map(value => schema.validate(value)) : [];
+      const error = validatedValues.reduce(concatErrorMessages(field), []).join(COMMA);
       if (error) errors.push({ field, error });
       components.push({ ...record, value: values });
     }
     else {
-      valid = schema ? schema.validate(typecast(rawValue)) : {}
-
-      const { value, error } = valid;
-
-      // unsupported record fields && sql operations need to go to errors
-      if (error || !type || !SUPPORTED_OPERATIONS.hasOwnProperty(operation)) {
-        errors.push({
-          field,
-          error: error ? error_message_invalid_value(error, field) :
-            !type ? `'${field}' is not a supported property on this resource` :
-              `'${operation}' operation not supported`
-        });
+      const { value, error } = schema ? schema.validate(typecast(rawValue)) : ({} as any)
+      if (error || !type || !supportedOperation(operation)) {
+        errors.push({ field, error: generateSearchQueryError({error, field, type, operation}) });
       }
-
       components.push({ ...record, value });
     }
-
-});
+  });
 
   return {errors, components}
 

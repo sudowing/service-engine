@@ -7,7 +7,7 @@ export const NUMBER = "number";
 export const BOOLEAN = "boolean";
 export const EQUAL = "equal";
 export const QUOTED_VALUE = '"value"';
-
+export const COMMA = ',';
 
 // values are weither they support multiple values seperated by commas
 export const SUPPORTED_OPERATIONS = {
