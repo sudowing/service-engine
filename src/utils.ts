@@ -81,7 +81,7 @@ const concatErrorMessages = (field: string) => (accum, {error}, i) => [...accum,
 
 
 const validArgsforOperation = (operation: string, values: any[]) =>
-  DEFINED_ARG_LENGTHS[operation] && DEFINED_ARG_LENGTHS[operation] === values.length;
+  DEFINED_ARG_LENGTHS[operation] ? DEFINED_ARG_LENGTHS[operation] === values.length : true;
 const supportMultipleValues = (operation: string) => SUPPORTED_OPERATIONS[operation];
 const supportedOperation = (operation: string) => SUPPORTED_OPERATIONS.hasOwnProperty(operation);
 
