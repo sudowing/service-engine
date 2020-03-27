@@ -33,10 +33,10 @@ const query = {
   // field_geo_radius: "field__geo_radius",
   // field_geo_polygon: "field__geo_polygon",
   // field_geo_geojson: "field__geo_geojson",
-  // "alpha.gt": "field.gt",
-  // "bravo.gte": "field.gte",
-  // "charlie.lt": "field.lt",
-  // "delta.lte": "field.lte",
+  "alpha.gt": "field.gt",
+  "bravo.gte": "field.gte",
+  "charlie.lt": '42',
+  "delta.lte": "111",
   "echo.not": "field.not",
   "foxtrot.range": "5.1,9.7",
   "golf.in": "braves,marlins,nationals,mets,phillies",
@@ -76,6 +76,13 @@ console.log('**********');
 
 // const mainValidator = utils.validatorInspector(v);
 
+// console.log('**********');
+// console.log('oooo.weakValidator');
+// console.log(weakValidator);
+// console.log('**********');
+// console.log('oooo.mainValidator');
+// console.log(mainValidator);
+// console.log('**********');
 
 // const demo = {
 //   alpha: 'alpha',
