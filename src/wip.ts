@@ -12,10 +12,10 @@ const v = Joi.object({
   foxtrot: Joi.number(),
   golf: Joi.string(),
   hotel: Joi.string().required(),
-  mike: utils.JOI_GEOFIELD,
-  november: utils.JOI_GEOFIELD,
-  oscar: utils.JOI_GEOFIELD,
-  papa: utils.JOI_GEOFIELD,
+  mike: utils.JOI_GEOFIELD_POINT,
+  november: utils.JOI_GEOFIELD_POLYGON,
+  oscar: utils.JOI_GEOFIELD_POINT,
+  papa: utils.JOI_GEOFIELD_POLYGON,
 });
 
 const query = {

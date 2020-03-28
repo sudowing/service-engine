@@ -12,6 +12,8 @@ import { SUPPORTED_OPERATIONS, UNDERSCORE_IDS, UNDERSCORE_BYKEY, DOT, DEFINED_AR
 import * as ts from "./interfaces";
 
 const symbolGeoquery = Symbol('geoquery');
+const symbolGeoqueryPoint = Symbol('geoquery-point');
+const symbolGeoqueryPolygon = Symbol('geoquery-polygon');
 const symbolSoftDelete = Symbol('soft_delete');
 
 const falsey = ['','f','false', '0'];
@@ -53,7 +55,10 @@ const reducerValidatorInspector = (
       // need to also eval geoqueries
       type: schema.type,
       required: !!(schema._flags && schema._flags.presence),
-      geoquery: !!(schema._invalids && schema._invalids.has(symbolGeoquery)),
+      geoquery: schema._invalids && schema._invalids.has(symbolGeoquery)
+        ? (schema._invalids.has(symbolGeoqueryPoint) ? 'point' : 'polygon')
+        : null
+      ,
       softDeleteFlag: !!(schema._invalids && schema._invalids.has(symbolSoftDelete)),
       typecast: typecastFn(schema.type), // prob need dynamaic assignment for geo fields (need input as numbers and strings?)
       // validate: (value: string) => schema.validateAsync((typecastFn(schema.type) as any)(value))
@@ -137,7 +142,8 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
 }
 
 
-const JOI_GEOFIELD = Joi.number().invalid(symbolGeoquery);
+const JOI_GEOFIELD_POINT = Joi.number().invalid(symbolGeoquery, symbolGeoqueryPoint);
+const JOI_GEOFIELD_POLYGON = Joi.number().invalid(symbolGeoquery, symbolGeoqueryPolygon);
 const JOI_SOFT_DELETE_FLAG = Joi.boolean().invalid(symbolSoftDelete);
 
 export {
@@ -147,8 +153,11 @@ export {
   reducerValidatorInspector,
   searchQueryParser,
   symbolGeoquery,
-  JOI_GEOFIELD,
-  JOI_SOFT_DELETE_FLAG
+  JOI_GEOFIELD_POINT,
+  JOI_GEOFIELD_POLYGON,
+  JOI_SOFT_DELETE_FLAG,
+  symbolGeoqueryPoint,
+  symbolGeoqueryPolygon,
 };
 
 
