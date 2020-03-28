@@ -30,7 +30,7 @@ const typecastFn = (type: string):
 
 const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
   const weakValidator = cloneDeep(validator);
-  cloneDeep(validator)[UNDERSCORE_IDS][UNDERSCORE_BYKEY].forEach(
+  weakValidator[UNDERSCORE_IDS][UNDERSCORE_BYKEY].forEach(
     ({ schema: { _flags } }) => {
       if (_flags && _flags.presence) delete _flags.presence;
     }
@@ -47,7 +47,7 @@ const reducerValidatorInspector = (
     // need to also eval geoqueries
     type: schema.type,
     required: !!(schema._flags && schema._flags.presence),
-    typecast: typecastFn(schema.type),
+    typecast: typecastFn(schema.type), // prob need dynamaic assignment for geo fields (need input as numbers and strings?)
     // validate: (value: string) => schema.validateAsync((typecastFn(schema.type) as any)(value))
     validate: (value: string) => schema.validate((typecastFn(schema.type) as any)(value))
   },
@@ -127,3 +127,10 @@ export {
   reducerValidatorInspector,
   searchQueryParser
 };
+
+
+// need to confirm usage of GEOFIELD validator type
+// was it used for points or polygons?
+// I know it was used geojson generation on out/publish
+// I think the gis functions were only done on points!
+// will need two seperate validation types (number and string) to handle various inputs -- else dynamic typecast fn assignment

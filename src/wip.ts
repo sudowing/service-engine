@@ -72,17 +72,17 @@ console.log('**********');
 
 
 
-// const weakValidator = utils.validatorInspector(utils.modifyValidator(v));
+const weakValidator = utils.validatorInspector(utils.modifyValidator(v));
 
-// const mainValidator = utils.validatorInspector(v);
+const mainValidator = utils.validatorInspector(v);
 
-// console.log('**********');
-// console.log('oooo.weakValidator');
-// console.log(weakValidator);
-// console.log('**********');
-// console.log('oooo.mainValidator');
-// console.log(mainValidator);
-// console.log('**********');
+console.log('**********');
+console.log('oooo.weakValidator');
+console.log(weakValidator);
+console.log('**********');
+console.log('oooo.mainValidator');
+console.log(mainValidator);
+console.log('**********');
 
 // const demo = {
 //   alpha: 'alpha',

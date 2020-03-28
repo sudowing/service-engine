@@ -46,3 +46,16 @@ query
     geo_geojson
 
 */
+
+// need to confirm usage of GEOFIELD validator type
+// was it used for points or polygons?
+// I know it was used geojson generation on out/publish
+// I think the gis functions were only done on points!
+// will need two seperate validation types (number and string) to handle various inputs -- else dynamic typecast fn assignment
+```
+geoqueries were only ever done on the `center`. Anything marked as a geo field in the validator was published as geoJson
+```
+Guidance I got was to use QGIS to import shapefiles and export as WKT (well known text) as that's how we stored data.
+
+https://qgis.org/en/site/forusers/alldownloads.html#fedora
+https://postgis.net/workshops/postgis-intro/loading_data.html
