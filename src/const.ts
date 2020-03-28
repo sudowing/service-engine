@@ -11,7 +11,7 @@ export const COMMA = ',';
 
 // values are weither they support multiple values seperated by commas
 export const SUPPORTED_OPERATIONS = {
-    eq: false,
+    equal: false,
     gt: false,
     gte: false,
     lt: false,

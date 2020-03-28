@@ -14,19 +14,21 @@ import * as ts from "./interfaces";
 const symbolGeoquery = Symbol('geoquery');
 const symbolSoftDelete = Symbol('soft_delete');
 
+const falsey = ['','f','false', '0'];
 
 const typecastFn = (type: string):
   | StringConstructor
   | NumberConstructor
   | BooleanConstructor
-  | ts.IDefaultTypeCast => {
+  | ts.IDefaultTypeCast
+  | any => {
   switch (type) {
     case STRING:
       return String;
     case NUMBER:
       return Number;
     case BOOLEAN:
-      return Boolean;
+      return (arg) => Boolean((falsey.includes(arg) ? false : arg));
     default:
       return (arg) => arg;
   }
@@ -45,13 +47,7 @@ const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
 const reducerValidatorInspector = (
   accum: object,
   { id, schema }
-): ts.IValidatorInspectorReport => {
-
-  console.log(id, );
-
-  symbolSoftDelete
-
-  return {
+): ts.IValidatorInspectorReport => ({
     ...accum,
     [id]: {
       // need to also eval geoqueries
@@ -63,8 +59,7 @@ const reducerValidatorInspector = (
       // validate: (value: string) => schema.validateAsync((typecastFn(schema.type) as any)(value))
       validate: (value: string) => schema.validate((typecastFn(schema.type) as any)(value))
     },
-  }
-};
+});
 
 /**
  * @description Used for swagger generation and for validating user queries. Real validator cannot be used as those are plain objects and may need to validate field multiple times (sql where field <= 5 and >= 12) <-- need to validate values against field twice.
@@ -123,6 +118,14 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
     else {
       const { value, error } = schema ? schema.validate(typecast(rawValue)) : ({} as any)
       if (error || !type || !supportedOperation(operation)) {
+
+        console.log('**********');
+        console.log('oooo.error');
+        console.log(error);
+        console.log('oooo.zzzzz');
+        console.log(field, type, operation);
+        console.log('**********');
+
         errors.push({ field, error: generateSearchQueryError({error, field, type, operation}) });
       }
       components.push({ ...record, value });
