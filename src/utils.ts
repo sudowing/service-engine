@@ -11,6 +11,10 @@ import { SUPPORTED_OPERATIONS, UNDERSCORE_IDS, UNDERSCORE_BYKEY, DOT, DEFINED_AR
 } from "./const";
 import * as ts from "./interfaces";
 
+const symbolGeoquery = Symbol('geoquery');
+const symbolSoftDelete = Symbol('soft_delete');
+
+
 const typecastFn = (type: string):
   | StringConstructor
   | NumberConstructor
@@ -41,17 +45,26 @@ const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
 const reducerValidatorInspector = (
   accum: object,
   { id, schema }
-): ts.IValidatorInspectorReport => ({
-  ...accum,
-  [id]: {
-    // need to also eval geoqueries
-    type: schema.type,
-    required: !!(schema._flags && schema._flags.presence),
-    typecast: typecastFn(schema.type), // prob need dynamaic assignment for geo fields (need input as numbers and strings?)
-    // validate: (value: string) => schema.validateAsync((typecastFn(schema.type) as any)(value))
-    validate: (value: string) => schema.validate((typecastFn(schema.type) as any)(value))
-  },
-});
+): ts.IValidatorInspectorReport => {
+
+  console.log(id, );
+
+  symbolSoftDelete
+
+  return {
+    ...accum,
+    [id]: {
+      // need to also eval geoqueries
+      type: schema.type,
+      required: !!(schema._flags && schema._flags.presence),
+      geoquery: !!(schema._invalids && schema._invalids.has(symbolGeoquery)),
+      softDeleteFlag: !!(schema._invalids && schema._invalids.has(symbolSoftDelete)),
+      typecast: typecastFn(schema.type), // prob need dynamaic assignment for geo fields (need input as numbers and strings?)
+      // validate: (value: string) => schema.validateAsync((typecastFn(schema.type) as any)(value))
+      validate: (value: string) => schema.validate((typecastFn(schema.type) as any)(value))
+    },
+  }
+};
 
 /**
  * @description Used for swagger generation and for validating user queries. Real validator cannot be used as those are plain objects and may need to validate field multiple times (sql where field <= 5 and >= 12) <-- need to validate values against field twice.
@@ -120,12 +133,19 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
 
 }
 
+
+const JOI_GEOFIELD = Joi.number().invalid(symbolGeoquery);
+const JOI_SOFT_DELETE_FLAG = Joi.boolean().invalid(symbolSoftDelete);
+
 export {
   typecastFn,
   validatorInspector,
   modifyValidator,
   reducerValidatorInspector,
-  searchQueryParser
+  searchQueryParser,
+  symbolGeoquery,
+  JOI_GEOFIELD,
+  JOI_SOFT_DELETE_FLAG
 };
 
 

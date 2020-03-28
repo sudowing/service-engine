@@ -59,3 +59,18 @@ Guidance I got was to use QGIS to import shapefiles and export as WKT (well know
 
 https://qgis.org/en/site/forusers/alldownloads.html#fedora
 https://postgis.net/workshops/postgis-intro/loading_data.html
+
+
+```
+2
+
+What worked for me was to:
+
+    Delete the node_modules in both the dependency and the consumer module.
+    Run npm unlink --no-save [dependency-module]
+    re-link with the 2-link commands as per npm-link
+
+Now I am able to fully test my unpublished module locally.
+
+Additionally, there is an npm pack command which can help you test your unpublished modules, although not quite as robust.
+```

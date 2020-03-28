@@ -2,7 +2,8 @@
   "name": "service-engine",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "npx tsc",
     "lint": "npm run lint:tslint",

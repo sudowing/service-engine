@@ -1,7 +1,7 @@
 import * as Joi from "@hapi/joi";
 import * as utils from "./utils";
 
-export const JOI_GEOFIELD = Joi.number().invalid('geoquery');
+
 
 const v = Joi.object({
   alpha: Joi.string().required(),
@@ -12,10 +12,10 @@ const v = Joi.object({
   foxtrot: Joi.number(),
   golf: Joi.string(),
   hotel: Joi.string().required(),
-  mike: JOI_GEOFIELD,
-  november: JOI_GEOFIELD,
-  oscar: JOI_GEOFIELD,
-  papa: JOI_GEOFIELD,
+  mike: utils.JOI_GEOFIELD,
+  november: utils.JOI_GEOFIELD,
+  oscar: utils.JOI_GEOFIELD,
+  papa: utils.JOI_GEOFIELD,
 });
 
 const query = {

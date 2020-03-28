@@ -15,6 +15,8 @@ export interface IValidatorInspectorReport {
   [index: string]: {
     type: string;
     required: boolean;
+    geoquery: boolean;
+    softDeleteFlag: boolean;
     typecast:
       | StringConstructor
       | NumberConstructor
