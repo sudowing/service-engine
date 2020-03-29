@@ -42,3 +42,21 @@ export interface IFieldAndOperation {
   field: string;
   operation: string;
 }
+
+interface ISearchQueryComponent {
+  field: string;
+  rawValue: string;
+  operation: string;
+  type: string;
+  value: string|number|boolean|string[]|number[];
+}
+
+interface ISearchQueryError {
+  field: string;
+  error: string;
+}
+
+export interface ISearchQueryResponse {
+  errors: ISearchQueryError[];
+  components: ISearchQueryComponent[];
+}

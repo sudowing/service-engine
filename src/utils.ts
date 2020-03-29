@@ -153,7 +153,13 @@ const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
   return { field, operation: op ? op : cnst.EQUAL }
 };
 
-const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryParser) => {
+/**
+ * @description Heart of the entire system. This Fn takes in a JOI validator and a query object (which is mostly the `ctx.request.query` -- sans a couple keys) and submits both for processing. Search interfaces, fields & operations, are derived from the JOI validators, values from query object are typecasted to data types (if possible) using the types of each field from the JOI validator. Some query operations support multiple values seperated by commas, and this value parsing to arrays is also done here. The output is an array of errors if any exist, so request can be stopped before submitting to database, and an array of component objects that will be used to generated the SQL query using knex query builder if there are no errors.
+ * @param {Joi.Schema} validator
+ * @param {ts.IParamsSearchQueryParser} query
+ * @returns {ts.ISearchQueryResponse}
+ */
+const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryParser): ts.ISearchQueryResponse => {
   const errors = [];
   const components = [];
   Object.entries(query).forEach(([key, rawValue]) => {
