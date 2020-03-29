@@ -4,23 +4,19 @@ import "mocha";
 
 import * as utils from "../utils";
 
-console.log('**********');
-console.log('oooo.utils');
-console.log(utils);
-console.log('**********');
+import * as mocks from "./mocks";
 
 describe("utils", () => {
 
   it("some typecastFn", () => {
     const fn = utils.typecastFn;
-    const castString = fn('string')
-    const castNumber = fn('number')
-    const castBoolean = fn('boolean')
 
+    const castString = fn('string')
     expect(castString('some_string')).to.equal("some_string");
     expect(castString('123')).to.equal("123");
     expect(castString('true')).to.equal("true");
 
+    const castNumber = fn('number')
     expect(castNumber('123')).to.equal(123);
     expect(castNumber('-123')).to.equal(-123);
     expect(castNumber('12.34')).to.equal(12.34);
@@ -32,6 +28,7 @@ describe("utils", () => {
     expect(castNumber('2e-3')).to.equal(0.002);
     expect(isNaN(castNumber('some_string'))).to.equal(true);
 
+    const castBoolean = fn('boolean')
     expect(castBoolean('')).to.equal(false);
     expect(castBoolean('0')).to.equal(false);
     expect(castBoolean('f')).to.equal(false);
@@ -49,9 +46,66 @@ describe("utils", () => {
 
   });
 
-  it("some modifyValidator", () => {
-    // const fn = utils.modifyValidator;
-    expect("modifyValidator").to.equal("modifyValidator");
+  describe("some modifyValidator", () => {
+    const original = mocks.test_keyed_table;
+    const bizarro = utils.modifyValidator(original);
+    const alpha = 'string';
+    const bravo = 123;
+    const charlie = true;
+    const zulu = 'a string'
+    const recordValid = { alpha, bravo, charlie, zulu};
+    const recordBadTypes = { alpha: 123, bravo: false, charlie: 'some string'};
+
+    const getMessage = (item: any) => item.error.details[0].message
+
+    describe("original", () => {
+      const noAlpha = original.validate({bravo, charlie});
+      expect(getMessage(noAlpha)).to.equal('"alpha" is required');
+
+      const noBravo = original.validate({alpha, charlie});
+      expect(getMessage(noBravo)).to.equal('"bravo" is required');
+
+      const noCharlie = original.validate({alpha, bravo});
+      expect(getMessage(noCharlie)).to.equal('"charlie" is required');
+
+      const success = original.validate(recordValid);
+      expect(success.error).to.equal(undefined);
+
+      const failure1 = original.validate({...recordBadTypes});
+      expect(getMessage(failure1)).to.equal('"alpha" must be a string');
+
+      const failure2 = original.validate({...recordBadTypes, alpha});
+      expect(getMessage(failure2)).to.equal('"bravo" must be a number');
+
+      const failure3 = original.validate({...recordBadTypes, alpha, bravo});
+      expect(getMessage(failure3)).to.equal('"charlie" must be a boolean');
+
+    });
+
+    describe("modified (requirements removed)", () => {
+      const noAlpha = bizarro.validate({bravo, charlie});
+      expect(noAlpha.error).to.equal(undefined);
+
+      const noBravo = bizarro.validate({alpha, charlie});
+      expect(noBravo.error).to.equal(undefined);
+
+      const noCharlie = bizarro.validate({alpha, bravo});
+      expect(noCharlie.error).to.equal(undefined);
+
+      const success = bizarro.validate(recordValid);
+      expect(success.error).to.equal(undefined);
+
+      const failure1 = bizarro.validate({...recordBadTypes});
+      expect(getMessage(failure1)).to.equal('"alpha" must be a string');
+
+      const failure2 = bizarro.validate({...recordBadTypes, alpha});
+      expect(getMessage(failure2)).to.equal('"bravo" must be a number');
+
+      const failure3 = bizarro.validate({...recordBadTypes, alpha, bravo});
+      expect(getMessage(failure3)).to.equal('"charlie" must be a boolean');
+
+    });
+  
   });
 
   it("some reducerValidatorInspector", () => {
