@@ -14,3 +14,6 @@ update
 delete (soft delete only) (uses read PKs)
 
 swagger docs
+
+update logger with file and trace
+make every http call get logged to debug

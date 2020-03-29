@@ -3,7 +3,7 @@
         "src/**/*.ts",
         "src/**/*.tsx"
     ],
-    "include": [
+    "exclude": [
         "src/tests/**/*.ts",
         "src/tests/**/*.tsx"
     ],    
