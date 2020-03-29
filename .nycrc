@@ -3,6 +3,10 @@
         "src/**/*.ts",
         "src/**/*.tsx"
     ],
+    "include": [
+        "src/tests/**/*.ts",
+        "src/tests/**/*.tsx"
+    ],    
     "extension": [
         ".ts",
         ".tsx"
