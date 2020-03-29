@@ -10,6 +10,10 @@ export interface IParamsSearchQueryParser {
 }
 
 export type IDefaultTypeCast = <T>(arg: T) => T;
+export type ITypeCastGeneric = <T>(arg: string) => T;
+export type ITypeCastString = (arg: string) => string;
+export type ITypeCastNumber = (arg: string) => number;
+export type ITypeCastBoolean = (arg: string) => boolean;
 
 export interface IValidatorInspectorReport {
   [index: string]: {
@@ -18,11 +22,18 @@ export interface IValidatorInspectorReport {
     geoqueryType: null|string;
     softDeleteFlag: boolean;
     typecast:
-      | StringConstructor
-      | NumberConstructor
-      | BooleanConstructor
+      | ITypeCastString
+      | ITypeCastNumber
+      | ITypeCastBoolean
       | IDefaultTypeCast;
-      validate: any;
+    validate: any;
       
   };
+}
+
+export interface IParamsGenerateSearchQueryError {
+  error: Error;
+  field: string;
+  type: string;
+  operation: string;
 }

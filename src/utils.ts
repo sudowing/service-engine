@@ -3,17 +3,26 @@ import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
+/**
+ * @description Fn that takes string input of a data type, and returns a Fn that will convert an input into target type. Boolean defines some string inputs as falesy and returns false.
+ * @param {string} type
+ * @returns {(ts.ITypeCastString
+ *   | ts.ITypeCastNumber
+ *   | ts.ITypeCastBoolean
+ *   | ts.IDefaultTypeCast
+ *   | any)}
+ */
 const typecastFn = (type: string):
-  | StringConstructor
-  | NumberConstructor
-  | BooleanConstructor
+  | ts.ITypeCastString
+  | ts.ITypeCastNumber
+  | ts.ITypeCastBoolean
   | ts.IDefaultTypeCast
   | any => {
   switch (type) {
     case cnst.STRING:
-      return String;
+      return (arg) => String(arg);
     case cnst.NUMBER:
-      return Number;
+      return (arg) => Number(arg);
     case cnst.BOOLEAN:
       return (arg) => Boolean((cnst.FALSEY_STRING_VALUES.includes(arg) ? false : arg));
     default:
@@ -21,6 +30,11 @@ const typecastFn = (type: string):
   }
 };
 
+/**
+ * @description Fn that takes a JOI validator as input and removes the requirement from any fields. This is useful so that validators that define records with PKs can be used more passively to validate queries wanting to `search` on the same record schema.
+ * @param {Joi.Schema} validator
+ * @returns {Joi.Schema}
+ */
 const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
   const weakValidator = cloneDeep(validator);
   weakValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
@@ -31,7 +45,12 @@ const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
   return weakValidator;
 };
 
-
+/**
+ * @description Reducer Fn that inspects a given schema from fields/keys within a JOI validator object and reports meta information about the specific field. This information is used extensively in this framework for autogeneration of openapi docs, pks to use for unique records, dynamic enabling of geoquery interfaces, and typecasting of query string input before building SQL statements.
+ * @param {object} accum
+ * @param {*} { id, schema }
+ * @returns {ts.IValidatorInspectorReport}
+ */
 const reducerValidatorInspector = (
   accum: object,
   { id, schema }
@@ -61,25 +80,57 @@ const validatorInspector = (
     validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].values()
   ) as any).reduce(reducerValidatorInspector, {});
 
-const error_message_invalid_value = (error: Error, field: string) =>
+
+/**
+ * @description Fn that generates error message when value submitted for search is of incorrect data type.
+ * @param {Error} error
+ * @param {string} field
+ * @returns {string}
+ */
+const error_message_invalid_value = (error: Error, field: string): string =>
   error.message.replace(cnst.QUOTED_VALUE, `'${field}'`)
 
-const generateSearchQueryError = ({error, field, type, operation}) =>
+/**
+ * @description Fn that generates error message when GET query produces error for various reasons. Defined errors were generated via JOI validation checks. undefined types occur when trying to query a column that doesn't exist on the record. Final fallback is for when a query operation is called on a field that is not supported.
+ * @param {ts.IParamsGenerateSearchQueryError} {error, field, type, operation}
+ * @returns {string}
+ */
+const generateSearchQueryError = ({error, field, type, operation}: ts.IParamsGenerateSearchQueryError): string =>
   error ? error_message_invalid_value(error, field) :
     !type ? `'${field}' is not a supported property on this resource` :
       `'${operation}' operation not supported`
-const badArgsLengthError = (operation: string, values: any[]) =>
+
+/**
+ * @description Fn that generates verbose error message string when specific number of args not used with a given operation. Only a few operations have specific arg lengths.
+ * @param {string} operation
+ * @param {any[]} values
+ * @returns {string}
+ */
+const badArgsLengthError = (operation: string, values: any[]): string =>
 `'${operation}' operation requires ${cnst.DEFINED_ARG_LENGTHS[operation]} args. ${values.length} were provided.`
 
+
+/**
+ * @description Convenience Fn that builds array of verbose error message strings
+ * @param {string} field
+ */
 const concatErrorMessages = (field: string) =>
-  (accum, {error}, i) =>
+  (accum, {error}, i): string[] =>
     [...accum, ...(
       error ? [error.message.replace(cnst.QUOTED_VALUE, `'${field}' argument #${i}`)] : []
     )];
 
-const validArgsforOperation = (operation: string, values: any[]) =>
+/**
+ * @description Fn that checks to see if length of args meets the needs for a given operation. Only applies to a handful of operations, so majority default to true.
+ * @param {string} operation
+ * @param {any[]} values
+ * @returns {boolean}
+ */
+const validArgsforOperation = (operation: string, values: any[]): boolean =>
   cnst.DEFINED_ARG_LENGTHS[operation] ? cnst.DEFINED_ARG_LENGTHS[operation] === values.length : true;
+
 const supportMultipleValues = (operation: string) => cnst.SUPPORTED_OPERATIONS[operation];
+
 const supportedOperation = (operation: string) => cnst.SUPPORTED_OPERATIONS.hasOwnProperty(operation);
 
 const parseFieldAndOperation = (key: string) => {
