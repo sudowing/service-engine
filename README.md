@@ -5,9 +5,6 @@ https://medium.com/the-andela-way/scaling-out-with-node-clusters-1dca4a39a2a
 
 /*
 
-
-
-
 query
     #fields=alpha,bravo,charlie
     #subquery?=query
@@ -74,3 +71,13 @@ Now I am able to fully test my unpublished module locally.
 
 Additionally, there is an npm pack command which can help you test your unpublished modules, although not quite as robust.
 ```
+
+dynamic seperator? comma and pipe
+dynamic field/column labels
+
+pagination
+    page
+    limit
+order
+
+geoquery on point only

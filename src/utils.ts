@@ -12,7 +12,7 @@ import * as ts from "./interfaces";
  *   | ts.IDefaultTypeCast
  *   | any)}
  */
-const typecastFn = (type: string):
+export const typecastFn = (type: string):
   | ts.ITypeCastString
   | ts.ITypeCastNumber
   | ts.ITypeCastBoolean
@@ -35,7 +35,7 @@ const typecastFn = (type: string):
  * @param {Joi.Schema} validator
  * @returns {Joi.Schema}
  */
-const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
+export const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
   const weakValidator = cloneDeep(validator);
   weakValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
     ({ schema: { _flags } }) => {
@@ -51,7 +51,7 @@ const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
  * @param {*} { id, schema }
  * @returns {ts.IValidatorInspectorReport}
  */
-const reducerValidatorInspector = (
+export const reducerValidatorInspector = (
   accum: object,
   { id, schema }
 ): ts.IValidatorInspectorReport => ({
@@ -73,7 +73,7 @@ const reducerValidatorInspector = (
  * @param {Joi.Schema} validator
  * @returns {ts.IValidatorInspectorReport}
  */
-const validatorInspector = (
+export const validatorInspector = (
   validator: Joi.Schema
 ): ts.IValidatorInspectorReport =>
   (Array.from(
@@ -87,7 +87,7 @@ const validatorInspector = (
  * @param {string} field
  * @returns {string}
  */
-const error_message_invalid_value = (error: Error, field: string): string =>
+export const error_message_invalid_value = (error: Error, field: string): string =>
   error.message.replace(cnst.QUOTED_VALUE, `'${field}'`)
 
 /**
@@ -95,7 +95,7 @@ const error_message_invalid_value = (error: Error, field: string): string =>
  * @param {ts.IParamsGenerateSearchQueryError} {error, field, type, operation}
  * @returns {string}
  */
-const generateSearchQueryError = ({error, field, type, operation}: ts.IParamsGenerateSearchQueryError): string =>
+export const generateSearchQueryError = ({error, field, type, operation}: ts.IParamsGenerateSearchQueryError): string =>
   error ? error_message_invalid_value(error, field) :
     !type ? `'${field}' is not a supported property on this resource` :
       `'${operation}' operation not supported`
@@ -106,7 +106,7 @@ const generateSearchQueryError = ({error, field, type, operation}: ts.IParamsGen
  * @param {any[]} values
  * @returns {string}
  */
-const badArgsLengthError = (operation: string, values: any[]): string =>
+export const badArgsLengthError = (operation: string, values: any[]): string =>
 `'${operation}' operation requires ${cnst.DEFINED_ARG_LENGTHS[operation]} args. ${values.length} were provided.`
 
 
@@ -114,7 +114,7 @@ const badArgsLengthError = (operation: string, values: any[]): string =>
  * @description Convenience Fn that builds array of verbose error message strings
  * @param {string} field
  */
-const concatErrorMessages = (field: string) =>
+export const concatErrorMessages = (field: string) =>
   (accum, {error}, i): string[] =>
     [...accum, ...(
       error ? [error.message.replace(cnst.QUOTED_VALUE, `'${field}' argument #${i}`)] : []
@@ -126,7 +126,7 @@ const concatErrorMessages = (field: string) =>
  * @param {any[]} values
  * @returns {boolean}
  */
-const validArgsforOperation = (operation: string, values: any[]): boolean =>
+export const validArgsforOperation = (operation: string, values: any[]): boolean =>
   cnst.DEFINED_ARG_LENGTHS[operation] ? cnst.DEFINED_ARG_LENGTHS[operation] === values.length : true;
 
 /**
@@ -134,21 +134,21 @@ const validArgsforOperation = (operation: string, values: any[]): boolean =>
  * @param {string} operation
  * @returns {(undefined|boolean)}
  */
-const supportMultipleValues = (operation: string): undefined|boolean => cnst.SUPPORTED_OPERATIONS[operation];
+export const supportMultipleValues = (operation: string): undefined|boolean => cnst.SUPPORTED_OPERATIONS[operation];
 
 /**
  * @description Some operations on GET queries support operations via `field.operation`. This `SUPPORTED_OPERATIONS` object holds a map with keys that represent all supported operations.
  * @param {string} operation
  * @returns {boolean}
  */
-const supportedOperation = (operation: string): boolean => cnst.SUPPORTED_OPERATIONS.hasOwnProperty(operation);
+export const supportedOperation = (operation: string): boolean => cnst.SUPPORTED_OPERATIONS.hasOwnProperty(operation);
 
 /**
  * @description Fn that parses all GET querystring keys into fields and operations. These are set by the caller via `field.operation` syntax on all GET query string keys for searching. If `.operation` is not provided -- defaults to `.equal`.
  * @param {string} key
  * @returns {ts.IFieldAndOperation}
  */
-const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
+export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
   const [field, op] = key.split(cnst.DOT);
   return { field, operation: op ? op : cnst.EQUAL }
 };
@@ -159,7 +159,7 @@ const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
  * @param {ts.IParamsSearchQueryParser} query
  * @returns {ts.ISearchQueryResponse}
  */
-const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryParser): ts.ISearchQueryResponse => {
+export const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryParser): ts.ISearchQueryResponse => {
   const errors = [];
   const components = [];
   Object.entries(query).forEach(([key, rawValue]) => {
@@ -186,11 +186,3 @@ const searchQueryParser = (validator: Joi.Schema, query: ts.IParamsSearchQueryPa
   });
   return {errors, components}
 }
-
-export {
-  typecastFn,
-  validatorInspector,
-  modifyValidator,
-  reducerValidatorInspector,
-  searchQueryParser,
-};
