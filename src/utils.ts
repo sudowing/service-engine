@@ -129,11 +129,26 @@ const concatErrorMessages = (field: string) =>
 const validArgsforOperation = (operation: string, values: any[]): boolean =>
   cnst.DEFINED_ARG_LENGTHS[operation] ? cnst.DEFINED_ARG_LENGTHS[operation] === values.length : true;
 
-const supportMultipleValues = (operation: string) => cnst.SUPPORTED_OPERATIONS[operation];
+/**
+ * @description Some operations on GET queries support operations via `field.operation`. A subset of these operations support multiple values seperated by commas. This `SUPPORTED_OPERATIONS` object holds a map with keys that represent all supported operations and values that define the support for multiple values. `undefined` responses to this function only occur of the operation isn't supported on the field at all.
+ * @param {string} operation
+ * @returns {(undefined|boolean)}
+ */
+const supportMultipleValues = (operation: string): undefined|boolean => cnst.SUPPORTED_OPERATIONS[operation];
 
-const supportedOperation = (operation: string) => cnst.SUPPORTED_OPERATIONS.hasOwnProperty(operation);
+/**
+ * @description Some operations on GET queries support operations via `field.operation`. This `SUPPORTED_OPERATIONS` object holds a map with keys that represent all supported operations.
+ * @param {string} operation
+ * @returns {boolean}
+ */
+const supportedOperation = (operation: string): boolean => cnst.SUPPORTED_OPERATIONS.hasOwnProperty(operation);
 
-const parseFieldAndOperation = (key: string) => {
+/**
+ * @description Fn that parses all GET querystring keys into fields and operations. These are set by the caller via `field.operation` syntax on all GET query string keys for searching. If `.operation` is not provided -- defaults to `.equal`.
+ * @param {string} key
+ * @returns {ts.IFieldAndOperation}
+ */
+const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
   const [field, op] = key.split(cnst.DOT);
   return { field, operation: op ? op : cnst.EQUAL }
 };

@@ -37,3 +37,8 @@ export interface IParamsGenerateSearchQueryError {
   type: string;
   operation: string;
 }
+
+export interface IFieldAndOperation {
+  field: string;
+  operation: string;
+}
