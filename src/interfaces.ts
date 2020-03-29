@@ -15,7 +15,7 @@ export interface IValidatorInspectorReport {
   [index: string]: {
     type: string;
     required: boolean;
-    geoquery: null|string;
+    geoqueryType: null|string;
     softDeleteFlag: boolean;
     typecast:
       | StringConstructor

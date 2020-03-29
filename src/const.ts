@@ -33,3 +33,9 @@ export const DEFINED_ARG_LENGTHS = {
   geo_radius: 3,
 }
 
+export const SYMBOL_GEOQUERY = Symbol('geoquery');
+export const SYMBOL_GEOQUERY_POINT = Symbol('geoquery-point');
+export const SYMBOL_GEOQUERY_POLYGON = Symbol('geoquery-polygon');
+export const SYMBOL_SOFT_DELETE = Symbol('soft_delete');
+
+export const FALSEY_STRING_VALUES = ['','f','false', '0'];
