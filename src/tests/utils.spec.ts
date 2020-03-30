@@ -8,45 +8,53 @@ import * as mocks from "./mocks";
 
 describe("utils", () => {
 
-  describe("some typecastFn", () => {
+  describe("typecastFn", () => {
     const fn = utils.typecastFn;
 
-    const castString = fn('string')
-    expect(castString('some_string')).to.equal("some_string");
-    expect(castString('123')).to.equal("123");
-    expect(castString('true')).to.equal("true");
+    it("typecase string", () => {
+      const castString = fn('string');
+      expect(castString('some_string')).to.equal("some_string");
+      expect(castString('123')).to.equal("123");
+      expect(castString('true')).to.equal("true");
+    });
 
-    const castNumber = fn('number')
-    expect(castNumber('123')).to.equal(123);
-    expect(castNumber('-123')).to.equal(-123);
-    expect(castNumber('12.34')).to.equal(12.34);
-    expect(castNumber('-0.978')).to.equal(-0.978);
-    expect(castNumber('0b110011010')).to.equal(410);
-    expect(castNumber('0o4732')).to.equal(2522);
-    expect(castNumber('0xb7e8')).to.equal(47080);
-    expect(castNumber('2e3')).to.equal(2000);
-    expect(castNumber('2e-3')).to.equal(0.002);
-    expect(isNaN(castNumber('some_string'))).to.equal(true);
+    it("typecase number", () => {
+      const castNumber = fn('number');
+      expect(castNumber('123')).to.equal(123);
+      expect(castNumber('-123')).to.equal(-123);
+      expect(castNumber('12.34')).to.equal(12.34);
+      expect(castNumber('-0.978')).to.equal(-0.978);
+      expect(castNumber('0b110011010')).to.equal(410);
+      expect(castNumber('0o4732')).to.equal(2522);
+      expect(castNumber('0xb7e8')).to.equal(47080);
+      expect(castNumber('2e3')).to.equal(2000);
+      expect(castNumber('2e-3')).to.equal(0.002);
+      expect(isNaN(castNumber('some_string'))).to.equal(true);
+    });
 
-    const castBoolean = fn('boolean')
-    expect(castBoolean('')).to.equal(false);
-    expect(castBoolean('0')).to.equal(false);
-    expect(castBoolean('f')).to.equal(false);
-    expect(castBoolean('false')).to.equal(false);
-    expect(castBoolean('true')).to.equal(true);
+    it("typecase boolean", () => {
+      const castBoolean = fn('boolean');
+      expect(castBoolean('')).to.equal(false);
+      expect(castBoolean('0')).to.equal(false);
+      expect(castBoolean('f')).to.equal(false);
+      expect(castBoolean('false')).to.equal(false);
+      expect(castBoolean('true')).to.equal(true);
+    });
 
-    const fnArg = () => true;
-    const args = ['some_string', '123', 'true', '123', '-123', '12.34', '-0.978', '0b110011010', '0o4732', '0xb7e8', '2e3', '2e-3', 'some_string', '', '0', 'f', 'false', 'true', null, undefined, Infinity, fnArg]
-    args.forEach(arg => {
-      expect(fn('{}')(arg)).to.equal(arg);
-      expect(fn('null')(arg)).to.equal(arg);
-      expect(fn('')(arg)).to.equal(arg);
-    })
+    it("typecase other", () => {
+      const fnArg = () => true;
+      const args = ['some_string', '123', 'true', '123', '-123', '12.34', '-0.978', '0b110011010', '0o4732', '0xb7e8', '2e3', '2e-3', 'some_string', '', '0', 'f', 'false', 'true', null, undefined, Infinity, fnArg]
+      args.forEach(arg => {
+        expect(fn('{}')(arg)).to.equal(arg);
+        expect(fn('null')(arg)).to.equal(arg);
+        expect(fn('')(arg)).to.equal(arg);
+      })
+    });
 
 
   });
 
-  describe("some modifyValidator", () => {
+  describe("validator modifications", () => {
     const original = mocks.test_keyed_table;
     const bizarro = utils.modifyValidator(original);
     const alpha = 'string';
@@ -58,7 +66,7 @@ describe("utils", () => {
 
     const getMessage = (item: any) => item.error.details[0].message
 
-    describe("original", () => {
+    it("original works as expected", () => {
       const noAlpha = original.validate({bravo, charlie});
       expect(getMessage(noAlpha)).to.equal('"alpha" is required');
 
@@ -82,7 +90,7 @@ describe("utils", () => {
 
     });
 
-    describe("modified (requirements removed)", () => {
+    it("modified (requirements removed)", () => {
       const noAlpha = bizarro.validate({bravo, charlie});
       expect(noAlpha.error).to.equal(undefined);
 
@@ -108,93 +116,110 @@ describe("utils", () => {
   
   });
 
-  it("some reducerValidatorInspector", () => {
-    // const fn = utils.reducerValidatorInspector;
-    expect("reducerValidatorInspector").to.equal("reducerValidatorInspector");
-  });
-
-  it("some validatorInspector", () => {
+  describe("some validatorInspector", () => {
     const fn = utils.validatorInspector;
 
-    const describeOriginal = fn(mocks.test_keyed_table);
-    Object.entries(mocks.initDescribeOriginal).forEach(([key, value]) => {
-      const { type, required, geoqueryType, softDeleteFlag } = value;
-      expect(describeOriginal[key].type).to.equal(type);
-      expect(describeOriginal[key].required).to.equal(required);
-      expect(describeOriginal[key].geoqueryType).to.equal(geoqueryType);
-      expect(describeOriginal[key].softDeleteFlag).to.equal(softDeleteFlag);
-      expect(describeOriginal[key].typecast).to.equal(utils.typecastFn(type));
+    it("inspect original validator", () => {
 
-      const validation = describeOriginal[key].validate(mocks.validationInputs.input[type])
-      expect(validation.value).to.equal(mocks.validationInputs.output[type]);
-    })
-
-    const describeBizarro = fn(utils.modifyValidator(mocks.test_keyed_table));
-    Object.entries(mocks.initDescribeBizarro).forEach(([key, value]) => {
-      const { type, required, geoqueryType, softDeleteFlag } = value;
-      expect(describeBizarro[key].type).to.equal(type);
-      expect(describeBizarro[key].required).to.equal(required);
-      expect(describeBizarro[key].geoqueryType).to.equal(geoqueryType);
-      expect(describeBizarro[key].softDeleteFlag).to.equal(softDeleteFlag);
-      expect(describeBizarro[key].typecast).to.equal(utils.typecastFn(type));
-
-      const validation = describeBizarro[key].validate(mocks.validationInputs.input[type])
-      expect(validation.value).to.equal(mocks.validationInputs.output[type]);
-    })
-
-
+      const describeOriginal = fn(mocks.test_keyed_table);
+      Object.entries(mocks.initDescribeOriginal).forEach(([key, value]) => {
+        const { type, required, geoqueryType, softDeleteFlag } = value;
+        expect(describeOriginal[key].type).to.equal(type);
+        expect(describeOriginal[key].required).to.equal(required);
+        expect(describeOriginal[key].geoqueryType).to.equal(geoqueryType);
+        expect(describeOriginal[key].softDeleteFlag).to.equal(softDeleteFlag);
+        expect(describeOriginal[key].typecast).to.equal(utils.typecastFn(type));
+  
+        const validation = describeOriginal[key].validate(mocks.validationInputs.input[type])
+        expect(validation.value).to.equal(mocks.validationInputs.output[type]);
+      })
+  
+    });
     
-    // console.log('**********');
-    // console.log('oooo.zzzzz');
-    // console.log(JSON.stringify({describeOriginal, describeBizarro}));
-    // console.log('**********');
+    it("inspect mutated validator", () => {
 
-    expect("validatorInspector").to.equal("validatorInspector");
+      const describeBizarro = fn(utils.modifyValidator(mocks.test_keyed_table));
+      Object.entries(mocks.initDescribeBizarro).forEach(([key, value]) => {
+        const { type, required, geoqueryType, softDeleteFlag } = value;
+        expect(describeBizarro[key].type).to.equal(type);
+        expect(describeBizarro[key].required).to.equal(required);
+        expect(describeBizarro[key].geoqueryType).to.equal(geoqueryType);
+        expect(describeBizarro[key].softDeleteFlag).to.equal(softDeleteFlag);
+        expect(describeBizarro[key].typecast).to.equal(utils.typecastFn(type));
+
+        const validation = describeBizarro[key].validate(mocks.validationInputs.input[type])
+        expect(validation.value).to.equal(mocks.validationInputs.output[type]);
+      })
+      
+    });
+
   });
 
-  it("some error_message_invalid_value", () => {
-    // const fn = utils.error_message_invalid_value;
-    expect("error_message_invalid_value").to.equal("error_message_invalid_value");
+
+
+
+
+
+
+
+
+  describe("error_message_invalid_value", () => {
+    it("replaces `value` with field", () => {
+      const error = new Error('go "value"');
+      const field = 'braves';
+      
+      const fn = utils.error_message_invalid_value;
+      expect(fn(error, field)).to.equal("go 'braves'");
+    });
   });
 
-  it("some generateSearchQueryError", () => {
-    // const fn = utils.generateSearchQueryError;
-    expect("generateSearchQueryError").to.equal("generateSearchQueryError");
+  describe("generateSearchQueryError", () => {
+    const fn = utils.generateSearchQueryError;
+    const error = new Error('go "value"');
+    const field = 'braves';
+    const type = 'type';
+    const operation = 'operation';
+    const payload = {error, field, type, operation}
+    
+    it("thrown error", () => {
+      const message = fn(payload);
+      expect(message).to.equal("go 'braves'")
+    });
+    it("unsupported field", () => {
+      const message = fn({...payload, error: undefined, type: undefined});
+      expect(message).to.equal("'braves' is not a supported property on this resource")
+    });
+    it("unsupported operation", () => {
+      const message = fn({...payload, error: undefined});
+      expect(message).to.equal("'operation' operation not supported")
+    });
   });
 
-  it("some badArgsLengthError", () => {
-    // const fn = utils.badArgsLengthError;
-    expect("badArgsLengthError").to.equal("badArgsLengthError");
+  describe("badArgsLengthError", () => {
+    it("enforces defined arg lengths", () => {
+      const fn = utils.badArgsLengthError;
+      expect(fn('range',[1,2,3])).to.equal("'range' operation requires 2 args. 3 were provided.")
+    });
   });
 
-  it("some concatErrorMessages", () => {
-    // const fn = utils.concatErrorMessages;
-    expect("concatErrorMessages").to.equal("concatErrorMessages");
+  describe("dddddd", () => {
+    it("ffffff", () => {
+      expect(true).to.equal(true)
+    });
   });
 
-  it("some validArgsforOperation", () => {
-    // const fn = utils.validArgsforOperation;
-    expect("validArgsforOperation").to.equal("validArgsforOperation");
+  describe("dddddd", () => {
+    it("ffffff", () => {
+      expect(true).to.equal(true)
+    });
   });
 
-  it("some supportMultipleValues", () => {
-    // const fn = utils.supportMultipleValues;
-    expect("supportMultipleValues").to.equal("supportMultipleValues");
+  describe("dddddd", () => {
+    it("ffffff", () => {
+      expect(true).to.equal(true)
+    });
   });
 
-  it("some supportedOperation", () => {
-    // const fn = utils.supportedOperation;
-    expect("supportedOperation").to.equal("supportedOperation");
-  });
 
-  it("some parseFieldAndOperation", () => {
-    // const fn = utils.parseFieldAndOperation;
-    expect("parseFieldAndOperation").to.equal("parseFieldAndOperation");
-  });
-
-  it("some searchQueryParser", () => {
-    // const fn = utils.searchQueryParser;
-    expect("searchQueryParser").to.equal("searchQueryParser");
-  });
 
 });
