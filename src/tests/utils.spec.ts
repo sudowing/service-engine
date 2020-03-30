@@ -236,6 +236,27 @@ describe("utils", () => {
     });
   });
 
+  describe("supportedOperation", () => {
+    it("reports supported operations", () => {
+      const fn = utils.supportedOperation;
+      expect(fn('does not support multiple values')).to.equal(false);
+      expect(fn('in')).to.equal(true);
+    });
+  });
+
+  describe("parseFieldAndOperation", () => {
+    it("parses field and operations", () => {
+      const fn = utils.parseFieldAndOperation;
+      const product1 = fn('field');
+      expect(product1.field).to.equal('field');
+      expect(product1.operation).to.equal('equal');
+
+      const product2 = fn('field.in');
+      expect(product2.field).to.equal('field');
+      expect(product2.operation).to.equal('in');
+
+    });
+  });
 
   describe("dddddd", () => {
     it("ffffff", () => {
