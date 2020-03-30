@@ -8,7 +8,7 @@ import * as mocks from "./mocks";
 
 describe("utils", () => {
 
-  it("some typecastFn", () => {
+  describe("some typecastFn", () => {
     const fn = utils.typecastFn;
 
     const castString = fn('string')
@@ -52,8 +52,8 @@ describe("utils", () => {
     const alpha = 'string';
     const bravo = 123;
     const charlie = true;
-    const zulu = 'a string'
-    const recordValid = { alpha, bravo, charlie, zulu};
+    const mike = 'a string'
+    const recordValid = { alpha, bravo, charlie, mike};
     const recordBadTypes = { alpha: 123, bravo: false, charlie: 'some string'};
 
     const getMessage = (item: any) => item.error.details[0].message
@@ -114,7 +114,41 @@ describe("utils", () => {
   });
 
   it("some validatorInspector", () => {
-    // const fn = utils.validatorInspector;
+    const fn = utils.validatorInspector;
+
+    const describeOriginal = fn(mocks.test_keyed_table);
+    Object.entries(mocks.initDescribeOriginal).forEach(([key, value]) => {
+      const { type, required, geoqueryType, softDeleteFlag } = value;
+      expect(describeOriginal[key].type).to.equal(type);
+      expect(describeOriginal[key].required).to.equal(required);
+      expect(describeOriginal[key].geoqueryType).to.equal(geoqueryType);
+      expect(describeOriginal[key].softDeleteFlag).to.equal(softDeleteFlag);
+      expect(describeOriginal[key].typecast).to.equal(utils.typecastFn(type));
+
+      const validation = describeOriginal[key].validate(mocks.validationInputs.input[type])
+      expect(validation.value).to.equal(mocks.validationInputs.output[type]);
+    })
+
+    const describeBizarro = fn(utils.modifyValidator(mocks.test_keyed_table));
+    Object.entries(mocks.initDescribeBizarro).forEach(([key, value]) => {
+      const { type, required, geoqueryType, softDeleteFlag } = value;
+      expect(describeBizarro[key].type).to.equal(type);
+      expect(describeBizarro[key].required).to.equal(required);
+      expect(describeBizarro[key].geoqueryType).to.equal(geoqueryType);
+      expect(describeBizarro[key].softDeleteFlag).to.equal(softDeleteFlag);
+      expect(describeBizarro[key].typecast).to.equal(utils.typecastFn(type));
+
+      const validation = describeBizarro[key].validate(mocks.validationInputs.input[type])
+      expect(validation.value).to.equal(mocks.validationInputs.output[type]);
+    })
+
+
+    
+    // console.log('**********');
+    // console.log('oooo.zzzzz');
+    // console.log(JSON.stringify({describeOriginal, describeBizarro}));
+    // console.log('**********');
+
     expect("validatorInspector").to.equal("validatorInspector");
   });
 

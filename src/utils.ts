@@ -3,6 +3,12 @@ import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
+
+const castString = (arg) => String(arg);
+const castNumber = (arg) => Number(arg);
+const castBoolean = (arg) => Boolean((cnst.FALSEY_STRING_VALUES.includes(arg) ? false : arg));
+const castOther = (arg) => arg;
+
 /**
  * @description Fn that takes string input of a data type, and returns a Fn that will convert an input into target type. Boolean defines some string inputs as falesy and returns false.
  * @param {string} type
@@ -20,13 +26,13 @@ export const typecastFn = (type: string):
   | any => {
   switch (type) {
     case cnst.STRING:
-      return (arg) => String(arg);
+      return castString;
     case cnst.NUMBER:
-      return (arg) => Number(arg);
+      return castNumber;
     case cnst.BOOLEAN:
-      return (arg) => Boolean((cnst.FALSEY_STRING_VALUES.includes(arg) ? false : arg));
+      return castBoolean;
     default:
-      return (arg) => arg;
+      return castOther;
   }
 };
 
