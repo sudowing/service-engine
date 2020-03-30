@@ -116,3 +116,8 @@ export const validationInputs = {
     },
 };
 
+export const productConcatErrorMessages = [
+    "alpha 'the_black_keys' argument #1",
+    "bravo 'the_black_keys' argument #3",
+    "charlie 'the_black_keys' argument #5"
+]

@@ -202,17 +202,40 @@ describe("utils", () => {
     });
   });
 
-  describe("dddddd", () => {
-    it("ffffff", () => {
-      expect(true).to.equal(true)
+  describe("concatErrorMessages", () => {
+    it("aggregates error strings with replaced substring", () => {
+      const input = [
+        {error: null},
+        {error: new Error('alpha "value"')},
+        {error: undefined},
+        {error: new Error('bravo "value"')},
+        {error: false},
+        {error: new Error('charlie "value"')},
+      ];
+      const fn = utils.concatErrorMessages('the_black_keys');
+      const product = input.reduce(fn, []);
+      expect(JSON.stringify(product)).to.equal(JSON.stringify(mocks.productConcatErrorMessages))
     });
   });
 
-  describe("dddddd", () => {
-    it("ffffff", () => {
-      expect(true).to.equal(true)
+  describe("validArgsforOperation", () => {
+    it("reports defined arg lengths", () => {
+      const fn = utils.validArgsforOperation;
+      expect(fn('range',[1,2,3])).to.equal(false);
+      expect(fn('range',[1,2])).to.equal(true);
+      expect(fn('not a real operation',[1,2])).to.equal(true);
     });
   });
+
+
+  describe("supportMultipleValues", () => {
+    it("reports defined arg lengths", () => {
+      const fn = utils.supportMultipleValues;
+      expect(fn('does not support multiple values')).to.equal(undefined);
+      expect(fn('in')).to.equal(true);
+    });
+  });
+
 
   describe("dddddd", () => {
     it("ffffff", () => {
