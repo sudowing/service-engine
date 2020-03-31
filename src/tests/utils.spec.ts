@@ -259,7 +259,16 @@ describe("utils", () => {
   });
 
   describe("dddddd", () => {
+    const fn = utils.searchQueryParser;
+
     it("ffffff", () => {
+      const { errors, components } = fn(mocks.test_table, mocks.exampleSearchQuery);
+
+      console.log('**********');
+      console.log('oooo.{ errors, components }');
+      console.log(JSON.stringify({ errors, components }));
+      console.log('**********');
+
       expect(true).to.equal(true)
     });
   });
