@@ -1,11 +1,22 @@
 import * as Joi from "@hapi/joi";
-import { SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POINT, SYMBOL_GEOQUERY_POLYGON, SYMBOL_SOFT_DELETE } from './const';
+import {
+  SYMBOL_GEOQUERY,
+  SYMBOL_GEOQUERY_POINT,
+  SYMBOL_GEOQUERY_POLYGON,
+  SYMBOL_SOFT_DELETE,
+} from "./const";
 
 const JOI_UNIQUE_KEY_COMPONENT_STRING = Joi.string().required();
 const JOI_UNIQUE_KEY_COMPONENT_NUMBER = Joi.number().required();
 const JOI_UNIQUE_KEY_COMPONENT_BOOLEAN = Joi.boolean().required();
-const JOI_GEOFIELD_POINT = Joi.number().invalid(SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POINT);
-const JOI_GEOFIELD_POLYGON = Joi.number().invalid(SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POLYGON);
+const JOI_GEOFIELD_POINT = Joi.number().invalid(
+  SYMBOL_GEOQUERY,
+  SYMBOL_GEOQUERY_POINT
+);
+const JOI_GEOFIELD_POLYGON = Joi.number().invalid(
+  SYMBOL_GEOQUERY,
+  SYMBOL_GEOQUERY_POLYGON
+);
 const JOI_SOFT_DELETE_FLAG = Joi.boolean().invalid(SYMBOL_SOFT_DELETE);
 
 export {

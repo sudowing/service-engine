@@ -19,7 +19,7 @@ export interface IValidatorInspectorReport {
   [index: string]: {
     type: string;
     required: boolean;
-    geoqueryType: null|string;
+    geoqueryType: null | string;
     softDeleteFlag: boolean;
     typecast:
       | ITypeCastString
@@ -27,7 +27,6 @@ export interface IValidatorInspectorReport {
       | ITypeCastBoolean
       | IDefaultTypeCast;
     validate: any;
-      
   };
 }
 
@@ -48,7 +47,7 @@ interface ISearchQueryComponent {
   rawValue: string;
   operation: string;
   type: string;
-  value: string|number|boolean|string[]|number[];
+  value: string | number | boolean | string[] | number[];
 }
 
 interface ISearchQueryError {
