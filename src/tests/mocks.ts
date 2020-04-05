@@ -175,177 +175,140 @@ export const exampleSearchQuery = {
 
 export const exampleParsedSearchQuery = {
   errors: [
-      {
-          field: "alpha",
-          error: "'range' operation requires 2 args. 7 were provided."
-      },
-      {
-          field: "charlie",
-          error: "'charlie' argument #0 must be a number,'charlie' argument #1 must be a number"
-      },
-      {
-          field: "alpha",
-          error: "'not_a_real_operation' operation not supported"
-      },
-      {
-          field: "not_a_real_prop",
-          error: "'not_a_real_prop' is not a supported property on this resource"
-      }
+    {
+      field: "alpha",
+      error: "'range' operation requires 2 args. 7 were provided.",
+    },
+    {
+      field: "charlie",
+      error:
+        "'charlie' argument #0 must be a number,'charlie' argument #1 must be a number",
+    },
+    {
+      field: "alpha",
+      error: "'not_a_real_operation' operation not supported",
+    },
+    {
+      field: "not_a_real_prop",
+      error: "'not_a_real_prop' is not a supported property on this resource",
+    },
   ],
   components: [
-      {
-          field: "zulu",
-          rawValue: "true",
-          operation: "equal",
-          type: "boolean",
-          value: true
-      },
-      {
-          field: "alpha",
-          rawValue: "field.gt",
-          operation: "gt",
-          type: "string",
-          value: "field.gt"
-      },
-      {
-          field: "bravo",
-          rawValue: "field.gte",
-          operation: "gte",
-          type: "string",
-          value: "field.gte"
-      },
-      {
-          field: "charlie",
-          rawValue: "42",
-          operation: "lt",
-          type: "number",
-          value: 42
-      },
-      {
-          field: "delta",
-          rawValue: "111",
-          operation: "lte",
-          type: "number",
-          value: 111
-      },
-      {
-          field: "echo",
-          rawValue: "field.not",
-          operation: "not",
-          type: "boolean",
-          value: true
-      },
-      {
-          field: "foxtrot",
-          rawValue: "5.1,9.7",
-          operation: "range",
-          type: "number",
-          value: [
-              5.1,
-              9.7
-          ]
-      },
-      {
-          field: "golf",
-          rawValue: "braves,marlins,nationals,mets,phillies",
-          operation: "in",
-          type: "string",
-          value: [
-              "braves",
-              "marlins",
-              "nationals",
-              "mets",
-              "phillies"
-          ]
-      },
-      {
-          field: "hotel",
-          rawValue: "braves,marlins,nationals,mets,phillies",
-          operation: "not_in",
-          type: "string",
-          value: [
-              "braves",
-              "marlins",
-              "nationals",
-              "mets",
-              "phillies"
-          ]
-      },
-      {
-          field: "alpha",
-          rawValue: "field.like",
-          operation: "like",
-          type: "string",
-          value: "field.like"
-      },
-      {
-          field: "mike",
-          rawValue: "1.1,2.2,3.3,4.4",
-          operation: "geo_bbox",
-          type: "number",
-          value: [
-              1.1,
-              2.2,
-              3.3,
-              4.4
-          ]
-      },
-      {
-          field: "november",
-          rawValue: "1.2,2.3,111000",
-          operation: "geo_radius",
-          type: "number",
-          value: [
-              1.2,
-              2.3,
-              111000
-          ]
-      },
-      {
-          field: "alpha",
-          rawValue: "5.1,9.7,9,8,7,6,5",
-          operation: "range",
-          type: "string",
-          value: [
-              "5.1",
-              "9.7",
-              "9",
-              "8",
-              "7",
-              "6",
-              "5"
-          ]
-      },
-      {
-          field: "charlie",
-          rawValue: "5q1,9r7",
-          operation: "range",
-          type: "number",
-          value: [
-              null,
-              null
-          ]
-      },
-      {
-          field: "alpha",
-          rawValue: "yada yada yada",
-          operation: "not_a_real_operation",
-          type: "string",
-          value: "yada yada yada"
-      },
-      {
-          field: "not_a_real_prop",
-          rawValue: "5.1,9.7",
-          operation: "equal"
-      },
-      {
-          field: "fake_prop",
-          rawValue: "5.1,9.7",
-          operation: "in",
-          value: [
-              "5.1",
-              "9.7"
-          ]
-      }
-  ]
+    {
+      field: "zulu",
+      rawValue: "true",
+      operation: "equal",
+      type: "boolean",
+      value: true,
+    },
+    {
+      field: "alpha",
+      rawValue: "field.gt",
+      operation: "gt",
+      type: "string",
+      value: "field.gt",
+    },
+    {
+      field: "bravo",
+      rawValue: "field.gte",
+      operation: "gte",
+      type: "string",
+      value: "field.gte",
+    },
+    {
+      field: "charlie",
+      rawValue: "42",
+      operation: "lt",
+      type: "number",
+      value: 42,
+    },
+    {
+      field: "delta",
+      rawValue: "111",
+      operation: "lte",
+      type: "number",
+      value: 111,
+    },
+    {
+      field: "echo",
+      rawValue: "field.not",
+      operation: "not",
+      type: "boolean",
+      value: true,
+    },
+    {
+      field: "foxtrot",
+      rawValue: "5.1,9.7",
+      operation: "range",
+      type: "number",
+      value: [5.1, 9.7],
+    },
+    {
+      field: "golf",
+      rawValue: "braves,marlins,nationals,mets,phillies",
+      operation: "in",
+      type: "string",
+      value: ["braves", "marlins", "nationals", "mets", "phillies"],
+    },
+    {
+      field: "hotel",
+      rawValue: "braves,marlins,nationals,mets,phillies",
+      operation: "not_in",
+      type: "string",
+      value: ["braves", "marlins", "nationals", "mets", "phillies"],
+    },
+    {
+      field: "alpha",
+      rawValue: "field.like",
+      operation: "like",
+      type: "string",
+      value: "field.like",
+    },
+    {
+      field: "mike",
+      rawValue: "1.1,2.2,3.3,4.4",
+      operation: "geo_bbox",
+      type: "number",
+      value: [1.1, 2.2, 3.3, 4.4],
+    },
+    {
+      field: "november",
+      rawValue: "1.2,2.3,111000",
+      operation: "geo_radius",
+      type: "number",
+      value: [1.2, 2.3, 111000],
+    },
+    {
+      field: "alpha",
+      rawValue: "5.1,9.7,9,8,7,6,5",
+      operation: "range",
+      type: "string",
+      value: ["5.1", "9.7", "9", "8", "7", "6", "5"],
+    },
+    {
+      field: "charlie",
+      rawValue: "5q1,9r7",
+      operation: "range",
+      type: "number",
+      value: [null, null],
+    },
+    {
+      field: "alpha",
+      rawValue: "yada yada yada",
+      operation: "not_a_real_operation",
+      type: "string",
+      value: "yada yada yada",
+    },
+    {
+      field: "not_a_real_prop",
+      rawValue: "5.1,9.7",
+      operation: "equal",
+    },
+    {
+      field: "fake_prop",
+      rawValue: "5.1,9.7",
+      operation: "in",
+      value: ["5.1", "9.7"],
+    },
+  ],
 };

@@ -278,7 +278,9 @@ describe("utils", () => {
         mocks.test_table,
         mocks.exampleSearchQuery
       );
-      expect(JSON.stringify({ errors, components })).to.equal(JSON.stringify(mocks.exampleParsedSearchQuery));
+      expect(JSON.stringify({ errors, components })).to.equal(
+        JSON.stringify(mocks.exampleParsedSearchQuery)
+      );
     });
   });
 });
