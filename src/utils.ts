@@ -44,13 +44,15 @@ export const typecastFn = (
  * @returns {Joi.Schema}
  */
 export const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
-  const weakValidator = cloneDeep(validator);
-  weakValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
-    ({ schema: { _flags } }) => {
-      if (_flags && _flags.presence) delete _flags.presence;
+  const strongValidator = cloneDeep(validator);
+  strongValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
+    ({ schema: { _flags, _invalids } }) => {
+      if (_invalids && _invalids.has(cnst.UNIQUE_KEY_COMPONENT)) {
+        _flags = _flags ? {..._flags, ...cnst.REQUIRED_FLAG} : cnst.REQUIRED_FLAG;
+      }
     }
   );
-  return weakValidator;
+  return strongValidator;
 };
 
 /**
