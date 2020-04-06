@@ -2,7 +2,7 @@ import * as Joi from "@hapi/joi";
 
 import * as validation from "../validation";
 
-export const test_keyed_table = Joi.object({
+export const testKeyedTable = Joi.object({
   alpha: validation.JOI_UNIQUE_KEY_COMPONENT_STRING,
   bravo: validation.JOI_UNIQUE_KEY_COMPONENT_NUMBER,
   charlie: validation.JOI_UNIQUE_KEY_COMPONENT_BOOLEAN,
@@ -12,7 +12,7 @@ export const test_keyed_table = Joi.object({
   zulu: validation.JOI_SOFT_DELETE_FLAG,
 });
 
-export const test_table = Joi.object({
+export const testTable = Joi.object({
   alpha: Joi.string().required(),
   bravo: Joi.string(),
   charlie: Joi.number(),

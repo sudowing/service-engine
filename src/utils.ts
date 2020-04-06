@@ -100,10 +100,8 @@ export const validatorInspector = (
  * @param {string} field
  * @returns {string}
  */
-export const error_message_invalid_value = (
-  error: Error,
-  field: string
-): string => error.message.replace(cnst.QUOTED_VALUE, `'${field}'`);
+export const errorMessageInvalidValue = (error: Error, field: string): string =>
+  error.message.replace(cnst.QUOTED_VALUE, `'${field}'`);
 
 /**
  * @description Fn that generates error message when GET query produces error for various reasons. Defined errors were generated via JOI validation checks. undefined types occur when trying to query a column that doesn't exist on the record. Final fallback is for when a query operation is called on a field that is not supported.
@@ -117,7 +115,7 @@ export const generateSearchQueryError = ({
   operation,
 }: ts.IParamsGenerateSearchQueryError): string =>
   error
-    ? error_message_invalid_value(error, field)
+    ? errorMessageInvalidValue(error, field)
     : !type
     ? `'${field}' is not a supported property on this resource`
     : `'${operation}' operation not supported`;

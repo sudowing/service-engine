@@ -75,7 +75,7 @@ describe("utils", () => {
   });
 
   describe("validator modifications", () => {
-    const original = mocks.test_keyed_table;
+    const original = mocks.testKeyedTable;
     const bizarro = utils.modifyValidator(original);
     const alpha = "string";
     const bravo = 123;
@@ -137,7 +137,7 @@ describe("utils", () => {
     const fn = utils.validatorInspector;
 
     it("inspect original validator", () => {
-      const describeOriginal = fn(mocks.test_keyed_table);
+      const describeOriginal = fn(mocks.testKeyedTable);
       Object.entries(mocks.initDescribeOriginal).forEach(([key, value]) => {
         const { type, required, geoqueryType, softDeleteFlag } = value;
         expect(describeOriginal[key].type).to.equal(type);
@@ -154,7 +154,7 @@ describe("utils", () => {
     });
 
     it("inspect mutated validator", () => {
-      const describeBizarro = fn(utils.modifyValidator(mocks.test_keyed_table));
+      const describeBizarro = fn(utils.modifyValidator(mocks.testKeyedTable));
       Object.entries(mocks.initDescribeBizarro).forEach(([key, value]) => {
         const { type, required, geoqueryType, softDeleteFlag } = value;
         expect(describeBizarro[key].type).to.equal(type);
@@ -171,12 +171,12 @@ describe("utils", () => {
     });
   });
 
-  describe("error_message_invalid_value", () => {
+  describe("errorMessageInvalidValue", () => {
     it("replaces `value` with field", () => {
       const error = new Error('go "value"');
       const field = "braves";
 
-      const fn = utils.error_message_invalid_value;
+      const fn = utils.errorMessageInvalidValue;
       expect(fn(error, field)).to.equal("go 'braves'");
     });
   });
@@ -275,7 +275,7 @@ describe("utils", () => {
 
     it("produces errors and components as expected", () => {
       const { errors, components } = fn(
-        mocks.test_table,
+        mocks.testTable,
         mocks.exampleSearchQuery
       );
       expect(JSON.stringify({ errors, components })).to.equal(
