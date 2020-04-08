@@ -41,4 +41,4 @@ export const UNIQUE_KEY_COMPONENT = Symbol("unique_key_component");
 
 export const FALSEY_STRING_VALUES = ["", "f", "false", "0"];
 
-export const REQUIRED_FLAG = { presence: 'required' };
+export const REQUIRED_FLAG = { presence: "required" };

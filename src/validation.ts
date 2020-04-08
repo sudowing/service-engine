@@ -7,9 +7,16 @@ import {
   UNIQUE_KEY_COMPONENT,
 } from "./const";
 
-const JOI_UNIQUE_KEY_COMPONENT_STRING = Joi.string().invalid(UNIQUE_KEY_COMPONENT);
-const JOI_UNIQUE_KEY_COMPONENT_NUMBER = Joi.number().invalid(UNIQUE_KEY_COMPONENT);
-const JOI_UNIQUE_KEY_COMPONENT_BOOLEAN = Joi.boolean().invalid(UNIQUE_KEY_COMPONENT);
+// need to wrap these in fns
+const JOI_UNIQUE_KEY_COMPONENT_STRING = Joi.string().invalid(
+  UNIQUE_KEY_COMPONENT
+);
+const JOI_UNIQUE_KEY_COMPONENT_NUMBER = Joi.number().invalid(
+  UNIQUE_KEY_COMPONENT
+);
+const JOI_UNIQUE_KEY_COMPONENT_BOOLEAN = Joi.boolean().invalid(
+  UNIQUE_KEY_COMPONENT
+);
 
 const JOI_GEOFIELD_POINT = Joi.number().invalid(
   SYMBOL_GEOQUERY,

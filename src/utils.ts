@@ -39,16 +39,18 @@ export const typecastFn = (
 };
 
 /**
- * @description Fn that takes a JOI validator as input and removes the requirement from any fields. This is useful so that validators that define records with PKs can be used more passively to validate queries wanting to `search` on the same record schema.
+ * @description Fn that takes a JOI validator as input and applies the requirement on any fields that are marked with appropriate INVALID SYMBOL. This is useful so that validators that define records with PKs (without marking them as required) can be used more passively to validate queries wanting to `search` on the same record schema.
  * @param {Joi.Schema} validator
  * @returns {Joi.Schema}
  */
 export const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
   const strongValidator = cloneDeep(validator);
   strongValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
-    ({ schema: { _flags, _invalids } }) => {
-      if (_invalids && _invalids.has(cnst.UNIQUE_KEY_COMPONENT)) {
-        _flags = _flags ? {..._flags, ...cnst.REQUIRED_FLAG} : cnst.REQUIRED_FLAG;
+    ({ schema, id }) => {
+      if (schema._invalids && schema._invalids.has(cnst.UNIQUE_KEY_COMPONENT)) {
+        schema._flags = schema._flags
+          ? { ...schema._flags, ...cnst.REQUIRED_FLAG }
+          : cnst.REQUIRED_FLAG;
       }
     }
   );
@@ -69,6 +71,7 @@ export const reducerValidatorInspector = (
   [id]: {
     type: schema.type,
     required: !!(schema._flags && schema._flags.presence),
+    // required: !!(schema._invalids && schema._invalids.has(cnst.UNIQUE_KEY_COMPONENT)),
     geoqueryType:
       schema._invalids && schema._invalids.has(cnst.SYMBOL_GEOQUERY)
         ? schema._invalids.has(cnst.SYMBOL_GEOQUERY_POINT)
