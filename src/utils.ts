@@ -84,6 +84,12 @@ export const reducerValidatorInspector = (
     softDeleteFlag: !!(
       schema._invalids && schema._invalids.has(cnst.SYMBOL_SOFT_DELETE)
     ),
+    canUpdate: !!(
+      schema._invalids && schema._invalids.has(cnst.SYMBOL_NO_UPDATE)
+    ),
+    createRequirement: !!(
+      schema._invalids && schema._invalids.has(cnst.SYMBOL_REQUIRE_CREATE)
+    ),
     typecast: typecastFn(schema.type), // prob need dynamaic assignment for geo fields (need input as numbers and strings?)
     validate: (value: string) =>
       schema.validate((typecastFn(schema.type) as any)(value)),

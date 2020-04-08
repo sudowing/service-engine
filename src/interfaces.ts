@@ -21,6 +21,8 @@ export interface IValidatorInspectorReport {
     required: boolean;
     geoqueryType: null | string;
     softDeleteFlag: boolean;
+    canUpdate: boolean;
+    createRequirement: boolean;
     typecast:
       | ITypeCastString
       | ITypeCastNumber
