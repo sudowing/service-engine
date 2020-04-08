@@ -88,13 +88,13 @@ describe("utils", () => {
 
     it("original works as expected", () => {
       const noAlpha = original.validate({ bravo, charlie });
-      expect(getMessage(noAlpha)).to.equal('"alpha" is required');
+      expect(noAlpha.error).to.equal(undefined);
 
       const noBravo = original.validate({ alpha, charlie });
-      expect(getMessage(noBravo)).to.equal('"bravo" is required');
+      expect(noBravo.error).to.equal(undefined);
 
       const noCharlie = original.validate({ alpha, bravo });
-      expect(getMessage(noCharlie)).to.equal('"charlie" is required');
+      expect(noCharlie.error).to.equal(undefined);
 
       const success = original.validate(recordValid);
       expect(success.error).to.equal(undefined);
@@ -111,13 +111,13 @@ describe("utils", () => {
 
     it("modified (requirements removed)", () => {
       const noAlpha = bizarro.validate({ bravo, charlie });
-      expect(noAlpha.error).to.equal(undefined);
+      expect(getMessage(noAlpha)).to.equal('"alpha" is required');
 
       const noBravo = bizarro.validate({ alpha, charlie });
-      expect(noBravo.error).to.equal(undefined);
+      expect(getMessage(noBravo)).to.equal('"bravo" is required');
 
       const noCharlie = bizarro.validate({ alpha, bravo });
-      expect(noCharlie.error).to.equal(undefined);
+      expect(getMessage(noCharlie)).to.equal('"charlie" is required');
 
       const success = bizarro.validate(recordValid);
       expect(success.error).to.equal(undefined);
@@ -137,7 +137,7 @@ describe("utils", () => {
     const fn = utils.validatorInspector;
 
     it("inspect original validator", () => {
-      const describeOriginal = fn(mocks.testKeyedTable);
+      const describeOriginal = fn(utils.modifyValidator(mocks.testKeyedTable));
       Object.entries(mocks.initDescribeOriginal).forEach(([key, value]) => {
         const { type, required, geoqueryType, softDeleteFlag } = value;
         expect(describeOriginal[key].type).to.equal(type);
@@ -154,7 +154,7 @@ describe("utils", () => {
     });
 
     it("inspect mutated validator", () => {
-      const describeBizarro = fn(utils.modifyValidator(mocks.testKeyedTable));
+      const describeBizarro = fn(mocks.testKeyedTable);
       Object.entries(mocks.initDescribeBizarro).forEach(([key, value]) => {
         const { type, required, geoqueryType, softDeleteFlag } = value;
         expect(describeBizarro[key].type).to.equal(type);
