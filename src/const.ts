@@ -37,7 +37,9 @@ export const SYMBOL_GEOQUERY = Symbol("geoquery");
 export const SYMBOL_GEOQUERY_POINT = Symbol("geoquery-point");
 export const SYMBOL_GEOQUERY_POLYGON = Symbol("geoquery-polygon");
 export const SYMBOL_SOFT_DELETE = Symbol("soft_delete");
-export const UNIQUE_KEY_COMPONENT = Symbol("unique_key_component");
+export const SYMBOL_UNIQUE_KEY_COMPONENT = Symbol("SYMBOL_UNIQUE_KEY_COMPONENT");
+export const SYMBOL_NO_UPDATE = Symbol("no_update");
+export const SYMBOL_CREATE_REQUIREMENT = Symbol("create_requirement");
 
 export const FALSEY_STRING_VALUES = ["", "f", "false", "0"];
 
