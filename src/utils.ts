@@ -47,7 +47,10 @@ export const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
   const strongValidator = cloneDeep(validator);
   strongValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
     ({ schema, id }) => {
-      if (schema._invalids && schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)) {
+      if (
+        schema._invalids &&
+        schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)
+      ) {
         schema._flags = schema._flags
           ? { ...schema._flags, ...cnst.REQUIRED_FLAG }
           : cnst.REQUIRED_FLAG;
@@ -235,8 +238,6 @@ export const searchQueryParser = (
   });
   return { errors, components };
 };
-
-
 
 // this is to much dupe. can abstract and pass key.path to map
 

@@ -1,15 +1,15 @@
 import * as Joi from "@hapi/joi";
 
-import * as validation from "../validation";
+import * as cnst from "../const";
 
 export const testKeyedTable = Joi.object({
-  alpha: validation.JOI_UNIQUE_KEY_COMPONENT_STRING,
-  bravo: validation.JOI_UNIQUE_KEY_COMPONENT_NUMBER,
-  charlie: validation.JOI_UNIQUE_KEY_COMPONENT_BOOLEAN,
+  alpha: Joi.string().invalid(cnst.SYMBOL_UNIQUE_KEY_COMPONENT),
+  bravo: Joi.number().invalid(cnst.SYMBOL_UNIQUE_KEY_COMPONENT),
+  charlie: Joi.boolean().invalid(cnst.SYMBOL_UNIQUE_KEY_COMPONENT),
   mike: Joi.string(),
-  xray: validation.JOI_GEOFIELD_POINT,
-  yankee: validation.JOI_GEOFIELD_POLYGON,
-  zulu: validation.JOI_SOFT_DELETE_FLAG,
+  xray: Joi.number().invalid(...cnst.SYMBOLS_GEO_POINT),
+  yankee: Joi.number().invalid(...cnst.SYMBOLS_GEO_POLYGON),
+  zulu: Joi.boolean().invalid(cnst.SYMBOL_SOFT_DELETE),
 });
 
 export const testTable = Joi.object({
@@ -21,11 +21,17 @@ export const testTable = Joi.object({
   foxtrot: Joi.number(),
   golf: Joi.string(),
   hotel: Joi.string().required(),
-  mike: validation.JOI_GEOFIELD_POINT,
-  november: validation.JOI_GEOFIELD_POLYGON,
-  oscar: validation.JOI_GEOFIELD_POINT,
-  papa: validation.JOI_GEOFIELD_POLYGON,
-  zulu: validation.JOI_SOFT_DELETE_FLAG,
+  mike: Joi.number().invalid(cnst.SYMBOL_GEOQUERY, cnst.SYMBOL_GEOQUERY_POINT),
+  november: Joi.number().invalid(
+    cnst.SYMBOL_GEOQUERY,
+    cnst.SYMBOL_GEOQUERY_POLYGON
+  ),
+  oscar: Joi.number().invalid(cnst.SYMBOL_GEOQUERY, cnst.SYMBOL_GEOQUERY_POINT),
+  papa: Joi.number().invalid(
+    cnst.SYMBOL_GEOQUERY,
+    cnst.SYMBOL_GEOQUERY_POLYGON
+  ),
+  zulu: Joi.boolean().invalid(cnst.SYMBOL_SOFT_DELETE),
 });
 
 export const initDescribeOriginal = {
