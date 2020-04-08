@@ -235,3 +235,24 @@ export const searchQueryParser = (
   });
   return { errors, components };
 };
+
+/**
+ * @description Accepts Validator Inspection Report as input and lists all softDeleteFields (designed to only support one)
+ * @param {ts.IValidatorInspectorReport} report
+ */
+export const softDeleteFields = (report: ts.IValidatorInspectorReport) =>
+  Object.entries(report).reduce(
+    (accum, [key, { softDeleteFlag }]) =>
+      !softDeleteFlag ? accum : [...accum, key],
+    []
+  );
+
+/**
+ * @description Accepts Validator Inspection Report as input and lists all fields that are components of primary key (designed to only support one)
+ * @param {ts.IValidatorInspectorReport} report
+ */
+export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
+  Object.entries(report).reduce(
+    (accum, [key, { required }]) => (!required ? accum : [...accum, key]),
+    []
+  );
