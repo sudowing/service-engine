@@ -76,7 +76,7 @@ describe("utils", () => {
 
   describe("validator modifications", () => {
     const original = mocks.testKeyedTable;
-    const bizarro = utils.modifyValidator(original);
+    const bizarro = utils.modifyValidator(original, "read");
     const alpha = "string";
     const bravo = 123;
     const charlie = true;
@@ -137,7 +137,9 @@ describe("utils", () => {
     const fn = utils.validatorInspector;
 
     it("inspect original validator", () => {
-      const describeOriginal = fn(utils.modifyValidator(mocks.testKeyedTable));
+      const describeOriginal = fn(
+        utils.modifyValidator(mocks.testKeyedTable, "read")
+      );
       Object.entries(mocks.initDescribeOriginal).forEach(([key, value]) => {
         const { type, required, geoqueryType, softDeleteFlag } = value;
         expect(describeOriginal[key].type).to.equal(type);

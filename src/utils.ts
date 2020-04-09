@@ -41,29 +41,46 @@ export const typecastFn = (
 /**
  * @description Fn that takes a JOI validator as input and modifies fields (making required or totally removing) fields that are marked with appropriate SYMBOLS. This is useful so that validators that define records 1:1 with db resource DDLs (table, view, materialized view), dynamically get modified to support full CRUD operations.
  * @param {Joi.Schema} validator
- * @param {string} operation
+ * @param {string} [operation='original']
  * @returns {Joi.Schema}
  */
-export const modifyValidator = (validator: Joi.Schema, operation: string): Joi.Schema => {
+export const modifyValidator = (
+  validator: Joi.Schema,
+  operation: string = "original"
+): Joi.Schema => {
   const newValidator = cloneDeep(validator);
   newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
     ({ schema, id }) => {
       if (operation === cnst.CREATE) {
-        if (schema._invalids && schema._invalids.has(cnst.SYMBOL_CREATE_DISABLED)) {
+        if (
+          schema._invalids &&
+          schema._invalids.has(cnst.SYMBOL_CREATE_DISABLED)
+        ) {
           newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].delete(id);
         }
-        if (schema._invalids && schema._invalids.has(cnst.SYMBOL_CREATE_REQUIRED)) {
-          schema._flags = schema._flags ? { ...schema._flags, ...cnst.REQUIRED_FLAG } : cnst.REQUIRED_FLAG;
+        if (
+          schema._invalids &&
+          schema._invalids.has(cnst.SYMBOL_CREATE_REQUIRED)
+        ) {
+          schema._flags = schema._flags
+            ? { ...schema._flags, ...cnst.REQUIRED_FLAG }
+            : cnst.REQUIRED_FLAG;
         }
-      }
-      else if (operation === cnst.UPDATE) {
-        if (schema._invalids && schema._invalids.has(cnst.SYMBOL_UPDATE_DISABLED)) {
+      } else if (operation === cnst.UPDATE) {
+        if (
+          schema._invalids &&
+          schema._invalids.has(cnst.SYMBOL_UPDATE_DISABLED)
+        ) {
           newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].delete(id);
         }
-      }
-      else if (operation === cnst.READ) {
-        if (schema._invalids && schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)) {
-          schema._flags = schema._flags ? { ...schema._flags, ...cnst.REQUIRED_FLAG } : cnst.REQUIRED_FLAG;
+      } else if (operation === cnst.READ) {
+        if (
+          schema._invalids &&
+          schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)
+        ) {
+          schema._flags = schema._flags
+            ? { ...schema._flags, ...cnst.REQUIRED_FLAG }
+            : cnst.REQUIRED_FLAG;
         }
       }
     }
@@ -89,8 +106,8 @@ export const reducerValidatorInspector = (
     geoqueryType:
       schema._invalids && schema._invalids.has(cnst.SYMBOL_GEOQUERY)
         ? schema._invalids.has(cnst.SYMBOL_GEOQUERY_POINT)
-          ? "point"
-          : "polygon"
+          ? cnst.POINT
+          : cnst.POLYGON
         : null,
     softDeleteFlag: !!(
       schema._invalids && schema._invalids.has(cnst.SYMBOL_SOFT_DELETE)

@@ -14,6 +14,9 @@ export const EQUAL = "equal";
 export const QUOTED_VALUE = '"value"';
 export const COMMA = ",";
 
+export const POINT = "point";
+export const POLYGON = "polygon";
+
 // values are weither they support multiple values seperated by commas
 export const SUPPORTED_OPERATIONS = {
   [EQUAL]: false,
