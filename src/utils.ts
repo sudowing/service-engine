@@ -39,25 +39,36 @@ export const typecastFn = (
 };
 
 /**
- * @description Fn that takes a JOI validator as input and applies the requirement on any fields that are marked with appropriate INVALID SYMBOL. This is useful so that validators that define records with PKs (without marking them as required) can be used more passively to validate queries wanting to `search` on the same record schema.
+ * @description Fn that takes a JOI validator as input and modifies fields (making required or totally removing) fields that are marked with appropriate SYMBOLS. This is useful so that validators that define records 1:1 with db resource DDLs (table, view, materialized view), dynamically get modified to support full CRUD operations.
  * @param {Joi.Schema} validator
+ * @param {string} operation
  * @returns {Joi.Schema}
  */
-export const modifyValidator = (validator: Joi.Schema): Joi.Schema => {
-  const strongValidator = cloneDeep(validator);
-  strongValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
+export const modifyValidator = (validator: Joi.Schema, operation: string): Joi.Schema => {
+  const newValidator = cloneDeep(validator);
+  newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
     ({ schema, id }) => {
-      if (
-        schema._invalids &&
-        schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)
-      ) {
-        schema._flags = schema._flags
-          ? { ...schema._flags, ...cnst.REQUIRED_FLAG }
-          : cnst.REQUIRED_FLAG;
+      if (operation === cnst.CREATE) {
+        if (schema._invalids && schema._invalids.has(cnst.SYMBOL_CREATE_DISABLED)) {
+          newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].delete(id);
+        }
+        if (schema._invalids && schema._invalids.has(cnst.SYMBOL_CREATE_REQUIRED)) {
+          schema._flags = schema._flags ? { ...schema._flags, ...cnst.REQUIRED_FLAG } : cnst.REQUIRED_FLAG;
+        }
+      }
+      else if (operation === cnst.UPDATE) {
+        if (schema._invalids && schema._invalids.has(cnst.SYMBOL_UPDATE_DISABLED)) {
+          newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].delete(id);
+        }
+      }
+      else if (operation === cnst.READ) {
+        if (schema._invalids && schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)) {
+          schema._flags = schema._flags ? { ...schema._flags, ...cnst.REQUIRED_FLAG } : cnst.REQUIRED_FLAG;
+        }
       }
     }
   );
-  return strongValidator;
+  return newValidator;
 };
 
 /**
@@ -98,10 +109,6 @@ export const reducerValidatorInspector = (
       schema.validate((typecastFn(schema.type) as any)(value)),
   },
 });
-
-// export const SYMBOL_UPDATE_DISABLED = Symbol("update_disabled");
-// export const SYMBOL_CREATE_REQUIRED = Symbol("create_required");
-// export const SYMBOL_CREATE_DISABLED = Symbol("create_disabled");
 
 /**
  * @description Used for swagger generation and for validating user queries. Real validator cannot be used as those are plain objects and may need to validate field multiple times (sql where field <= 5 and >= 12) <-- need to validate values against field twice.
