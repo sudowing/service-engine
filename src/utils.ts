@@ -102,7 +102,9 @@ export const reducerValidatorInspector = (
   [id]: {
     type: schema.type,
     required: !!(schema._flags && schema._flags.presence),
-    // required: !!(schema._invalids && schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)),
+    keyComponent: !!(
+      schema._invalids && schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)
+    ),
     geoqueryType:
       schema._invalids && schema._invalids.has(cnst.SYMBOL_GEOQUERY)
         ? schema._invalids.has(cnst.SYMBOL_GEOQUERY_POINT)
