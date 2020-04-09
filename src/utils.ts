@@ -84,17 +84,24 @@ export const reducerValidatorInspector = (
     softDeleteFlag: !!(
       schema._invalids && schema._invalids.has(cnst.SYMBOL_SOFT_DELETE)
     ),
-    canUpdate: !!(
-      schema._invalids && schema._invalids.has(cnst.SYMBOL_NO_UPDATE)
+    updateDisabled: !!(
+      schema._invalids && schema._invalids.has(cnst.SYMBOL_UPDATE_DISABLED)
     ),
-    createRequirement: !!(
-      schema._invalids && schema._invalids.has(cnst.SYMBOL_REQUIRE_CREATE)
+    createRequired: !!(
+      schema._invalids && schema._invalids.has(cnst.SYMBOL_CREATE_REQUIRED)
+    ),
+    createDisabled: !!(
+      schema._invalids && schema._invalids.has(cnst.SYMBOL_CREATE_DISABLED)
     ),
     typecast: typecastFn(schema.type), // prob need dynamaic assignment for geo fields (need input as numbers and strings?)
     validate: (value: string) =>
       schema.validate((typecastFn(schema.type) as any)(value)),
   },
 });
+
+// export const SYMBOL_UPDATE_DISABLED = Symbol("update_disabled");
+// export const SYMBOL_CREATE_REQUIRED = Symbol("create_required");
+// export const SYMBOL_CREATE_DISABLED = Symbol("create_disabled");
 
 /**
  * @description Used for swagger generation and for validating user queries. Real validator cannot be used as those are plain objects and may need to validate field multiple times (sql where field <= 5 and >= 12) <-- need to validate values against field twice.
@@ -245,6 +252,7 @@ export const searchQueryParser = (
   return { errors, components };
 };
 
+// this is to much dupe. can abstract and pass key.path to map
 // this is to much dupe. can abstract and pass key.path to map
 
 /**

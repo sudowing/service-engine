@@ -17,3 +17,7 @@ swagger docs
 
 update logger with file and trace
 make every http call get logged to debug
+
+
+remove `noUpdate` fields from validator
+require fields if createRequirement == true

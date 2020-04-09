@@ -40,8 +40,9 @@ export const SYMBOL_SOFT_DELETE = Symbol("soft_delete");
 export const SYMBOL_UNIQUE_KEY_COMPONENT = Symbol(
   "symbol_unique_key_component"
 );
-export const SYMBOL_NO_UPDATE = Symbol("no_update");
-export const SYMBOL_REQUIRE_CREATE = Symbol("create_requirement");
+export const SYMBOL_UPDATE_DISABLED = Symbol("update_disabled");
+export const SYMBOL_CREATE_REQUIRED = Symbol("create_required");
+export const SYMBOL_CREATE_DISABLED = Symbol("create_disabled");
 
 export const SYMBOLS_GEO_POINT = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POINT];
 export const SYMBOLS_GEO_POLYGON = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POLYGON];
