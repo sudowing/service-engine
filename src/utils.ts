@@ -82,10 +82,33 @@ export const modifyValidator = (
             ? { ...schema._flags, ...cnst.REQUIRED_FLAG }
             : cnst.REQUIRED_FLAG;
         }
+      } else if (operation === cnst.DELETE) {
+        if (
+          schema._invalids &&
+          schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)
+        ) {
+          schema._flags = schema._flags
+            ? { ...schema._flags, ...cnst.REQUIRED_FLAG }
+            : cnst.REQUIRED_FLAG;
+        } else {
+          newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].delete(id);
+        }
       }
     }
   );
   return newValidator;
+};
+
+export const validate = {
+  create: (validator: Joi.Schema): Joi.Schema =>
+    modifyValidator(validator, cnst.CREATE),
+  read: (validator: Joi.Schema): Joi.Schema =>
+    modifyValidator(validator, cnst.READ),
+  update: (validator: Joi.Schema): Joi.Schema =>
+    modifyValidator(validator, cnst.UPDATE),
+  delete: (validator: Joi.Schema): Joi.Schema =>
+    modifyValidator(validator, cnst.READ),
+  search: (validator: Joi.Schema): Joi.Schema => validator,
 };
 
 /**

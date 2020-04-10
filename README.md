@@ -23,32 +23,8 @@ query
     field.geo_polygon=polygon // also supports multipolygons
     field.geo_geojson=geojson
 
-
-
-    if contains `.`
-
-    gt
-    gte
-    lt
-    lte
-    not
-    range
-    in
-    not_in
-    like
-    or
-    geo_bbox
-    geo_radius
-    geo_polygon
-    geo_geojson
-
 */
 
-// need to confirm usage of GEOFIELD validator type
-// was it used for points or polygons?
-// I know it was used geojson generation on out/publish
-// I think the gis functions were only done on points!
-// will need two seperate validation types (number and string) to handle various inputs -- else dynamic typecast fn assignment
 ```
 geoqueries were only ever done on the `center`. Anything marked as a geo field in the validator was published as geoJson
 ```
