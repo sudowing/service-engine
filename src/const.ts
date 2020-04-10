@@ -26,7 +26,12 @@ export const SUPPORTED_OPERATIONS = {
   lte: false,
   not: false,
   like: false,
+  null: false,
+  not_null: false,
+  exists: false,
+  not_exists: false,
   range: true,
+  not_range: true,
   in: true,
   not_in: true,
   geo_bbox: true,
@@ -37,6 +42,7 @@ export const SUPPORTED_OPERATIONS = {
 
 export const DEFINED_ARG_LENGTHS = {
   range: 2,
+  not_range: 2,
   geo_bbox: 4,
   geo_radius: 3,
 };
