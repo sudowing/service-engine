@@ -59,7 +59,18 @@ interface ISearchQueryError {
   error: string;
 }
 
+export interface ISearchQueryContext {
+  fields?: string;
+  seperator?: string;
+  notWhere?: string;
+  statementContext?: string;
+  orderBy?: string;
+  page?: number;
+  limit?: number;
+}
+
 export interface ISearchQueryResponse {
   errors: ISearchQueryError[];
   components: ISearchQueryComponent[];
+  context: ISearchQueryContext;
 }

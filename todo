@@ -3,12 +3,16 @@ uuid in header // put in controller
 sql in header
 count in header for search
 
+
+subquery
+
 logloglogs
 
 swagger docs
-
 update logger with file and trace
 make every http call get logged to debug
 
 
 middleware & CRUD OPTIONS in service-config
+
+PROVIDE support for defined pagination limits (from implementor)

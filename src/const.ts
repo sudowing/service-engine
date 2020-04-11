@@ -6,6 +6,8 @@ export const DELETE = "delete";
 export const UNDERSCORE_IDS = "_ids";
 export const UNDERSCORE_BYKEY = "_byKey";
 export const DOT = ".";
+export const PIPE = "|";
+export const EMPTY_STRING = "";
 
 export const STRING = "string";
 export const NUMBER = "number";
@@ -28,16 +30,13 @@ export const SUPPORTED_OPERATIONS = {
   like: false,
   null: false,
   not_null: false,
-  exists: false,
-  not_exists: false,
   range: true,
   not_range: true,
   in: true,
   not_in: true,
   geo_bbox: true,
   geo_radius: true,
-  // geo_polygon: true,
-  // geo_geojson: true,
+  geo_polygon: true,
 };
 
 export const DEFINED_ARG_LENGTHS = {
@@ -64,3 +63,13 @@ export const SYMBOLS_GEO_POLYGON = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POLYGON];
 export const FALSEY_STRING_VALUES = ["", "f", "false", "0"];
 
 export const REQUIRED_FLAG = { presence: "required" };
+
+export const SEARCH_QUERY_CONTEXT = {
+  fields: undefined,
+  seperator: COMMA,
+  notWhere: undefined,
+  statementContext: "and",
+  orderBy: undefined,
+  page: 1,
+  limit: 100,
+};

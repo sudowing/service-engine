@@ -251,7 +251,10 @@ export const supportedOperation = (operation: string): boolean =>
  */
 export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
   const [field, op] = key.split(cnst.DOT);
-  return { field, operation: op ? op : cnst.EQUAL };
+  return {
+    field,
+    operation: op ? op : cnst.EQUAL,
+  };
 };
 
 /**
@@ -266,39 +269,51 @@ export const searchQueryParser = (
 ): ts.ISearchQueryResponse => {
   const errors = [];
   const components = [];
+  const context: ts.ISearchQueryContext = { ...cnst.SEARCH_QUERY_CONTEXT };
+  // COULD PROB CHECK FOR A SEPERATOR HERE BEFORE PROCESSING... SO ITS ALWAYS SET
   Object.entries(query).forEach(([key, rawValue]) => {
-    const { field, operation } = parseFieldAndOperation(key);
-    const { schema } =
-      validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field) || {};
-    const { type } = schema || {}; // all fields have types. if undefined -- simply not a field on the resource
-    const record = { field, rawValue, operation, type };
-    const typecast: any = typecastFn(type);
-    if (supportMultipleValues(operation)) {
-      const values = rawValue.split(cnst.COMMA).map(typecast);
-      if (!validArgsforOperation(operation, values))
-        errors.push({ field, error: badArgsLengthError(operation, values) });
-      const validatedValues = schema
-        ? values.map((value) => schema.validate(value))
-        : [];
-      const error = validatedValues
-        .reduce(concatErrorMessages(field), [])
-        .join(cnst.COMMA);
-      if (error) errors.push({ field, error });
-      components.push({ ...record, value: values });
-    } else {
-      const { value, error } = schema
-        ? schema.validate(typecast(rawValue))
-        : ({} as any);
-      if (error || !type || !supportedOperation(operation)) {
-        errors.push({
-          field,
-          error: generateSearchQueryError({ error, field, type, operation }),
-        });
+    // MUST PARSE CONTEXT FIRST AS IT CONTAINS POSSIBLE SEPERATOR
+
+    // key starts with a pipe -- capture in new parser array
+    if (key.startsWith(cnst.PIPE)) {
+      const attribute = key.replace(cnst.PIPE, cnst.EMPTY_STRING);
+      if (context.hasOwnProperty(attribute)) {
+        context[attribute] = rawValue;
       }
-      components.push({ ...record, value });
+    } else {
+      const { field, operation } = parseFieldAndOperation(key);
+      const { schema } =
+        validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field) || {};
+      const { type } = schema || {}; // all fields have types. if undefined -- simply not a field on the resource
+      const record = { field, rawValue, operation, type };
+      const typecast: any = typecastFn(type);
+      if (supportMultipleValues(operation)) {
+        const values = rawValue.split(cnst.COMMA).map(typecast);
+        if (!validArgsforOperation(operation, values))
+          errors.push({ field, error: badArgsLengthError(operation, values) });
+        const validatedValues = schema
+          ? values.map((value) => schema.validate(value))
+          : [];
+        const error = validatedValues
+          .reduce(concatErrorMessages(field), [])
+          .join(cnst.COMMA);
+        if (error) errors.push({ field, error });
+        components.push({ ...record, value: values });
+      } else {
+        const { value, error } = schema
+          ? schema.validate(typecast(rawValue))
+          : ({} as any);
+        if (error || !type || !supportedOperation(operation)) {
+          errors.push({
+            field,
+            error: generateSearchQueryError({ error, field, type, operation }),
+          });
+        }
+        components.push({ ...record, value });
+      }
     }
   });
-  return { errors, components };
+  return { errors, components, context };
 };
 
 // this is to much dupe. can abstract and pass key.path to map

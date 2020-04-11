@@ -57,3 +57,13 @@ pagination
 order
 
 geoquery on point only
+
+
+
+
+// parse polygon values
+// polygon passed in url as base64 to avoid comma parsing
+const parsedPolygon = Buffer.from(
+    polygon || cnst.EMPTY_STRING,
+    cnst.BASE_64
+).toString();
