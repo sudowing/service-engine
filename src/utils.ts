@@ -275,11 +275,36 @@ export const searchQueryParser = (
       ? { seperator: query[cnst.PIPE_SEPERATOR] }
       : {}), // support user provided seperators for fields that support multiple values
   };
+
+  const contextTransformer = (attribute, input) => {
+    switch (attribute) {
+      case "fields":
+        return input.split(",");
+      case "orderBy":
+        return input.split(",").map((fieldAndDirection) => {
+          const [field, direction] = fieldAndDirection.split(":");
+          return [field, direction && "desc" === direction ? direction : "asc"]; // intentional typo for qaing function
+        });
+      case "page":
+      case "limit":
+        return Number(input);
+      case "notWhere":
+        return !castBoolean(input); // castBoolean returns bool based on falsey input. I want to default to the opposite.
+      default:
+        return false;
+    }
+  };
+  // fields to string array
+  // orderBy to array of arrays
+  // page & limit to numbers
+  // notWhere to boolean
+  // statementContext and|or|undefined,
+
   Object.entries(query).forEach(([key, rawValue]) => {
     if (key.startsWith(cnst.PIPE)) {
       const attribute = key.replace(cnst.PIPE, cnst.EMPTY_STRING);
       if (context.hasOwnProperty(attribute)) {
-        context[attribute] = rawValue;
+        context[attribute] = contextTransformer(attribute, rawValue);
       }
     } else {
       const { field, operation } = parseFieldAndOperation(key);

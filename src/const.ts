@@ -77,7 +77,7 @@ export const REQUIRED_FLAG = { presence: "required" };
 
 export const SEARCH_QUERY_CONTEXT = {
   fields: undefined,
-  seperator: COMMA,
+  seperator: COMMA, // used
   notWhere: undefined,
   statementContext: "and",
   orderBy: undefined,
