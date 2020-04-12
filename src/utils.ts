@@ -257,6 +257,28 @@ export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
   };
 };
 
+const contextTransformer = (attribute, input) => {
+  switch (attribute) {
+    case "fields":
+      return input.split(",");
+    case "orderBy":
+      return input.split(",").map((fieldAndDirection) => {
+        const [column, direction] = fieldAndDirection.split(":");
+        return {
+          column,
+          order: direction && "desc" === direction ? direction : "asc",
+        };
+      });
+    case "page":
+    case "limit":
+      return Number(input);
+    case "notWhere":
+      return !castBoolean(input); // castBoolean returns bool based on falsey input. I want to default to the opposite.
+    default:
+      return false;
+  }
+};
+
 /**
  * @description Heart of the entire system. This Fn takes in a JOI validator and a query object (which is mostly the `ctx.request.query` -- sans a couple keys) and submits both for processing. Search interfaces, fields & operations, are derived from the JOI validators, values from query object are typecasted to data types (if possible) using the types of each field from the JOI validator. Some query operations support multiple values seperated by commas, and this value parsing to arrays is also done here. The output is an array of errors if any exist, so request can be stopped before submitting to database, and an array of component objects that will be used to generated the SQL query using knex query builder if there are no errors.
  * @param {Joi.Schema} validator
@@ -275,39 +297,19 @@ export const searchQueryParser = (
       ? { seperator: query[cnst.PIPE_SEPERATOR] }
       : {}), // support user provided seperators for fields that support multiple values
   };
-
-  const contextTransformer = (attribute, input) => {
-    switch (attribute) {
-      case "fields":
-        return input.split(",");
-      case "orderBy":
-        return input.split(",").map((fieldAndDirection) => {
-          const [column, direction] = fieldAndDirection.split(":");
-          return {
-            column,
-            order: direction && "desc" === direction ? direction : "asc",
-          };
-        });
-      case "page":
-      case "limit":
-        return Number(input);
-      case "notWhere":
-        return !castBoolean(input); // castBoolean returns bool based on falsey input. I want to default to the opposite.
-      default:
-        return false;
-    }
-  };
-  // fields to string array
-  // orderBy to array of arrays
-  // page & limit to numbers
-  // notWhere to boolean
-  // statementContext and|or|undefined,
-
+  let contextFields = [];
   Object.entries(query).forEach(([key, rawValue]) => {
     if (key.startsWith(cnst.PIPE)) {
       const attribute = key.replace(cnst.PIPE, cnst.EMPTY_STRING);
       if (context.hasOwnProperty(attribute)) {
-        context[attribute] = contextTransformer(attribute, rawValue);
+        const value = contextTransformer(attribute, rawValue);
+        // add order by and fields values to set to ensure they're all part of the validator
+        if (['fields','orderBy'].includes(attribute)) {
+          // orderBy value is an array of obects. need to map to get the field names
+          const values = attribute === 'fields' ? value : value.map(({column}) => column)
+          contextFields = [].concat(contextFields, values);
+        }
+        context[attribute] = value;
       }
     } else {
       const { field, operation } = parseFieldAndOperation(key);
@@ -342,6 +344,15 @@ export const searchQueryParser = (
       }
     }
   });
+
+  const uniqueContextFields = Array.from(new Set(contextFields));
+
+  console.log('**********');
+  console.log('oooo.uniqueContextFields');
+  console.log(uniqueContextFields);
+  console.log('**********');
+
+
   return { errors, components, context };
 };
 
