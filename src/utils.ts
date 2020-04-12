@@ -282,8 +282,11 @@ export const searchQueryParser = (
         return input.split(",");
       case "orderBy":
         return input.split(",").map((fieldAndDirection) => {
-          const [field, direction] = fieldAndDirection.split(":");
-          return [field, direction && "desc" === direction ? direction : "asc"]; // intentional typo for qaing function
+          const [column, direction] = fieldAndDirection.split(":");
+          return {
+            column,
+            order: direction && "desc" === direction ? direction : "asc",
+          };
         });
       case "page":
       case "limit":
@@ -381,15 +384,13 @@ export const toSearchQuery = ({
 }: ts.IParamsToSearchQuery) =>
   db
     .from(resource)
-    // context |
-    // fields
+    .orderBy(context.orderBy)
+    .limit(context.limit)
+    .offset((context.page - 1) * context.limit)
     // notWhere
     // statementContext
-    // orderBy
-    // page
-    // limit
-    // // offset = ((page -1)*limit)
-    .select()
+    .select(context.fields)
+
     .where((sql) => {
       for (const { field, operation, value } of components) {
         if (cnst.BASIC_QUERY_OPERATIONS.get(operation)) {

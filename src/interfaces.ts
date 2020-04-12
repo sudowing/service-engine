@@ -63,11 +63,14 @@ interface ISearchQueryError {
 }
 
 export interface ISearchQueryContext {
-  fields?: string;
+  fields?: string[];
   seperator?: string;
   notWhere?: string;
   statementContext?: string;
-  orderBy?: string;
+  orderBy?: {
+    column: string;
+    order: string;
+  }[];
   page?: number;
   limit?: number;
 }
