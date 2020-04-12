@@ -297,19 +297,30 @@ export const searchQueryParser = (
       ? { seperator: query[cnst.PIPE_SEPERATOR] }
       : {}), // support user provided seperators for fields that support multiple values
   };
-  let contextFields = [];
   Object.entries(query).forEach(([key, rawValue]) => {
     if (key.startsWith(cnst.PIPE)) {
       const attribute = key.replace(cnst.PIPE, cnst.EMPTY_STRING);
       if (context.hasOwnProperty(attribute)) {
         const value = contextTransformer(attribute, rawValue);
         // add order by and fields values to set to ensure they're all part of the validator
-        if (['fields','orderBy'].includes(attribute)) {
+        if (["fields", "orderBy"].includes(attribute)) {
           // orderBy value is an array of obects. need to map to get the field names
-          const values = attribute === 'fields' ? value : value.map(({column}) => column)
-          contextFields = [].concat(contextFields, values);
+          const values =
+            attribute === "fields" ? value : value.map(({ column }) => column);
+          const unsupportedFields = values.filter(
+            (field) =>
+              !validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field)
+          );
+          // if attempting to use unsupported fields in context -- add error objects
+          if (unsupportedFields.length) {
+            const error = `'${attribute}' in context does not support submitted fields: ${unsupportedFields.join(
+              ", "
+            )}`;
+            errors.push({ field: key, error });
+          } else {
+            context[attribute] = value;
+          }
         }
-        context[attribute] = value;
       }
     } else {
       const { field, operation } = parseFieldAndOperation(key);
@@ -344,15 +355,6 @@ export const searchQueryParser = (
       }
     }
   });
-
-  const uniqueContextFields = Array.from(new Set(contextFields));
-
-  console.log('**********');
-  console.log('oooo.uniqueContextFields');
-  console.log(uniqueContextFields);
-  console.log('**********');
-
-
   return { errors, components, context };
 };
 
