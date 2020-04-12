@@ -1,3 +1,6 @@
+import * as knex from "knex";
+import * as knexPostgis from "knex-postgis";
+
 export interface IParamsToQueryString {
   field: string;
   operation: string;
@@ -71,6 +74,14 @@ export interface ISearchQueryContext {
 
 export interface ISearchQueryResponse {
   errors: ISearchQueryError[];
+  components: ISearchQueryComponent[];
+  context: ISearchQueryContext;
+}
+
+export interface IParamsToSearchQuery {
+  db: knex;
+  st: knexPostgis.KnexPostgis;
+  resource: string;
   components: ISearchQueryComponent[];
   context: ISearchQueryContext;
 }

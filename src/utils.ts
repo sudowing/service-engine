@@ -269,12 +269,13 @@ export const searchQueryParser = (
 ): ts.ISearchQueryResponse => {
   const errors = [];
   const components = [];
-  const context: ts.ISearchQueryContext = { ...cnst.SEARCH_QUERY_CONTEXT };
-  // COULD PROB CHECK FOR A SEPERATOR HERE BEFORE PROCESSING... SO ITS ALWAYS SET
+  const context: ts.ISearchQueryContext = {
+    ...cnst.SEARCH_QUERY_CONTEXT,
+    ...(query[cnst.PIPE_SEPERATOR]
+      ? { seperator: query[cnst.PIPE_SEPERATOR] }
+      : {}), // support user provided seperators for fields that support multiple values
+  };
   Object.entries(query).forEach(([key, rawValue]) => {
-    // MUST PARSE CONTEXT FIRST AS IT CONTAINS POSSIBLE SEPERATOR
-
-    // key starts with a pipe -- capture in new parser array
     if (key.startsWith(cnst.PIPE)) {
       const attribute = key.replace(cnst.PIPE, cnst.EMPTY_STRING);
       if (context.hasOwnProperty(attribute)) {
@@ -288,7 +289,7 @@ export const searchQueryParser = (
       const record = { field, rawValue, operation, type };
       const typecast: any = typecastFn(type);
       if (supportMultipleValues(operation)) {
-        const values = rawValue.split(cnst.COMMA).map(typecast);
+        const values = rawValue.split(context.seperator).map(typecast);
         if (!validArgsforOperation(operation, values))
           errors.push({ field, error: badArgsLengthError(operation, values) });
         const validatedValues = schema
@@ -339,3 +340,70 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
     (accum, [key, { required }]) => (!required ? accum : [...accum, key]),
     []
   );
+
+// :TODO more accurate here
+// http://www.movable-type.co.uk/scripts/latlong.html
+
+export const convertMetersToDecimalDegrees = (meters: number) =>
+  meters / cnst.DD_BASE;
+
+export const toSearchQuery = ({
+  db,
+  st,
+  resource,
+  components,
+  context,
+}: ts.IParamsToSearchQuery) =>
+  db
+    .from(resource)
+    // context |
+    // fields
+    // notWhere
+    // statementContext
+    // orderBy
+    // page
+    // limit
+    // // offset = ((page -1)*limit)
+    .select()
+    .where((sql) => {
+      for (const { field, operation, value } of components) {
+        if (cnst.BASIC_QUERY_OPERATIONS.get(operation)) {
+          sql.andWhere(
+            field,
+            cnst.BASIC_QUERY_OPERATIONS.get(operation),
+            value
+          );
+        } else if (operation === cnst.RANGE) {
+          sql.whereBetween(field, [value[0], value[1]]);
+        } else if (operation === cnst.NOT_RANGE) {
+          sql.whereNotBetween(field, [value[0], value[1]]);
+        } else if (operation === cnst.IN) {
+          sql.whereIn([field], value as any[]);
+        } else if (operation === cnst.NOT_IN) {
+          sql.whereNotIn([field], value as any[]);
+        } else if (operation === cnst.NULL) {
+          sql.whereNull(field);
+        } else if (operation === cnst.NOT_NULL) {
+          sql.whereNotNull(field);
+        } else if (operation === cnst.GEO_BBOX) {
+          sql.andWhere(
+            st.intersects(
+              field,
+              st.makeEnvelope(value[0], value[1], value[2], value[3], cnst.SRID)
+            )
+          );
+        } else if (operation === cnst.GEO_RADIUS) {
+          const [lat, long, meters] = value as number[];
+          const coords = st.setSRID(st.makePoint(long, lat), cnst.SRID);
+          sql.andWhere(
+            st.dwithin(field, coords, convertMetersToDecimalDegrees(meters))
+          );
+        } else if (operation === cnst.GEO_POLYGON) {
+          sql.andWhere(
+            st.intersects(field, st.geomFromText(value as string, cnst.SRID))
+          );
+        }
+      }
+
+      return sql;
+    });

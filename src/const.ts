@@ -19,6 +19,17 @@ export const COMMA = ",";
 export const POINT = "point";
 export const POLYGON = "polygon";
 
+export const RANGE = "range";
+export const NOT_RANGE = "not_range";
+export const IN = "in";
+export const NOT_IN = "not_in";
+export const NULL = "null";
+export const NOT_NULL = "not_null";
+export const GEO_BBOX = "geo_bbox";
+export const GEO_RADIUS = "geo_radius";
+export const GEO_POLYGON = "geo_polygon";
+
+export const PIPE_SEPERATOR = "|seperator";
 // values are weither they support multiple values seperated by commas
 export const SUPPORTED_OPERATIONS = {
   [EQUAL]: false,
@@ -70,6 +81,18 @@ export const SEARCH_QUERY_CONTEXT = {
   notWhere: undefined,
   statementContext: "and",
   orderBy: undefined,
-  page: 1,
-  limit: 100,
+  page: undefined,
+  limit: undefined,
 };
+
+export const SRID = 4326;
+export const DD_BASE = 1113200;
+
+export const BASIC_QUERY_OPERATIONS = new Map();
+BASIC_QUERY_OPERATIONS.set("gt", ">");
+BASIC_QUERY_OPERATIONS.set("gte", ">=");
+BASIC_QUERY_OPERATIONS.set("lt", "<");
+BASIC_QUERY_OPERATIONS.set("lte", "<=");
+BASIC_QUERY_OPERATIONS.set("equal", "=");
+BASIC_QUERY_OPERATIONS.set("like", "like");
+BASIC_QUERY_OPERATIONS.set("not", "<>");
