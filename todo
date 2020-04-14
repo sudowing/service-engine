@@ -16,5 +16,3 @@ make every http call get logged to debug
 middleware & CRUD OPTIONS in service-config
 
 PROVIDE support for defined pagination limits (from implementor)
-
-ensure |fields && |orderBy are only using support fields in query.context

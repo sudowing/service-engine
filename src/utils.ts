@@ -280,7 +280,7 @@ const contextTransformer = (attribute, input) => {
 };
 
 /**
- * @description Heart of the entire system. This Fn takes in a JOI validator and a query object (which is mostly the `ctx.request.query` -- sans a couple keys) and submits both for processing. Search interfaces, fields & operations, are derived from the JOI validators, values from query object are typecasted to data types (if possible) using the types of each field from the JOI validator. Some query operations support multiple values seperated by commas, and this value parsing to arrays is also done here. The output is an array of errors if any exist, so request can be stopped before submitting to database, and an array of component objects that will be used to generated the SQL query using knex query builder if there are no errors.
+ * @description Heart of the entire system. This Fn takes in a JOI validator and a query object (`ctx.request.query`) and submits both for processing. Search interfaces, fields & operations, are derived from the JOI validators, values from query object are typecasted to data types (if possible) using the types of each field from the JOI validator. Some query operations support multiple values seperated by commas, and this value parsing to arrays is also done here. The `context` object returned is used to build the query -- but is more superficial than the `components` which are used within the `where` part of the query. Any errors with a give query against a validator produces an array of errors, so the request can be stopped before submitting to database.
  * @param {Joi.Schema} validator
  * @param {ts.IParamsSearchQueryParser} query
  * @returns {ts.ISearchQueryResponse}
@@ -400,8 +400,8 @@ export const toSearchQuery = ({
     .orderBy(context.orderBy)
     .limit(context.limit)
     .offset((context.page - 1) * context.limit)
-    // notWhere
-    // statementContext
+    // notWhere where/notWhere
+    // statementContext and/or
     .select(context.fields)
 
     .where((sql) => {
@@ -446,3 +446,71 @@ export const toSearchQuery = ({
 
       return sql;
     });
+
+export const validationExpander = (validator: Joi.Schema) => {
+  const schema = {
+    create: modifyValidator(validator, cnst.CREATE),
+    read: modifyValidator(validator, cnst.READ),
+    update: modifyValidator(validator, cnst.UPDATE),
+    delete: modifyValidator(validator, cnst.DELETE),
+    search: modifyValidator(validator, cnst.SEARCH),
+  };
+
+  const report = {
+    create: validatorInspector(schema.create),
+    read: validatorInspector(schema.read),
+    update: validatorInspector(schema.update),
+    delete: validatorInspector(schema.delete),
+    search: validatorInspector(schema.search),
+  };
+
+  const meta = {
+    softDeleteFields: softDeleteFields(report.read),
+    uniqueKeyComponents: uniqueKeyComponents(report.read),
+  };
+
+  return { schema, report, meta };
+};
+
+
+
+
+
+
+
+
+
+const { schema } = engine.validationExpander(test_table);
+
+const acceptOneOrMany = (validator: Joi.Schema, payload: any|any[]) =>
+  Array.isArray(payload) ? Joi.array().items(validator) : validator
+
+// const { error, value } = processAction(payload) || if error return ELSE generate SQL return knex builder
+
+// UPDATE & DELETE \\ if single object // accept search query and bulk update/delete
+
+const processCreate = (payload, context?: any) => acceptOneOrMany(schema.create, payload).validate(payload);
+const processRead = (payload) => schema.read.validate;
+const processSearch = (payload) => schema.search.validate(payload);
+
+const processUpdate = (payload, context?: any, query?: any) => {
+  const { error, value } = acceptOneOrMany(schema.update, payload).validate(payload);
+  if (error) return error;
+  if (query) {
+    const validSearch = schema.search(query);
+    if(validSearch.error) return validSearch.error;
+  }
+};
+
+const processDelete = (payload, context?: any, query?: any, hardDelete: boolean = false) => {
+  const { error, value } = acceptOneOrMany(schema.update, payload).validate(payload);
+  if (error) return error;
+  if (query) {
+    const validSearch = schema.search(query);
+    if(validSearch.error) return validSearch.error;
+  }
+};
+
+// soft delete VS hard delete defined by db query fn
+
+const { error, value } = processDelete([queryCreate, {...queryCreate}]);
