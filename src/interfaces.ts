@@ -1,3 +1,4 @@
+import * as Joi from "@hapi/joi";
 import * as knex from "knex";
 import * as knexPostgis from "knex-postgis";
 
@@ -81,10 +82,46 @@ export interface ISearchQueryResponse {
   context: ISearchQueryContext;
 }
 
-export interface IParamsToSearchQuery {
+export interface IParamsGenerateOperations {
+  db: knex;
+  st: knexPostgis.KnexPostgis;
+  validator: Joi.Schema;
+  resource: string;
+}
+
+export interface IParamsToSearchQuery extends ZZZZ {
+  components: ISearchQueryComponent[];
+}
+
+export interface ZZZZ {
   db: knex;
   st: knexPostgis.KnexPostgis;
   resource: string;
-  components: ISearchQueryComponent[];
   context: ISearchQueryContext;
+}
+
+export interface IParamsProcessBase {
+  payload: any;
+  context?: ISearchQueryContext;
+}
+
+export interface IParamsProcessWithSearch extends IParamsProcessBase {
+  searchQuery?: any;
+}
+
+export interface IParamsProcessDelete extends IParamsProcessWithSearch {
+  hardDelete?: boolean;
+}
+
+export interface IParamsToQueryBase extends ZZZZ {
+  query: any | any[];
+}
+
+export interface IParamsToQueryWithSearch extends IParamsToQueryBase {
+  searchQuery: any;
+}
+
+export interface IParamsToDeleteQueryWithSearch
+  extends IParamsToQueryWithSearch {
+  hardDelete?: boolean;
 }

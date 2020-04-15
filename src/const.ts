@@ -9,13 +9,23 @@ export const UNDERSCORE_BYKEY = "_byKey";
 export const DOT = ".";
 export const PIPE = "|";
 export const EMPTY_STRING = "";
+export const COMMA = ",";
+export const COLON = ":";
 
 export const STRING = "string";
 export const NUMBER = "number";
 export const BOOLEAN = "boolean";
 export const EQUAL = "equal";
 export const QUOTED_VALUE = '"value"';
-export const COMMA = ",";
+
+export const FIELDS = "fields";
+export const ORDERBY = "orderBy";
+export const PAGE = "page";
+export const LIMIT = "limit";
+export const NOTWHERE = "notWhere";
+
+export const DESC = "desc";
+export const ASC = "asc";
 
 export const POINT = "point";
 export const POLYGON = "polygon";
