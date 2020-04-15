@@ -262,20 +262,20 @@ export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
 
 const contextTransformer = (attribute, input) => {
   switch (attribute) {
-    case "fields":
-      return input.split(",");
-    case "orderBy":
-      return input.split(",").map((fieldAndDirection) => {
-        const [column, direction] = fieldAndDirection.split(":");
+    case cnst.FIELDS:
+      return input.split(cnst.COMMA);
+    case cnst.ORDERBY:
+      return input.split(cnst.COMMA).map((fieldAndDirection) => {
+        const [column, direction] = fieldAndDirection.split(cnst.COLON);
         return {
           column,
-          order: direction && "desc" === direction ? direction : "asc",
+          order: direction && cnst.DESC === direction ? direction : cnst.ASC,
         };
       });
-    case "page":
-    case "limit":
+    case cnst.PAGE:
+    case cnst.LIMIT:
       return Number(input);
-    case "notWhere":
+    case cnst.NOTWHERE:
       return !castBoolean(input); // castBoolean returns bool based on falsey input. I want to default to the opposite.
     default:
       return false;
@@ -502,15 +502,15 @@ export const generateOperations = ({db, st, validator, resource}: ts.IParamsGene
   const processCreate = ({payload, context}: ts.IParamsProcessBase) => {
     const { error, value: query } = validateOneOrMany(schema.create, payload);
     if (error) return _reject(error);
-    const output = 'some SQL query knex querybuilder'
-    return _resolve(output);
+    const sql = toCreateQuery({db, st, resource, query, context});
+    return _resolve(sql);
   }
 
   const processRead = ({payload, context}: ts.IParamsProcessBase) => {
     const { error, value: query } = schema.read.validate(payload);
     if (error) return _reject(error);
-    const output = 'some SQL query knex querybuilder'
-    return _resolve(output);
+    const sql = toReadQuery({db, st, resource, query, context});
+    return _resolve(sql);
   }
 
   const processUpdate = ({payload, context, searchQuery}: ts.IParamsProcessWithSearch) => {
@@ -520,8 +520,8 @@ export const generateOperations = ({db, st, validator, resource}: ts.IParamsGene
       const validSearch = schema.search.validate(searchQuery);
       if(validSearch.error) _reject(validSearch.error);
     }
-    const output = 'some SQL query knex querybuilder'
-    return _resolve(output);
+    const sql = toUpdateQuery({db, st, resource, query, context, searchQuery});
+    return _resolve(sql);
   };
   
   // soft delete VS hard delete defined by db query fn
@@ -532,16 +532,16 @@ export const generateOperations = ({db, st, validator, resource}: ts.IParamsGene
       const validSearch = schema.search.validate(searchQuery);
       if(validSearch.error) _reject(validSearch.error);
     }
-    const output = 'some SQL query knex querybuilder'
-    return _resolve(output);
+    const sql = toDeleteQuery({db, st, resource, query, context, searchQuery, hardDelete});
+    return _resolve(sql);
   };
   
-  const processSearch = (payload) => {
+  const processSearch = (payload: any) => {
     // validation (schema.search.validate) occurs inside QueryParser
     const { errors, components, context } = meta.searchQueryParser(payload);
     if (errors) return _reject(errors);
-    const output = toSearchQuery({db, st, context, components, resource: 'some_table_or_view'});
-    return _resolve(output);
+    const sql = toSearchQuery({db, st, context, components, resource});
+    return _resolve(sql);
   }
 
   return {
