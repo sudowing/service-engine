@@ -494,29 +494,27 @@ const validateOneOrMany = (validator: Joi.Schema, payload: any|any[]) =>
 * 
 * NOTE: pass in query -- get errors or knex object
 */
-export const ddd = (validator: Joi.Schema) => {
+export const generateOperations = ({db, st, validator, resource}: ts.IParamsGenerateOperations) => {
   const { schema, meta } = validationExpander(validator);
-
-
-  // const { error, value } = processAction(payload) || if error return ELSE generate SQL return knex builder
 
   // UPDATE & DELETE \\ if single object // accept search query and bulk update/delete
 
-  const processCreate = (payload, context?: any) => {
-    const { error, query } = validateOneOrMany(schema.create, payload);
-    if (error) return _reject(error);
-
-  }
-
-  const processRead = (payload, context?: any) => {
-    const { error, query } = schema.read.validate(payload);
+  const processCreate = ({payload, context}: ts.IParamsProcessBase) => {
+    const { error, value: query } = validateOneOrMany(schema.create, payload);
     if (error) return _reject(error);
     const output = 'some SQL query knex querybuilder'
     return _resolve(output);
   }
 
-  const processUpdate = (payload, context?: any, searchQuery?: any) => {
-    const { error, query } = validateOneOrMany(schema.update, payload);
+  const processRead = ({payload, context}: ts.IParamsProcessBase) => {
+    const { error, value: query } = schema.read.validate(payload);
+    if (error) return _reject(error);
+    const output = 'some SQL query knex querybuilder'
+    return _resolve(output);
+  }
+
+  const processUpdate = ({payload, context, searchQuery}: ts.IParamsProcessWithSearch) => {
+    const { error, value: query } = validateOneOrMany(schema.update, payload);
     if (error) return _reject(error);
     if (searchQuery) {
       const validSearch = schema.search.validate(searchQuery);
@@ -527,8 +525,8 @@ export const ddd = (validator: Joi.Schema) => {
   };
   
   // soft delete VS hard delete defined by db query fn
-  const processDelete = (payload, context?: any, searchQuery?: any, hardDelete: boolean = false) => {
-    const { error, query } = validateOneOrMany(schema.update, payload);
+  const processDelete = ({payload, context, searchQuery, hardDelete}: ts.IParamsProcessDelete) => {
+    const { error, value: query } = validateOneOrMany(schema.update, payload);
     if (error) return _reject(error);
     if (searchQuery) {
       const validSearch = schema.search.validate(searchQuery);
