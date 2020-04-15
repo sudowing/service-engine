@@ -3,6 +3,9 @@ import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
+const _reject = Promise.reject;
+const _resolve = Promise.resolve;
+
 const castString = (arg) => String(arg);
 const castNumber = (arg) => Number(arg);
 const castBoolean = (arg) =>
@@ -477,9 +480,20 @@ export const validationExpander = (validator: Joi.Schema) => {
 
 
 
-const acceptOneOrMany = (validator: Joi.Schema, payload: any|any[]) =>
-  Array.isArray(payload) ? Joi.array().items(validator) : validator
+const validateOneOrMany = (validator: Joi.Schema, payload: any|any[]) =>
+  (Array.isArray(payload) ? Joi.array().items(validator) : validator)
+    .validate(payload);
 
+
+/*
+* -- UNIQUE Resources occur at /service/resource/record?pk=1
+* CREATE (one & many)
+* READ (unique & search as `search`)
+* UPDATE (unique & many)
+* DELETE (unique & many) (soft & hard)
+* 
+* NOTE: pass in query -- get errors or knex object
+*/
 export const ddd = (validator: Joi.Schema) => {
   const { schema, meta } = validationExpander(validator);
 
@@ -488,32 +502,48 @@ export const ddd = (validator: Joi.Schema) => {
 
   // UPDATE & DELETE \\ if single object // accept search query and bulk update/delete
 
-  const processCreate = (payload, context?: any) =>
-    acceptOneOrMany(schema.create, payload).validate(payload);
-  const processRead = (payload) => schema.read.validate;
-  const processUpdate = (payload, context?: any, query?: any) => {
-    const { error, value } = acceptOneOrMany(schema.update, payload).validate(payload);
-    if (error) return error;
-    if (query) {
-      const validSearch = schema.search.validate(query);
-      if(validSearch.error) return validSearch.error;
+  const processCreate = (payload, context?: any) => {
+    const { error, query } = validateOneOrMany(schema.create, payload);
+    if (error) return _reject(error);
+
+  }
+
+  const processRead = (payload, context?: any) => {
+    const { error, query } = schema.read.validate(payload);
+    if (error) return _reject(error);
+    const output = 'some SQL query knex querybuilder'
+    return _resolve(output);
+  }
+
+  const processUpdate = (payload, context?: any, searchQuery?: any) => {
+    const { error, query } = validateOneOrMany(schema.update, payload);
+    if (error) return _reject(error);
+    if (searchQuery) {
+      const validSearch = schema.search.validate(searchQuery);
+      if(validSearch.error) _reject(validSearch.error);
     }
+    const output = 'some SQL query knex querybuilder'
+    return _resolve(output);
   };
   
   // soft delete VS hard delete defined by db query fn
-  const processDelete = (payload, context?: any, query?: any, hardDelete: boolean = false) => {
-    const { error, value } = acceptOneOrMany(schema.update, payload).validate(payload);
-    if (error) return error;
-    if (query) {
-      const validSearch = schema.search.validate(query);
-      if(validSearch.error) return validSearch.error;
+  const processDelete = (payload, context?: any, searchQuery?: any, hardDelete: boolean = false) => {
+    const { error, query } = validateOneOrMany(schema.update, payload);
+    if (error) return _reject(error);
+    if (searchQuery) {
+      const validSearch = schema.search.validate(searchQuery);
+      if(validSearch.error) _reject(validSearch.error);
     }
+    const output = 'some SQL query knex querybuilder'
+    return _resolve(output);
   };
+  
   const processSearch = (payload) => {
     // validation (schema.search.validate) occurs inside QueryParser
     const { errors, components, context } = meta.searchQueryParser(payload);
-    if (errors) return errors;
-    return toSearchQuery({db, st, context, components, resource: 'some_table_or_view'});
+    if (errors) return _reject(errors);
+    const output = toSearchQuery({db, st, context, components, resource: 'some_table_or_view'});
+    return _resolve(output);
   }
 
   return {
