@@ -128,14 +128,56 @@ export interface IParamsToDeleteQueryWithSearch
 
 export interface IServiceResource {
   [index: string]: Joi.Schema;
-};
+}
 
 export interface IServiceConfig {
   db: knex;
   st: knexPostgis.KnexPostgis;
   resources: IServiceResource;
-};
+}
 
 export interface IParamsControllerSpecs {
   unique: boolean;
-};
+}
+
+export interface IServiceOperationsResult {
+  sql: knex.QueryBuilder;
+}
+
+export type ICreateOperation = ({
+  payload,
+  context,
+}: IParamsProcessBase) => Promise<IServiceOperationsResult>;
+export type IReadOperation = ({
+  payload,
+  context,
+}: IParamsProcessBase) => Promise<IServiceOperationsResult>;
+export type IUpdateOperation = ({
+  payload,
+  context,
+  searchQuery,
+}: IParamsProcessWithSearch) => Promise<IServiceOperationsResult>;
+export type IDelOperation = ({
+  payload,
+  context,
+  searchQuery,
+  hardDelete,
+}: IParamsProcessDelete) => Promise<IServiceOperationsResult>;
+export type ISearchOperation = (
+  payload: any
+) => Promise<IServiceOperationsResult>;
+
+export type IOperation =
+  | ICreateOperation
+  | IReadOperation
+  | IUpdateOperation
+  | IDelOperation
+  | ISearchOperation;
+
+export interface IServiceOperations {
+  create: ICreateOperation;
+  read: IReadOperation;
+  update: IUpdateOperation;
+  del: IDelOperation;
+  search: ISearchOperation;
+}
