@@ -3,8 +3,8 @@ import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
-const _reject = Promise.reject;
-const _resolve = Promise.resolve;
+const _reject = (payload) => Promise.reject(payload);
+const _resolve = (payload) => Promise.resolve(payload);
 
 const castString = (arg) => String(arg);
 const castNumber = (arg) => Number(arg);
@@ -539,14 +539,14 @@ export const generateOperations = ({
     const { error, value: query } = validateOneOrMany(schema.create, payload);
     if (error) return _reject(error);
     const sql = toCreateQuery({ db, st, resource, query, context });
-    return _resolve(sql);
+    return _resolve({sql});
   };
 
   const processRead = ({ payload, context }: ts.IParamsProcessBase) => {
     const { error, value: query } = schema.read.validate(payload);
     if (error) return _reject(error);
     const sql = toReadQuery({ db, st, resource, query, context });
-    return _resolve(sql);
+    return _resolve({sql});
   };
   const processUpdate = ({
     payload,
@@ -567,7 +567,7 @@ export const generateOperations = ({
       context,
       searchQuery,
     });
-    return _resolve(sql);
+    return _resolve({sql});
   };
   // soft delete VS hard delete defined by db query fn
   const processDelete = ({
@@ -591,21 +591,26 @@ export const generateOperations = ({
       searchQuery,
       hardDelete,
     });
-    return _resolve(sql);
+    return _resolve({sql});
   };
   const processSearch = (payload: any) => {
     // validation (schema.search.validate) occurs inside QueryParser
     const { errors, components, context } = meta.searchQueryParser(payload);
     if (errors) return _reject(errors);
     const sql = toSearchQuery({ db, st, resource, context, components });
-    return _resolve(sql);
+    return _resolve({sql});
   };
 
   return {
     create: processCreate,
     read: processRead,
     update: processUpdate,
-    delete: processDelete,
+    del: processDelete,
     search: processSearch,
   };
 };
+
+export const nameRestEndpointGetRecords = (resource: string, prefix: string = 'service') => ({
+  resourceEndpoint: `/${prefix}/${resource}`,
+  uniqueEndpoint: `/${prefix}/${resource}/record`,
+});

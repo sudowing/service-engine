@@ -125,3 +125,17 @@ export interface IParamsToDeleteQueryWithSearch
   extends IParamsToQueryWithSearch {
   hardDelete?: boolean;
 }
+
+export interface IServiceResource {
+  [index: string]: Joi.Schema;
+};
+
+export interface IServiceConfig {
+  db: knex;
+  st: knexPostgis.KnexPostgis;
+  resources: IServiceResource;
+};
+
+export interface IParamsControllerSpecs {
+  unique: boolean;
+};
