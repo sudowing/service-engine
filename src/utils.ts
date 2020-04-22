@@ -3,8 +3,8 @@ import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
-const _reject = (payload) => Promise.reject(payload);
-const _resolve = (payload) => Promise.resolve(payload);
+const _reject = (errorType, error) => Promise.resolve({ errorType, error });
+const _resolve = (result) => Promise.resolve({result});
 
 const castString = (arg) => String(arg);
 const castNumber = (arg) => Number(arg);
@@ -234,10 +234,10 @@ export const validArgsforOperation = (
 /**
  * @description Some operations on GET queries support operations via `field.operation`. A subset of these operations support multiple values seperated by commas. This `SUPPORTED_OPERATIONS` object holds a map with keys that represent all supported operations and values that define the support for multiple values. `undefined` responses to this function only occur of the operation isn't supported on the field at all.
  * @param {string} operation
- * @returns {(undefined|boolean)}
+ * @returns {(boolean)}
  */
-export const supportMultipleValues = (operation: string): undefined | boolean =>
-  cnst.SUPPORTED_OPERATIONS[operation];
+export const supportMultipleValues = (operation: string): boolean =>
+  !!(cnst.SUPPORTED_OPERATIONS[operation]);
 
 /**
  * @description Some operations on GET queries support operations via `field.operation`. This `SUPPORTED_OPERATIONS` object holds a map with keys that represent all supported operations.
@@ -396,7 +396,7 @@ export const toSearchQuery = ({
   st,
   resource,
   components,
-  context,
+  context
 }: ts.IParamsToSearchQuery) =>
   db
     .from(resource)
@@ -406,7 +406,6 @@ export const toSearchQuery = ({
     // notWhere where/notWhere
     // statementContext and/or
     .select(context.fields)
-
     .where((sql) => {
       for (const { field, operation, value } of components) {
         if (cnst.BASIC_QUERY_OPERATIONS.get(operation)) {
@@ -490,6 +489,22 @@ export const toDeleteQuery = ({
   return db.from(resource).select();
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const validationExpander = (validator: Joi.Schema) => {
   const schema = {
     create: modifyValidator(validator, cnst.CREATE),
@@ -514,110 +529,11 @@ export const validationExpander = (validator: Joi.Schema) => {
   return { schema, report, meta };
 };
 
-const validateOneOrMany = (validator: Joi.Schema, payload: any | any[]) =>
+  // need to remove context keys
+  const validateOneOrMany = (validator: Joi.Schema, payload: any | any[]) =>
   (Array.isArray(payload) ? Joi.array().items(validator) : validator).validate(
     payload
   );
-
-/*
- * -- UNIQUE Resources occur at /service/resource/record?pk=1
- * CREATE (one & many)
- * READ (unique & search as `search`)
- * UPDATE (unique & many)
- * DELETE (unique & many) (soft & hard)
- *
- * NOTE: pass in query -- get errors or knex object
- */
-export const generateOperations = ({
-  db,
-  st,
-  validator,
-  resource,
-}: ts.IParamsGenerateOperations) => {
-  const { schema, meta } = validationExpander(validator);
-  const processCreate = ({ payload, context }: ts.IParamsProcessBase) => {
-    const { error, value: query } = validateOneOrMany(schema.create, payload);
-    if (error) return _reject(error);
-    const sql = toCreateQuery({ db, st, resource, query, context });
-    return _resolve({ sql });
-  };
-
-  const processRead = ({ payload, context }: ts.IParamsProcessBase) => {
-    const { error, value: query } = schema.read.validate(payload);
-    if (error) return _reject(error);
-    const sql = toReadQuery({ db, st, resource, query, context });
-    return _resolve({ sql });
-  };
-  const processUpdate = ({
-    payload,
-    context,
-    searchQuery,
-  }: ts.IParamsProcessWithSearch) => {
-    const { error, value: query } = validateOneOrMany(schema.update, payload);
-    if (error) return _reject(error);
-    if (searchQuery) {
-      const validSearch = schema.search.validate(searchQuery);
-      if (validSearch.error) _reject(validSearch.error);
-    }
-    const sql = toUpdateQuery({
-      db,
-      st,
-      resource,
-      query,
-      context,
-      searchQuery,
-    });
-    return _resolve({ sql });
-  };
-  // soft delete VS hard delete defined by db query fn
-  const processDelete = ({
-    payload,
-    context,
-    searchQuery,
-    hardDelete,
-  }: ts.IParamsProcessDelete) => {
-    const { error, value: query } = validateOneOrMany(schema.update, payload);
-    if (error) return _reject(error);
-    if (searchQuery) {
-      const validSearch = schema.search.validate(searchQuery);
-      if (validSearch.error) _reject(validSearch.error);
-    }
-    const sql = toDeleteQuery({
-      db,
-      st,
-      resource,
-      query,
-      context,
-      searchQuery,
-      hardDelete,
-    });
-    return _resolve({ sql });
-  };
-  const processSearch = (payload: any) => {
-    // validation (schema.search.validate) occurs inside QueryParser
-    const { errors, components, context } = meta.searchQueryParser(payload);
-    if (errors) return _reject(errors);
-    const sql = toSearchQuery({ db, st, resource, context, components });
-    return _resolve({ sql });
-  };
-
-  return {
-    create: processCreate,
-    read: processRead,
-    update: processUpdate,
-    del: processDelete,
-    search: processSearch,
-  };
-};
-
-export const nameRestEndpointGetRecords = (
-  resource: string,
-  prefix: string = "service"
-) => ({
-  resourceEndpoint: `/${prefix}/${resource}`,
-  uniqueEndpoint: `/${prefix}/${resource}/record`,
-});
-
 
 export class Resource {
   constructor({db, st, logger, name, validator}) {
@@ -626,9 +542,131 @@ export class Resource {
     this.logger = logger;
     this.name = name;
     this.validator = validator;
-    
-
-
+    const { schema, report, meta } = validationExpander(validator);
+    this.schema = schema;
+    this.report = report;
+    this.meta = meta;
 
   }
-}
+
+  create({ payload, requestId }: ts.IParamsProcessBase) {
+    const { errors, context } = this.meta.searchQueryParser(payload);
+    if (errors) return _reject('errors', errors);
+
+    // need to remove context keys
+    const { error, value: query } = validateOneOrMany(this.schema.create, payload);
+    if (error) return _reject('error', error);
+
+    const sql = toCreateQuery({
+      db: this.db,
+      st: this.st,
+      resource: this.name,
+      query, context,
+    });
+    return _resolve({ sql });
+  };
+
+  read({ payload, requestId }: ts.IParamsProcessBase) {
+    const { errors, context } = this.meta.searchQueryParser(payload);
+    if (errors) return _reject('errors', errors);
+
+    const { error, value: query } = this.schema.read.validate(payload);
+    if (error) return _reject('error', error);
+
+    const sql = toReadQuery({
+      db: this.db,
+      st: this.st,
+      resource: this.name,
+      query, context,
+    });
+    return _resolve({ sql });
+  };
+
+  update({
+    payload,
+    requestId,
+    searchQuery,
+  }: ts.IParamsProcessWithSearch) {
+
+    const { errors, context } = this.meta.searchQueryParser(payload);
+    if (errors) return _reject('errors', errors);
+
+    // need to remove context keys
+    const { error, value: query } = validateOneOrMany(this.schema.update, payload);
+    if (error) return _reject('error', error);
+
+    if (searchQuery) {
+      const validSearch = this.schema.search.validate(searchQuery);
+      if (validSearch.error) _reject('validSearch', validSearch.error);
+    }
+
+    const sql = toUpdateQuery({
+      db: this.db,
+      st: this.st,
+      resource: this.name,
+      query,
+      context,
+      searchQuery,
+    });
+    return _resolve({ sql });
+  };
+
+  // soft delete VS hard delete defined by db query fn
+  delete({
+    payload,
+    requestId,
+    searchQuery,
+    hardDelete,
+  }: ts.IParamsProcessDelete) {
+
+    const { errors, context } = this.meta.searchQueryParser(payload);
+    if (errors) return _reject('errors', errors);
+
+    // need to remove context keys
+    const { error, value: query } = validateOneOrMany(this.schema.update, payload);
+    if (error) return _reject('error', error);
+
+    if (searchQuery) {
+      const validSearch = this.schema.search.validate(searchQuery);
+      if (validSearch.error) _reject('validSearch', validSearch.error);
+    }
+
+    const sql = toDeleteQuery({
+      db: this.db,
+      st: this.st,
+      resource: this.name,
+      query,
+      context,
+      searchQuery,
+      hardDelete,
+    });
+    return _resolve({ sql });
+  };
+
+  search(payload: any) {
+
+    const { errors, components, context } = this.meta.searchQueryParser(payload);
+    if (errors) return _reject('errors', errors);
+
+    const sql = toSearchQuery({
+      db: this.db,
+      st: this.st,
+      resource: this.name,
+      context, components,
+    });
+    return _resolve({ sql });
+  };
+
+};
+
+
+
+
+
+export const nameRestEndpointGetRecords = (
+  resource: string,
+  prefix: string = "service"
+) => ({
+  resourceEndpoint: `/${prefix}/${resource}`,
+  uniqueEndpoint: `/${prefix}/${resource}/record`,
+});

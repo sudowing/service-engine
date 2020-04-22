@@ -102,7 +102,7 @@ export interface ZZZZ {
 
 export interface IParamsProcessBase {
   payload: any;
-  context?: ISearchQueryContext;
+  requestId: string;
 }
 
 export interface IParamsProcessWithSearch extends IParamsProcessBase {
