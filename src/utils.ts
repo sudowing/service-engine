@@ -516,6 +516,14 @@ export const validationExpander = (validator: Joi.Schema) => {
     payload
   );
 
+export const removeContextKeys = (context, payload) => {
+  const contextFreePayload = {...payload};
+  Object.keys(context).forEach(item => {
+    delete contextFreePayload[item];
+  });
+  return contextFreePayload;
+};
+
 const rejectResource = (errorType, error) => ({ errorType, error });
 const resolveResource = (result) => ({result});
 
@@ -546,8 +554,7 @@ export class Resource {
     const { errors, context } = this.meta.searchQueryParser(payload);
     if (errors) return rejectResource('errors', errors);
 
-    // need to remove context keys
-    const { error, value: query } = validateOneOrMany(this.schema.create, payload);
+    const { error, value: query } = validateOneOrMany(this.schema.create, removeContextKeys(context, payload));
     if (error) return rejectResource('error', error);
 
     const sql = toCreateQuery({
@@ -561,7 +568,7 @@ export class Resource {
     const { errors, context } = this.meta.searchQueryParser(payload);
     if (errors) return rejectResource('errors', errors);
 
-    const { error, value: query } = this.schema.read.validate(payload);
+    const { error, value: query } = this.schema.read.validate(removeContextKeys(context, payload));
     if (error) return rejectResource('error', error);
 
     const sql = toReadQuery({
@@ -581,13 +588,13 @@ export class Resource {
     if (errors) return rejectResource('errors', errors);
 
     // need to remove context keys
-    const { error, value: query } = validateOneOrMany(this.schema.update, payload);
+    const { error, value: query } = validateOneOrMany(this.schema.update, removeContextKeys(context, payload));
     if (error) return rejectResource('error', error);
 
-    if (searchQuery) {
-      const validSearch = this.schema.search.validate(searchQuery);
-      if (validSearch.error) rejectResource('validSearch', validSearch.error);
-    }
+    // if (searchQuery) {
+    //   const validSearch = this.schema.search.validate(searchQuery);
+    //   if (validSearch.error) rejectResource('validSearch', validSearch.error);
+    // }
 
     const sql = toUpdateQuery({
       ...this.queryBase,
@@ -610,13 +617,13 @@ export class Resource {
     if (errors) return rejectResource('errors', errors);
 
     // need to remove context keys
-    const { error, value: query } = validateOneOrMany(this.schema.update, payload);
+    const { error, value: query } = validateOneOrMany(this.schema.update, removeContextKeys(context, payload));
     if (error) return rejectResource('error', error);
 
-    if (searchQuery) {
-      const validSearch = this.schema.search.validate(searchQuery);
-      if (validSearch.error) rejectResource('validSearch', validSearch.error);
-    }
+    // if (searchQuery) {
+    //   const validSearch = this.schema.search.validate(searchQuery);
+    //   if (validSearch.error) rejectResource('validSearch', validSearch.error);
+    // }
 
     const sql = toDeleteQuery({
       ...this.queryBase,
@@ -641,10 +648,6 @@ export class Resource {
   };
 
 };
-
-
-
-
 
 export const nameRestEndpointGetRecords = (
   resource: string,
