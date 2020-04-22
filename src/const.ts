@@ -4,6 +4,8 @@ export const UPDATE = "update";
 export const DELETE = "delete";
 export const SEARCH = "search";
 
+export const GET = "GET";
+
 export const UNDERSCORE_IDS = "_ids";
 export const UNDERSCORE_BYKEY = "_byKey";
 export const DOT = ".";

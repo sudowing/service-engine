@@ -617,3 +617,18 @@ export const nameRestEndpointGetRecords = (
   resourceEndpoint: `/${prefix}/${resource}`,
   uniqueEndpoint: `/${prefix}/${resource}/record`,
 });
+
+
+export class Resource {
+  constructor({db, st, logger, name, validator}) {
+    this.db = db;
+    this.st = st;
+    this.logger = logger;
+    this.name = name;
+    this.validator = validator;
+    
+
+
+
+  }
+}

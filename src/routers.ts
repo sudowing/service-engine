@@ -1,6 +1,7 @@
 import * as statusCodes from "http-status-codes";
 import { Context } from "koa";
 import * as Router from "koa-router";
+import { GET } from "./const";
 import * as ts from "./interfaces";
 import {
   generateOperations,
@@ -13,7 +14,7 @@ const controller = (
   operation: ts.IOperation,
   opts?: ts.IParamsControllerSpecs
 ) => async (ctx: Context) => {
-  const query = ctx.method === "GET" ? ctx.request.query : ctx.request.body;
+  const query = ctx.method === GET ? ctx.request.query : ctx.request.body;
   const payload = Array.isArray(query) ? query : [query || {}];
 
   // get context
