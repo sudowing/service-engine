@@ -103,6 +103,7 @@ export interface ZZZZ {
 
 export interface IParamsProcessBase {
   payload: any;
+  context?: any;
   requestId: string;
 }
 

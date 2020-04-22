@@ -46,16 +46,16 @@ export class Resource implements ts.IClassResource {
     };
   }
 
-  create({ payload, requestId }: ts.IParamsProcessBase) {
-    // this wont work for CONTEXT as it'll accept an array or object. should pull context from body
-    const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return util.rejectResource("errors", errors);
+  // context in by post
+  create({ payload, context, requestId }: ts.IParamsProcessBase) {
+    const { errors } = this.meta.searchQueryParser(context);
+    if (errors) return util.rejectResource("context_errors", errors);
 
     const { error, value: query } = util.validateOneOrMany(
       this.schema.create,
-      util.removeContextKeys(context, payload)
+      payload
     );
-    if (error) return util.rejectResource("error", error);
+    if (error) return util.rejectResource("validation_error", error);
 
     const sql = util.toCreateQuery({
       ...this.queryBase(),
@@ -67,12 +67,12 @@ export class Resource implements ts.IClassResource {
 
   read({ payload, requestId }: ts.IParamsProcessBase) {
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return util.rejectResource("errors", errors);
+    if (errors) return util.rejectResource("context_errors", errors);
 
     const { error, value: query } = this.schema.read.validate(
       util.removeContextKeys(context, payload)
     );
-    if (error) return util.rejectResource("error", error);
+    if (error) return util.rejectResource("validation_error", error);
 
     const sql = util.toReadQuery({
       ...this.queryBase(),
@@ -82,16 +82,17 @@ export class Resource implements ts.IClassResource {
     return util.resolveResource({ sql });
   }
 
-  update({ payload, requestId, searchQuery }: ts.IParamsProcessWithSearch) {
-    const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return util.rejectResource("errors", errors);
+  // context in by patch
+  update({ payload, context, requestId }: ts.IParamsProcessBase) {
+    const { errors } = this.meta.searchQueryParser(context);
+    if (errors) return util.rejectResource("context_errors", errors);
 
     // need to remove context keys
     const { error, value: query } = util.validateOneOrMany(
       this.schema.update,
-      util.removeContextKeys(context, payload)
+      payload
     );
-    if (error) return util.rejectResource("error", error);
+    if (error) return util.rejectResource("validation_error", error);
 
     // if (searchQuery) {
     //   const validSearch = this.schema.search.validate(searchQuery);
@@ -102,7 +103,7 @@ export class Resource implements ts.IClassResource {
       ...this.queryBase(),
       query,
       context,
-      searchQuery,
+      searchQuery: undefined,
     });
     return util.resolveResource({ sql });
   }
@@ -110,19 +111,20 @@ export class Resource implements ts.IClassResource {
   // soft delete VS hard delete defined by db query fn
   delete({
     payload,
+    context,
     requestId,
     searchQuery,
     hardDelete,
   }: ts.IParamsProcessDelete) {
-    const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return util.rejectResource("errors", errors);
+    const { errors } = this.meta.searchQueryParser(context);
+    if (errors) return util.rejectResource("context_errors", errors);
 
     // need to remove context keys
     const { error, value: query } = util.validateOneOrMany(
       this.schema.update,
-      util.removeContextKeys(context, payload)
+      payload
     );
-    if (error) return util.rejectResource("error", error);
+    if (error) return util.rejectResource("validation_error", error);
 
     // if (searchQuery) {
     //   const validSearch = this.schema.search.validate(searchQuery);
@@ -143,7 +145,7 @@ export class Resource implements ts.IClassResource {
     const { errors, components, context } = this.meta.searchQueryParser(
       payload
     );
-    if (errors) return util.rejectResource("errors", errors);
+    if (errors) return util.rejectResource("context_errors", errors);
 
     const sql = util.toSearchQuery({
       ...this.queryBase(),
