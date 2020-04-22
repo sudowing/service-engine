@@ -3,9 +3,6 @@ import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
-const _reject = (errorType, error) => Promise.resolve({ errorType, error });
-const _resolve = (result) => Promise.resolve({result});
-
 const castString = (arg) => String(arg);
 const castNumber = (arg) => Number(arg);
 const castBoolean = (arg) =>
@@ -489,22 +486,6 @@ export const toDeleteQuery = ({
   return db.from(resource).select();
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const validationExpander = (validator: Joi.Schema) => {
   const schema = {
     create: modifyValidator(validator, cnst.CREATE),
@@ -535,7 +516,11 @@ export const validationExpander = (validator: Joi.Schema) => {
     payload
   );
 
+const rejectResource = (errorType, error) => ({ errorType, error });
+const resolveResource = (result) => ({result});
+
 export class Resource {
+  // need to add logger statements throughout
   constructor({db, st, logger, name, validator}) {
     this.db = db;
     this.st = st;
@@ -547,39 +532,43 @@ export class Resource {
     this.report = report;
     this.meta = meta;
 
+    this.queryBase = {
+      db: this.db,
+      st: this.st,
+      resource: this.name
+    };
+    // this.middleware
+    // this.permissions (CRUD, hard/soft delete)
+
   }
 
   create({ payload, requestId }: ts.IParamsProcessBase) {
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return _reject('errors', errors);
+    if (errors) return rejectResource('errors', errors);
 
     // need to remove context keys
     const { error, value: query } = validateOneOrMany(this.schema.create, payload);
-    if (error) return _reject('error', error);
+    if (error) return rejectResource('error', error);
 
     const sql = toCreateQuery({
-      db: this.db,
-      st: this.st,
-      resource: this.name,
+      ...this.queryBase,
       query, context,
     });
-    return _resolve({ sql });
+    return resolveResource({ sql });
   };
 
   read({ payload, requestId }: ts.IParamsProcessBase) {
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return _reject('errors', errors);
+    if (errors) return rejectResource('errors', errors);
 
     const { error, value: query } = this.schema.read.validate(payload);
-    if (error) return _reject('error', error);
+    if (error) return rejectResource('error', error);
 
     const sql = toReadQuery({
-      db: this.db,
-      st: this.st,
-      resource: this.name,
+      ...this.queryBase,
       query, context,
     });
-    return _resolve({ sql });
+    return resolveResource({ sql });
   };
 
   update({
@@ -589,26 +578,24 @@ export class Resource {
   }: ts.IParamsProcessWithSearch) {
 
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return _reject('errors', errors);
+    if (errors) return rejectResource('errors', errors);
 
     // need to remove context keys
     const { error, value: query } = validateOneOrMany(this.schema.update, payload);
-    if (error) return _reject('error', error);
+    if (error) return rejectResource('error', error);
 
     if (searchQuery) {
       const validSearch = this.schema.search.validate(searchQuery);
-      if (validSearch.error) _reject('validSearch', validSearch.error);
+      if (validSearch.error) rejectResource('validSearch', validSearch.error);
     }
 
     const sql = toUpdateQuery({
-      db: this.db,
-      st: this.st,
-      resource: this.name,
+      ...this.queryBase,
       query,
       context,
       searchQuery,
     });
-    return _resolve({ sql });
+    return resolveResource({ sql });
   };
 
   // soft delete VS hard delete defined by db query fn
@@ -620,41 +607,37 @@ export class Resource {
   }: ts.IParamsProcessDelete) {
 
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return _reject('errors', errors);
+    if (errors) return rejectResource('errors', errors);
 
     // need to remove context keys
     const { error, value: query } = validateOneOrMany(this.schema.update, payload);
-    if (error) return _reject('error', error);
+    if (error) return rejectResource('error', error);
 
     if (searchQuery) {
       const validSearch = this.schema.search.validate(searchQuery);
-      if (validSearch.error) _reject('validSearch', validSearch.error);
+      if (validSearch.error) rejectResource('validSearch', validSearch.error);
     }
 
     const sql = toDeleteQuery({
-      db: this.db,
-      st: this.st,
-      resource: this.name,
+      ...this.queryBase,
       query,
       context,
       searchQuery,
       hardDelete,
     });
-    return _resolve({ sql });
+    return resolveResource({ sql });
   };
 
   search(payload: any) {
 
     const { errors, components, context } = this.meta.searchQueryParser(payload);
-    if (errors) return _reject('errors', errors);
+    if (errors) return rejectResource('errors', errors);
 
     const sql = toSearchQuery({
-      db: this.db,
-      st: this.st,
-      resource: this.name,
+      ...this.queryBase,
       context, components,
     });
-    return _resolve({ sql });
+    return resolveResource({ sql });
   };
 
 };

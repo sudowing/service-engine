@@ -16,3 +16,5 @@ make every http call get logged to debug
 middleware & CRUD OPTIONS in service-config
 
 PROVIDE support for defined pagination limits (from implementor)
+
+ALL VALIDATION needs to be async
