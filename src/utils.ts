@@ -1,17 +1,13 @@
-import * as bunyan from "bunyan";
-import * as knex from "knex";
-import * as knexPostgis from "knex-postgis";
-
 import * as Joi from "@hapi/joi";
 import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
-const castString = (arg) => String(arg);
-const castNumber = (arg) => Number(arg);
-const castBoolean = (arg) =>
+export const castString = (arg) => String(arg);
+export const castNumber = (arg) => Number(arg);
+export const castBoolean = (arg) =>
   Boolean(cnst.FALSEY_STRING_VALUES.includes(arg) ? false : arg);
-const castOther = (arg) => arg;
+export const castOther = (arg) => arg;
 
 /**
  * @description Fn that takes string input of a data type, and returns a Fn that will convert an input into target type. Boolean defines some string inputs as falesy and returns false.
@@ -517,7 +513,10 @@ export const validationExpander = (
 };
 
 // need to remove context keys
-const validateOneOrMany = (validator: Joi.Schema, payload: any | any[]) =>
+export const validateOneOrMany = (
+  validator: Joi.Schema,
+  payload: any | any[]
+) =>
   (Array.isArray(payload) ? Joi.array().items(validator) : validator).validate(
     payload
   );
@@ -530,158 +529,14 @@ export const removeContextKeys = (context, payload) => {
   return contextFreePayload;
 };
 
-const rejectResource = (errorType: string, error): ts.IRejectResource => ({
+export const rejectResource = (
+  errorType: string,
+  error
+): ts.IRejectResource => ({
   errorType,
   error,
 });
-const resolveResource = (result): ts.IResolveResource => ({ result });
-
-export class Resource implements ts.IClassResource {
-  public db: knex;
-  public st: knexPostgis.KnexPostgis;
-  public logger: bunyan;
-  public name: string;
-  public validator: Joi.Schema;
-  public schema: ts.IValidationExpanderSchema;
-  public report: ts.IValidationExpanderReport;
-  public meta: ts.IValidationExpanderMeta;
-
-  // need to add logger statements throughout
-  constructor({
-    db,
-    st,
-    logger,
-    name,
-    validator,
-  }: ts.IClassResourceConstructor) {
-    this.db = db;
-    this.st = st;
-    this.logger = logger;
-    this.name = name;
-    this.validator = validator;
-    const { schema, report, meta } = validationExpander(validator);
-    this.schema = schema;
-    this.report = report;
-    this.meta = meta;
-
-    // this.middleware
-    // this.permissions (CRUD, hard/soft delete)
-  }
-
-  queryBase() {
-    return {
-      db: this.db,
-      st: this.st,
-      resource: this.name,
-    };
-  }
-
-  create({ payload, requestId }: ts.IParamsProcessBase) {
-    const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource("errors", errors);
-
-    const { error, value: query } = validateOneOrMany(
-      this.schema.create,
-      removeContextKeys(context, payload)
-    );
-    if (error) return rejectResource("error", error);
-
-    const sql = toCreateQuery({
-      ...this.queryBase(),
-      query,
-      context,
-    });
-    return resolveResource({ sql });
-  }
-
-  read({ payload, requestId }: ts.IParamsProcessBase) {
-    const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource("errors", errors);
-
-    const { error, value: query } = this.schema.read.validate(
-      removeContextKeys(context, payload)
-    );
-    if (error) return rejectResource("error", error);
-
-    const sql = toReadQuery({
-      ...this.queryBase(),
-      query,
-      context,
-    });
-    return resolveResource({ sql });
-  }
-
-  update({ payload, requestId, searchQuery }: ts.IParamsProcessWithSearch) {
-    const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource("errors", errors);
-
-    // need to remove context keys
-    const { error, value: query } = validateOneOrMany(
-      this.schema.update,
-      removeContextKeys(context, payload)
-    );
-    if (error) return rejectResource("error", error);
-
-    // if (searchQuery) {
-    //   const validSearch = this.schema.search.validate(searchQuery);
-    //   if (validSearch.error) rejectResource('validSearch', validSearch.error);
-    // }
-
-    const sql = toUpdateQuery({
-      ...this.queryBase(),
-      query,
-      context,
-      searchQuery,
-    });
-    return resolveResource({ sql });
-  }
-
-  // soft delete VS hard delete defined by db query fn
-  delete({
-    payload,
-    requestId,
-    searchQuery,
-    hardDelete,
-  }: ts.IParamsProcessDelete) {
-    const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource("errors", errors);
-
-    // need to remove context keys
-    const { error, value: query } = validateOneOrMany(
-      this.schema.update,
-      removeContextKeys(context, payload)
-    );
-    if (error) return rejectResource("error", error);
-
-    // if (searchQuery) {
-    //   const validSearch = this.schema.search.validate(searchQuery);
-    //   if (validSearch.error) rejectResource('validSearch', validSearch.error);
-    // }
-
-    const sql = toDeleteQuery({
-      ...this.queryBase(),
-      query,
-      context,
-      searchQuery,
-      hardDelete,
-    });
-    return resolveResource({ sql });
-  }
-
-  search(payload: any) {
-    const { errors, components, context } = this.meta.searchQueryParser(
-      payload
-    );
-    if (errors) return rejectResource("errors", errors);
-
-    const sql = toSearchQuery({
-      ...this.queryBase(),
-      context,
-      components,
-    });
-    return resolveResource({ sql });
-  }
-}
+export const resolveResource = (result): ts.IResolveResource => ({ result });
 
 export const nameRestEndpointGetRecords = (
   resource: string,

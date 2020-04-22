@@ -246,7 +246,7 @@ describe("utils", () => {
   describe("supportMultipleValues", () => {
     it("reports defined arg lengths", () => {
       const fn = utils.supportMultipleValues;
-      expect(fn("does not support multiple values")).to.equal(undefined);
+      expect(fn("does not support multiple values")).to.equal(false);
       expect(fn("in")).to.equal(true);
     });
   });
