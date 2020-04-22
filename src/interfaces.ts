@@ -1,3 +1,4 @@
+import * as bunyan from "bunyan";
 import * as Joi from "@hapi/joi";
 import * as knex from "knex";
 import * as knexPostgis from "knex-postgis";
@@ -146,20 +147,16 @@ export interface IServiceOperationsResult {
 
 export type ICreateOperation = ({
   payload,
-  context,
 }: IParamsProcessBase) => Promise<IServiceOperationsResult>;
 export type IReadOperation = ({
   payload,
-  context,
 }: IParamsProcessBase) => Promise<IServiceOperationsResult>;
 export type IUpdateOperation = ({
   payload,
-  context,
   searchQuery,
 }: IParamsProcessWithSearch) => Promise<IServiceOperationsResult>;
 export type IDelOperation = ({
   payload,
-  context,
   searchQuery,
   hardDelete,
 }: IParamsProcessDelete) => Promise<IServiceOperationsResult>;
@@ -180,4 +177,66 @@ export interface IServiceOperations {
   update: IUpdateOperation;
   del: IDelOperation;
   search: ISearchOperation;
+}
+
+export interface IValidationExpanderSchema {
+  create: Joi.Schema;
+  read: Joi.Schema;
+  update: Joi.Schema;
+  delete: Joi.Schema;
+  search: Joi.Schema;
+}
+export interface IValidationExpanderReport {
+  create: IValidatorInspectorReport;
+  read: IValidatorInspectorReport;
+  update: IValidatorInspectorReport;
+  delete: IValidatorInspectorReport;
+  search: IValidatorInspectorReport;
+}
+export interface IValidationExpanderMeta {
+  softDeleteFields: any[];
+  uniqueKeyComponents: any[];
+  searchQueryParser: (query: any) => ISearchQueryResponse;
+}
+
+export interface IValidationExpander {
+  schema: IValidationExpanderSchema;
+  report: IValidationExpanderReport;
+  meta: IValidationExpanderMeta;
+}
+
+export interface IClassResourceConstructor {
+  db: knex;
+  st: knexPostgis.KnexPostgis;
+  logger: bunyan;
+  name: string;
+  validator: Joi.Schema;
+}
+
+export interface IClassResource {
+  db: knex;
+  st: knexPostgis.KnexPostgis;
+  logger: bunyan;
+  name: string;
+  validator: Joi.Schema;
+  schema: IValidationExpanderSchema;
+  report: IValidationExpanderReport;
+  meta: IValidationExpanderMeta;
+
+  create(payload: IParamsProcessBase): IRejectResource | IResolveResource;
+  read(payload: IParamsProcessBase): IRejectResource | IResolveResource;
+  update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
+  delete(payload: IParamsProcessDelete): IRejectResource | IResolveResource;
+  search(payload: any): IRejectResource | IResolveResource;
+}
+
+export interface IRejectResource {
+  errorType: string;
+  error: Error;
+}
+
+export interface IResolveResource {
+  result: {
+    sql: knex.QueryBuilder;
+  };
 }

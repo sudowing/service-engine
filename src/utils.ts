@@ -1,3 +1,7 @@
+import * as bunyan from "bunyan";
+import * as knex from "knex";
+import * as knexPostgis from "knex-postgis";
+
 import * as Joi from "@hapi/joi";
 import { cloneDeep } from "lodash";
 import * as cnst from "./const";
@@ -234,7 +238,7 @@ export const validArgsforOperation = (
  * @returns {(boolean)}
  */
 export const supportMultipleValues = (operation: string): boolean =>
-  !!(cnst.SUPPORTED_OPERATIONS[operation]);
+  !!cnst.SUPPORTED_OPERATIONS[operation];
 
 /**
  * @description Some operations on GET queries support operations via `field.operation`. This `SUPPORTED_OPERATIONS` object holds a map with keys that represent all supported operations.
@@ -393,7 +397,7 @@ export const toSearchQuery = ({
   st,
   resource,
   components,
-  context
+  context,
 }: ts.IParamsToSearchQuery) =>
   db
     .from(resource)
@@ -486,7 +490,9 @@ export const toDeleteQuery = ({
   return db.from(resource).select();
 };
 
-export const validationExpander = (validator: Joi.Schema) => {
+export const validationExpander = (
+  validator: Joi.Schema
+): ts.IValidationExpander => {
   const schema = {
     create: modifyValidator(validator, cnst.CREATE),
     read: modifyValidator(validator, cnst.READ),
@@ -510,26 +516,44 @@ export const validationExpander = (validator: Joi.Schema) => {
   return { schema, report, meta };
 };
 
-  // need to remove context keys
-  const validateOneOrMany = (validator: Joi.Schema, payload: any | any[]) =>
+// need to remove context keys
+const validateOneOrMany = (validator: Joi.Schema, payload: any | any[]) =>
   (Array.isArray(payload) ? Joi.array().items(validator) : validator).validate(
     payload
   );
 
 export const removeContextKeys = (context, payload) => {
-  const contextFreePayload = {...payload};
-  Object.keys(context).forEach(item => {
+  const contextFreePayload = { ...payload };
+  Object.keys(context).forEach((item) => {
     delete contextFreePayload[item];
   });
   return contextFreePayload;
 };
 
-const rejectResource = (errorType, error) => ({ errorType, error });
-const resolveResource = (result) => ({result});
+const rejectResource = (errorType: string, error): ts.IRejectResource => ({
+  errorType,
+  error,
+});
+const resolveResource = (result): ts.IResolveResource => ({ result });
 
-export class Resource {
+export class Resource implements ts.IClassResource {
+  public db: knex;
+  public st: knexPostgis.KnexPostgis;
+  public logger: bunyan;
+  public name: string;
+  public validator: Joi.Schema;
+  public schema: ts.IValidationExpanderSchema;
+  public report: ts.IValidationExpanderReport;
+  public meta: ts.IValidationExpanderMeta;
+
   // need to add logger statements throughout
-  constructor({db, st, logger, name, validator}) {
+  constructor({
+    db,
+    st,
+    logger,
+    name,
+    validator,
+  }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
     this.logger = logger;
@@ -540,56 +564,63 @@ export class Resource {
     this.report = report;
     this.meta = meta;
 
-    this.queryBase = {
-      db: this.db,
-      st: this.st,
-      resource: this.name
-    };
     // this.middleware
     // this.permissions (CRUD, hard/soft delete)
+  }
 
+  queryBase() {
+    return {
+      db: this.db,
+      st: this.st,
+      resource: this.name,
+    };
   }
 
   create({ payload, requestId }: ts.IParamsProcessBase) {
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource('errors', errors);
+    if (errors) return rejectResource("errors", errors);
 
-    const { error, value: query } = validateOneOrMany(this.schema.create, removeContextKeys(context, payload));
-    if (error) return rejectResource('error', error);
+    const { error, value: query } = validateOneOrMany(
+      this.schema.create,
+      removeContextKeys(context, payload)
+    );
+    if (error) return rejectResource("error", error);
 
     const sql = toCreateQuery({
-      ...this.queryBase,
-      query, context,
+      ...this.queryBase(),
+      query,
+      context,
     });
     return resolveResource({ sql });
-  };
+  }
 
   read({ payload, requestId }: ts.IParamsProcessBase) {
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource('errors', errors);
+    if (errors) return rejectResource("errors", errors);
 
-    const { error, value: query } = this.schema.read.validate(removeContextKeys(context, payload));
-    if (error) return rejectResource('error', error);
+    const { error, value: query } = this.schema.read.validate(
+      removeContextKeys(context, payload)
+    );
+    if (error) return rejectResource("error", error);
 
     const sql = toReadQuery({
-      ...this.queryBase,
-      query, context,
+      ...this.queryBase(),
+      query,
+      context,
     });
     return resolveResource({ sql });
-  };
+  }
 
-  update({
-    payload,
-    requestId,
-    searchQuery,
-  }: ts.IParamsProcessWithSearch) {
-
+  update({ payload, requestId, searchQuery }: ts.IParamsProcessWithSearch) {
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource('errors', errors);
+    if (errors) return rejectResource("errors", errors);
 
     // need to remove context keys
-    const { error, value: query } = validateOneOrMany(this.schema.update, removeContextKeys(context, payload));
-    if (error) return rejectResource('error', error);
+    const { error, value: query } = validateOneOrMany(
+      this.schema.update,
+      removeContextKeys(context, payload)
+    );
+    if (error) return rejectResource("error", error);
 
     // if (searchQuery) {
     //   const validSearch = this.schema.search.validate(searchQuery);
@@ -597,13 +628,13 @@ export class Resource {
     // }
 
     const sql = toUpdateQuery({
-      ...this.queryBase,
+      ...this.queryBase(),
       query,
       context,
       searchQuery,
     });
     return resolveResource({ sql });
-  };
+  }
 
   // soft delete VS hard delete defined by db query fn
   delete({
@@ -612,13 +643,15 @@ export class Resource {
     searchQuery,
     hardDelete,
   }: ts.IParamsProcessDelete) {
-
     const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource('errors', errors);
+    if (errors) return rejectResource("errors", errors);
 
     // need to remove context keys
-    const { error, value: query } = validateOneOrMany(this.schema.update, removeContextKeys(context, payload));
-    if (error) return rejectResource('error', error);
+    const { error, value: query } = validateOneOrMany(
+      this.schema.update,
+      removeContextKeys(context, payload)
+    );
+    if (error) return rejectResource("error", error);
 
     // if (searchQuery) {
     //   const validSearch = this.schema.search.validate(searchQuery);
@@ -626,28 +659,29 @@ export class Resource {
     // }
 
     const sql = toDeleteQuery({
-      ...this.queryBase,
+      ...this.queryBase(),
       query,
       context,
       searchQuery,
       hardDelete,
     });
     return resolveResource({ sql });
-  };
+  }
 
   search(payload: any) {
-
-    const { errors, components, context } = this.meta.searchQueryParser(payload);
-    if (errors) return rejectResource('errors', errors);
+    const { errors, components, context } = this.meta.searchQueryParser(
+      payload
+    );
+    if (errors) return rejectResource("errors", errors);
 
     const sql = toSearchQuery({
-      ...this.queryBase,
-      context, components,
+      ...this.queryBase(),
+      context,
+      components,
     });
     return resolveResource({ sql });
-  };
-
-};
+  }
+}
 
 export const nameRestEndpointGetRecords = (
   resource: string,
