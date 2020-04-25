@@ -46,12 +46,9 @@ export class Resource implements ts.IClassResource {
     };
   }
 
-
   contextParser(rawContext: ts.IParamsSearchQueryParser) {
     return util.queryContextParser(this.validator, rawContext);
-  };
-
-
+  }
 
   // context in by post
   create(input: ts.IParamsProcessBase) {
@@ -64,7 +61,10 @@ export class Resource implements ts.IClassResource {
       input.context = context;
     }
 
-    const { error, value: query } = util.validateOneOrMany(this.schema.create,input.payload);
+    const { error, value: query } = util.validateOneOrMany(
+      this.schema.create,
+      input.payload
+    );
     if (error) return util.rejectResource("validation_error", error);
 
     const sql = util.toCreateQuery({
@@ -139,7 +139,10 @@ export class Resource implements ts.IClassResource {
     }
 
     // need to remove context keys
-    const { error, value: query } = util.validateOneOrMany(this.schema.update,input.payload);
+    const { error, value: query } = util.validateOneOrMany(
+      this.schema.update,
+      input.payload
+    );
     if (error) return util.rejectResource("validation_error", error);
 
     // if (input.searchQuery) {
@@ -160,13 +163,19 @@ export class Resource implements ts.IClassResource {
     // const { requestId } = input;
 
     if (input.context) {
-      const { errors: contextErrors, context } = this.contextParser(input.context);
-      if (contextErrors) return util.rejectResource("context_errors", contextErrors);
+      const { errors: contextErrors, context } = this.contextParser(
+        input.context
+      );
+      if (contextErrors)
+        return util.rejectResource("context_errors", contextErrors);
       // returned context is mutated if passed
       input.context = context;
     }
 
-    const { errors, components } = this.meta.searchQueryParser(input.payload);
+    const { errors, components } = this.meta.searchQueryParser(
+      input.payload,
+      input.context
+    );
     if (errors.length) return util.rejectResource("context_errors", errors);
 
     const sql = util.toSearchQuery({

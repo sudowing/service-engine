@@ -287,10 +287,12 @@ const contextTransformer = (attribute, input) => {
  */
 export const searchQueryParser = (
   validator: Joi.Schema,
-  query: ts.IParamsSearchQueryParser
+  query: ts.IParamsSearchQueryParser,
+  seperator?: string
 ): ts.ISearchQueryResponse => {
   const errors = [];
   const components = [];
+  const sep = seperator || cnst.SEARCH_QUERY_CONTEXT.seperator;
 
   // removing context
   Object.entries(query).forEach(([key, rawValue]) => {
@@ -301,7 +303,7 @@ export const searchQueryParser = (
     const record = { field, rawValue, operation, type };
     const typecast: any = typecastFn(type);
     if (supportMultipleValues(operation)) {
-      const values = rawValue.split(context.seperator).map(typecast);
+      const values = rawValue.split(sep).map(typecast);
       if (!validArgsforOperation(operation, values))
         errors.push({ field, error: badArgsLengthError(operation, values) });
       const validatedValues = schema
@@ -324,21 +326,9 @@ export const searchQueryParser = (
       }
       components.push({ ...record, value });
     }
-
   });
   return { errors, components };
 };
-
-
-
-
-
-
-
-
-
-
-
 
 export const queryContextParser = (
   validator: Joi.Schema,
@@ -374,26 +364,9 @@ export const queryContextParser = (
         }
       }
     }
-
   });
   return { errors, context };
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // this is to much dupe. can abstract and pass key.path to map
 // this is to much dupe. can abstract and pass key.path to map
@@ -526,24 +499,29 @@ export const toDeleteQuery = ({
 export const validationExpander = (
   validator: Joi.Schema
 ): ts.IValidationExpander => {
-  const schema = {
+  const schema: ts.IValidationExpanderSchema = {
     create: modifyValidator(validator, cnst.CREATE),
     read: modifyValidator(validator, cnst.READ),
     update: modifyValidator(validator, cnst.UPDATE),
     delete: modifyValidator(validator, cnst.DELETE),
     search: modifyValidator(validator, cnst.SEARCH),
   };
-  const report = {
+  const report: ts.IValidationExpanderReport = {
     create: validatorInspector(schema.create),
     read: validatorInspector(schema.read),
     update: validatorInspector(schema.update),
     delete: validatorInspector(schema.delete),
     search: validatorInspector(schema.search),
   };
-  const meta = {
+  const meta: ts.IValidationExpanderMeta = {
     softDeleteFields: softDeleteFields(report.read),
     uniqueKeyComponents: uniqueKeyComponents(report.read),
-    searchQueryParser: (query) => searchQueryParser(validator, query),
+    searchQueryParser: (query, context) =>
+      searchQueryParser(
+        validator,
+        query,
+        context && context.sep ? context.sep : undefined
+      ),
   };
 
   return { schema, report, meta };

@@ -77,7 +77,6 @@ export interface ISearchQueryContext {
   limit?: number;
 }
 
-
 export interface IQueryContextResponse {
   errors: ISearchQueryError[];
   context: ISearchQueryContext;
@@ -208,7 +207,7 @@ export interface IValidationExpanderReport {
 export interface IValidationExpanderMeta {
   softDeleteFields: any[];
   uniqueKeyComponents: any[];
-  searchQueryParser: (query: any) => ISearchQueryResponse;
+  searchQueryParser: (query: any, context?: any) => ISearchQueryResponse;
 }
 
 export interface IValidationExpander {
@@ -243,7 +242,6 @@ export interface IClassResource {
   delete(payload: IParamsProcessDelete): IRejectResource | IResolveResource;
   search(payload: any): IRejectResource | IResolveResource;
 }
-
 
 export interface IRejectResource {
   errorType: string;
