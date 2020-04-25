@@ -156,15 +156,22 @@ export class Resource implements ts.IClassResource {
     });
     return util.resolveResource({ sql });
   }
-  search({ payload, requestId }: ts.IParamsProcessBase) {
-    const { errors, components, context } = this.meta.searchQueryParser(
-      payload
-    );
+  search(input: ts.IParamsProcessBase) {
+    // const { requestId } = input;
+
+    if (input.context) {
+      const { errors: contextErrors, context } = this.contextParser(input.context);
+      if (contextErrors) return util.rejectResource("context_errors", contextErrors);
+      // returned context is mutated if passed
+      input.context = context;
+    }
+
+    const { errors, components } = this.meta.searchQueryParser(input.payload);
     if (errors.length) return util.rejectResource("context_errors", errors);
 
     const sql = util.toSearchQuery({
       ...this.queryBase(),
-      context,
+      context: input.context,
       components,
     });
     return util.resolveResource({ sql });

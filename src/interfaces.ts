@@ -86,7 +86,6 @@ export interface IQueryContextResponse {
 export interface ISearchQueryResponse {
   errors: ISearchQueryError[];
   components: ISearchQueryComponent[];
-  context: ISearchQueryContext;
 }
 
 export interface IParamsGenerateOperations {

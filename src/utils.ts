@@ -291,71 +291,42 @@ export const searchQueryParser = (
 ): ts.ISearchQueryResponse => {
   const errors = [];
   const components = [];
-  const context: ts.ISearchQueryContext = {
-    ...cnst.SEARCH_QUERY_CONTEXT,
-    ...(query[cnst.PIPE_SEPERATOR]
-      ? { seperator: query[cnst.PIPE_SEPERATOR] }
-      : {}), // support user provided seperators for fields that support multiple values
-  };
+
+  // removing context
   Object.entries(query).forEach(([key, rawValue]) => {
-    if (key.startsWith(cnst.PIPE)) {
-      const attribute = key.replace(cnst.PIPE, cnst.EMPTY_STRING);
-      if (context.hasOwnProperty(attribute)) {
-        const value = contextTransformer(attribute, rawValue);
-        // add order by and fields values to set to ensure they're all part of the validator
-        if (["fields", "orderBy"].includes(attribute)) {
-          // orderBy value is an array of obects. need to map to get the field names
-          const values =
-            attribute === "fields" ? value : value.map(({ column }) => column);
-          const unsupportedFields = values.filter(
-            (field) =>
-              !validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field)
-          );
-          // if attempting to use unsupported fields in context -- add error objects
-          if (unsupportedFields.length) {
-            const error = `'${attribute}' in context does not support submitted fields: ${unsupportedFields.join(
-              ", "
-            )}`;
-            errors.push({ field: key, error });
-          } else {
-            context[attribute] = value;
-          }
-        }
-      }
+    const { field, operation } = parseFieldAndOperation(key);
+    const { schema } =
+      validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field) || {};
+    const { type } = schema || {}; // all fields have types. if undefined -- simply not a field on the resource
+    const record = { field, rawValue, operation, type };
+    const typecast: any = typecastFn(type);
+    if (supportMultipleValues(operation)) {
+      const values = rawValue.split(context.seperator).map(typecast);
+      if (!validArgsforOperation(operation, values))
+        errors.push({ field, error: badArgsLengthError(operation, values) });
+      const validatedValues = schema
+        ? values.map((value) => schema.validate(value))
+        : [];
+      const error = validatedValues
+        .reduce(concatErrorMessages(field), [])
+        .join(cnst.COMMA);
+      if (error) errors.push({ field, error });
+      components.push({ ...record, value: values });
     } else {
-      const { field, operation } = parseFieldAndOperation(key);
-      const { schema } =
-        validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field) || {};
-      const { type } = schema || {}; // all fields have types. if undefined -- simply not a field on the resource
-      const record = { field, rawValue, operation, type };
-      const typecast: any = typecastFn(type);
-      if (supportMultipleValues(operation)) {
-        const values = rawValue.split(context.seperator).map(typecast);
-        if (!validArgsforOperation(operation, values))
-          errors.push({ field, error: badArgsLengthError(operation, values) });
-        const validatedValues = schema
-          ? values.map((value) => schema.validate(value))
-          : [];
-        const error = validatedValues
-          .reduce(concatErrorMessages(field), [])
-          .join(cnst.COMMA);
-        if (error) errors.push({ field, error });
-        components.push({ ...record, value: values });
-      } else {
-        const { value, error } = schema
-          ? schema.validate(typecast(rawValue))
-          : ({} as any);
-        if (error || !type || !supportedOperation(operation)) {
-          errors.push({
-            field,
-            error: generateSearchQueryError({ error, field, type, operation }),
-          });
-        }
-        components.push({ ...record, value });
+      const { value, error } = schema
+        ? schema.validate(typecast(rawValue))
+        : ({} as any);
+      if (error || !type || !supportedOperation(operation)) {
+        errors.push({
+          field,
+          error: generateSearchQueryError({ error, field, type, operation }),
+        });
       }
+      components.push({ ...record, value });
     }
+
   });
-  return { errors, components, context };
+  return { errors, components };
 };
 
 
