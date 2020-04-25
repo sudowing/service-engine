@@ -177,7 +177,7 @@ export class Resource implements ts.IClassResource {
 
     const sql = util.toSearchQuery({
       ...this.queryBase(),
-      context: input.context,
+      context,
       components,
     });
     return util.resolveResource({ sql });

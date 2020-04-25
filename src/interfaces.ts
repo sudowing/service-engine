@@ -94,15 +94,27 @@ export interface IParamsGenerateOperations {
   resource: string;
 }
 
-export interface IParamsToSearchQuery extends ZZZZ {
-  components: ISearchQueryComponent[];
-}
-
-export interface ZZZZ {
+export interface IParamsQueryCore {
   db: knex;
   st: knexPostgis.KnexPostgis;
   resource: string;
   context: ISearchQueryContext;
+}
+
+export interface IParamsToQueryBase extends IParamsQueryCore {
+  query: any | any[];
+}
+export interface IParamsToQueryWithSearch extends IParamsToQueryBase {
+  searchQuery: any;
+}
+
+export interface IParamsToDeleteQueryWithSearch
+  extends IParamsToQueryWithSearch {
+  hardDelete?: boolean;
+}
+
+export interface IParamsToSearchQuery extends IParamsQueryCore {
+  components: ISearchQueryComponent[];
 }
 
 export interface IParamsProcessBase {
@@ -116,19 +128,6 @@ export interface IParamsProcessWithSearch extends IParamsProcessBase {
 }
 
 export interface IParamsProcessDelete extends IParamsProcessWithSearch {
-  hardDelete?: boolean;
-}
-
-export interface IParamsToQueryBase extends ZZZZ {
-  query: any | any[];
-}
-
-export interface IParamsToQueryWithSearch extends IParamsToQueryBase {
-  searchQuery: any;
-}
-
-export interface IParamsToDeleteQueryWithSearch
-  extends IParamsToQueryWithSearch {
   hardDelete?: boolean;
 }
 
