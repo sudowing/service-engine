@@ -358,6 +358,72 @@ export const searchQueryParser = (
   return { errors, components, context };
 };
 
+
+
+
+
+
+
+
+
+
+
+
+export const queryContextParser = (
+  validator: Joi.Schema,
+  query: ts.IParamsSearchQueryParser
+): ts.IQueryContextResponse => {
+  const errors = [];
+  const context: ts.ISearchQueryContext = {
+    ...cnst.SEARCH_QUERY_CONTEXT,
+    ...(query[cnst.PIPE_SEPERATOR]
+      ? { seperator: query[cnst.PIPE_SEPERATOR] }
+      : {}), // support user provided seperators for fields that support multiple values
+  };
+  Object.entries(query).forEach(([key, rawValue]) => {
+    if (context.hasOwnProperty(key)) {
+      const value = contextTransformer(key, rawValue);
+      // add order by and fields values to set to ensure they're all part of the validator
+      if (["fields", "orderBy"].includes(key)) {
+        // orderBy value is an array of obects. need to map to get the field names
+        const values =
+          key === "fields" ? value : value.map(({ column }) => column);
+        const unsupportedFields = values.filter(
+          (field) =>
+            !validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field)
+        );
+        // if attempting to use unsupported fields in context -- add error objects
+        if (unsupportedFields.length) {
+          const error = `'${key}' in context does not support submitted fields: ${unsupportedFields.join(
+            ", "
+          )}`;
+          errors.push({ field: key, error });
+        } else {
+          context[key] = value;
+        }
+      }
+    }
+
+  });
+  return { errors, context };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // this is to much dupe. can abstract and pass key.path to map
 // this is to much dupe. can abstract and pass key.path to map
 

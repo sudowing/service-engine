@@ -77,6 +77,12 @@ export interface ISearchQueryContext {
   limit?: number;
 }
 
+
+export interface IQueryContextResponse {
+  errors: ISearchQueryError[];
+  context: ISearchQueryContext;
+}
+
 export interface ISearchQueryResponse {
   errors: ISearchQueryError[];
   components: ISearchQueryComponent[];
@@ -136,6 +142,12 @@ export interface IServiceConfig {
   db: knex;
   st: knexPostgis.KnexPostgis;
   resources: IServiceResource;
+}
+
+export interface IResourceQueryBase {
+  db: knex;
+  st: knexPostgis.KnexPostgis;
+  resource: string;
 }
 
 export interface IParamsControllerSpecs {
@@ -224,6 +236,8 @@ export interface IClassResource {
   report: IValidationExpanderReport;
   meta: IValidationExpanderMeta;
 
+  queryBase(): IResourceQueryBase;
+  contextParser(rawContext: IParamsSearchQueryParser): IQueryContextResponse;
   create(payload: IParamsProcessBase): IRejectResource | IResolveResource;
   read(payload: IParamsProcessBase): IRejectResource | IResolveResource;
   update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
@@ -231,13 +245,18 @@ export interface IClassResource {
   search(payload: any): IRejectResource | IResolveResource;
 }
 
+
 export interface IRejectResource {
   errorType: string;
   error: Error;
+  result?: undefined;
 }
 
 export interface IResolveResource {
+  errorType?: undefined;
+  error?: undefined;
   result: {
     sql: knex.QueryBuilder;
+    wip?: string; // this is for development functionality | to replace the .sql with the string
   };
 }

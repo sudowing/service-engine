@@ -46,106 +46,121 @@ export class Resource implements ts.IClassResource {
     };
   }
 
-  // context in by post
-  create({ payload, context, requestId }: ts.IParamsProcessBase) {
-    const { errors } = this.meta.searchQueryParser(context);
-    if (errors) return util.rejectResource("context_errors", errors);
 
-    const { error, value: query } = util.validateOneOrMany(
-      this.schema.create,
-      payload
-    );
+  contextParser(rawContext: ts.IParamsSearchQueryParser) {
+    return util.queryContextParser(this.validator, rawContext);
+  };
+
+
+
+  // context in by post
+  create(input: ts.IParamsProcessBase) {
+    // const { requestId } = input;
+
+    if (input.context) {
+      const { errors, context } = this.contextParser(input.context);
+      if (errors) return util.rejectResource("context_errors", errors);
+      // returned context is mutated if passed
+      input.context = context;
+    }
+
+    const { error, value: query } = util.validateOneOrMany(this.schema.create,input.payload);
     if (error) return util.rejectResource("validation_error", error);
 
     const sql = util.toCreateQuery({
       ...this.queryBase(),
       query,
-      context,
+      context: input.context,
     });
     return util.resolveResource({ sql });
   }
 
-  read({ payload, requestId }: ts.IParamsProcessBase) {
-    const { errors, context } = this.meta.searchQueryParser(payload);
-    if (errors) return util.rejectResource("context_errors", errors);
+  read(input: ts.IParamsProcessBase) {
+    // const { requestId } = input;
 
-    const { error, value: query } = this.schema.read.validate(
-      util.removeContextKeys(context, payload)
-    );
+    if (input.context) {
+      const { errors, context } = this.contextParser(input.context);
+      if (errors) return util.rejectResource("context_errors", errors);
+      // returned context is mutated if passed
+      input.context = context;
+    }
+
+    const { error, value: query } = this.schema.read.validate(input.payload);
     if (error) return util.rejectResource("validation_error", error);
 
     const sql = util.toReadQuery({
       ...this.queryBase(),
       query,
-      context,
+      context: input.context,
     });
     return util.resolveResource({ sql });
   }
 
-  // context in by patch
-  update({ payload, context, requestId }: ts.IParamsProcessBase) {
-    const { errors } = this.meta.searchQueryParser(context);
-    if (errors) return util.rejectResource("context_errors", errors);
+  update(input: ts.IParamsProcessWithSearch) {
+    // const { requestId } = input;
 
-    // need to remove context keys
+    if (input.context) {
+      const { errors, context } = this.contextParser(input.context);
+      if (errors) return util.rejectResource("context_errors", errors);
+      // returned context is mutated if passed
+      input.context = context;
+    }
+
+    // need to remove context keys || dont know if this is true please check (25 April)
     const { error, value: query } = util.validateOneOrMany(
       this.schema.update,
-      payload
+      input.payload
     );
     if (error) return util.rejectResource("validation_error", error);
 
-    // if (searchQuery) {
-    //   const validSearch = this.schema.search.validate(searchQuery);
+    // if (input.searchQuery) {
+    //   const validSearch = this.schema.search.validate(input.searchQuery);
     //   if (validSearch.error) util.rejectResource('validSearch', validSearch.error);
     // }
 
     const sql = util.toUpdateQuery({
       ...this.queryBase(),
       query,
-      context,
-      searchQuery: undefined,
+      context: input.context,
+      searchQuery: undefined, // undefined for now -- will accept mass updates
     });
     return util.resolveResource({ sql });
   }
 
   // soft delete VS hard delete defined by db query fn
-  delete({
-    payload,
-    context,
-    requestId,
-    searchQuery,
-    hardDelete,
-  }: ts.IParamsProcessDelete) {
-    const { errors } = this.meta.searchQueryParser(context);
-    if (errors) return util.rejectResource("context_errors", errors);
+  delete(input: ts.IParamsProcessDelete) {
+    // const { requestId } = input;
+
+    if (input.context) {
+      const { errors, context } = this.contextParser(input.context);
+      if (errors) return util.rejectResource("context_errors", errors);
+      // returned context is mutated if passed
+      input.context = context;
+    }
 
     // need to remove context keys
-    const { error, value: query } = util.validateOneOrMany(
-      this.schema.update,
-      payload
-    );
+    const { error, value: query } = util.validateOneOrMany(this.schema.update,input.payload);
     if (error) return util.rejectResource("validation_error", error);
 
-    // if (searchQuery) {
-    //   const validSearch = this.schema.search.validate(searchQuery);
+    // if (input.searchQuery) {
+    //   const validSearch = this.schema.search.validate(input.searchQuery);
     //   if (validSearch.error) util.rejectResource('validSearch', validSearch.error);
     // }
 
     const sql = util.toDeleteQuery({
       ...this.queryBase(),
       query,
-      context,
-      searchQuery,
-      hardDelete,
+      context: input.context,
+      searchQuery: undefined, // undefined for now -- will accept mass updates
+      hardDelete: input.hardDelete,
     });
     return util.resolveResource({ sql });
   }
-
-  search(payload: any) {
+  search({ payload, requestId }: ts.IParamsProcessBase) {
     const { errors, components, context } = this.meta.searchQueryParser(
       payload
     );
-    if (errors) return util.rejectResource("context_errors", errors);
+    if (errors.length) return util.rejectResource("context_errors", errors);
 
     const sql = util.toSearchQuery({
       ...this.queryBase(),
