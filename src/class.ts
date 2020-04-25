@@ -3,6 +3,7 @@ import * as knex from "knex";
 import * as knexPostgis from "knex-postgis";
 
 import * as Joi from "@hapi/joi";
+import { SEARCH_QUERY_CONTEXT } from "./const";
 import * as ts from "./interfaces";
 import * as util from "./utils";
 
@@ -170,6 +171,9 @@ export class Resource implements ts.IClassResource {
         return util.rejectResource("context_errors", contextErrors);
       // returned context is mutated if passed
       input.context = context;
+    }
+    else {
+      input.context = SEARCH_QUERY_CONTEXT;
     }
 
     const { errors, components } = this.meta.searchQueryParser(

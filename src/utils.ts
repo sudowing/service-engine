@@ -407,9 +407,9 @@ export const toSearchQuery = ({
 }: ts.IParamsToSearchQuery) =>
   db
     .from(resource)
-    .orderBy(context.orderBy)
-    .limit(context.limit)
-    .offset((context.page - 1) * context.limit)
+    .orderBy(context.orderBy || [])
+    .limit(context.limit || 100)
+    .offset(((context.page || 1) - 1) * (context.limit || 100))
     // notWhere where/notWhere
     // statementContext and/or
     .select(context.fields)
