@@ -25,6 +25,8 @@ export class Resource implements ts.IClassResource {
     name,
     validator,
   }: ts.IClassResourceConstructor) {
+    // tslint:disable-next-line: no-console
+    console.log("logger", logger);
     this.db = db;
     this.st = st;
     this.logger = logger;
@@ -69,6 +71,14 @@ export class Resource implements ts.IClassResource {
   // context in by post
   create(input: ts.IParamsProcessBase) {
     // const { requestId } = input;
+    this.logger.debug(
+      {
+        ...input,
+        resource: this.name,
+        operation: "create",
+      },
+      "resource_create"
+    );
 
     const { context, ...parsed } = this.contextParser(input);
     if (parsed.error)
@@ -90,6 +100,14 @@ export class Resource implements ts.IClassResource {
 
   read(input: ts.IParamsProcessBase) {
     // const { requestId } = input;
+    this.logger.debug(
+      {
+        ...input,
+        resource: this.name,
+        operation: "read",
+      },
+      "resource_read"
+    );
 
     const { context, ...parsed } = this.contextParser(input);
     if (parsed.error)
@@ -108,6 +126,14 @@ export class Resource implements ts.IClassResource {
 
   update(input: ts.IParamsProcessWithSearch) {
     // const { requestId } = input;
+    this.logger.debug(
+      {
+        ...input,
+        resource: this.name,
+        operation: "update",
+      },
+      "resource_update"
+    );
 
     const { context, ...parsed } = this.contextParser(input);
     if (parsed.error)
@@ -137,6 +163,14 @@ export class Resource implements ts.IClassResource {
   // soft delete VS hard delete defined by db query fn
   delete(input: ts.IParamsProcessDelete) {
     // const { requestId } = input;
+    this.logger.debug(
+      {
+        ...input,
+        resource: this.name,
+        operation: "delete",
+      },
+      "resource_delete"
+    );
 
     const { context, ...parsed } = this.contextParser(input);
     if (parsed.error)
@@ -165,6 +199,15 @@ export class Resource implements ts.IClassResource {
   }
   search(input: ts.IParamsProcessBase) {
     // const { requestId } = input;
+    this.logger.debug(
+      {
+        ...input,
+        resource: this.name,
+        operation: "search",
+      },
+      "resource_search"
+    );
+
     const { context, ...parsed } = this.contextParser(input);
     if (parsed.error)
       return util.rejectResource(parsed.errorType, parsed.error);

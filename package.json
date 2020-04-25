@@ -13,7 +13,8 @@
     "lint:tslint": "npx tslint -p tsconfig.json",
     "lint:tslint:fix": "npx tslint -p tsconfig.json --fix",
     "test": "mocha --timeout 25000 --exit -r ts-node/register -- \"src/**/*.spec.ts\"",
-    "test:coverage": "nyc mocha --timeout 25000 --exit -r ts-node/register -- \"src/**/*.spec.ts\""
+    "test:coverage": "nyc mocha --timeout 25000 --exit -r ts-node/register -- \"src/**/*.spec.ts\"",
+    "bake": "npm run lint:fix && npm run test && npm run build"
   },
   "repository": {
     "type": "git",

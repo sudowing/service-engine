@@ -1,4 +1,6 @@
 import * as Joi from "@hapi/joi";
+import { v4 as uuidv4 } from "uuid";
+
 import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
@@ -560,3 +562,5 @@ export const nameRestEndpointGetRecords = (
   resourceEndpoint: `/${prefix}/${resource}`,
   uniqueEndpoint: `/${prefix}/${resource}/record`,
 });
+
+export const uuid = () => uuidv4();
