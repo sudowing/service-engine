@@ -109,3 +109,6 @@ BASIC_QUERY_OPERATIONS.set("lte", "<=");
 BASIC_QUERY_OPERATIONS.set("equal", "=");
 BASIC_QUERY_OPERATIONS.set("like", "like");
 BASIC_QUERY_OPERATIONS.set("not", "<>");
+
+export const CONTEXT_ERRORS = "context_errors";
+export const VALIDATION_ERROR = "validation_error";

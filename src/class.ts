@@ -3,7 +3,7 @@ import * as knex from "knex";
 import * as knexPostgis from "knex-postgis";
 
 import * as Joi from "@hapi/joi";
-import { SEARCH_QUERY_CONTEXT } from "./const";
+import * as cnst from "./const";
 import * as ts from "./interfaces";
 import * as util from "./utils";
 
@@ -47,31 +47,43 @@ export class Resource implements ts.IClassResource {
     };
   }
 
-  contextParser(rawContext: ts.IParamsSearchQueryParser) {
-    return util.queryContextParser(this.validator, rawContext);
+  contextParser(input: ts.IParamsProcessBase) {
+    let context: ts.ISearchQueryContext = cnst.SEARCH_QUERY_CONTEXT;
+    let rejection: ts.IRejectResource = {
+      errorType: undefined,
+      error: undefined,
+    };
+    if (input.context) {
+      const result = util.queryContextParser(this.validator, input.context);
+      if (result.errors)
+        rejection = util.rejectResource(cnst.CONTEXT_ERRORS, result.errors);
+      // returned context is mutated if passed
+      context = result.context;
+    }
+    return {
+      ...rejection,
+      context,
+    };
   }
 
   // context in by post
   create(input: ts.IParamsProcessBase) {
     // const { requestId } = input;
 
-    if (input.context) {
-      const { errors, context } = this.contextParser(input.context);
-      if (errors) return util.rejectResource("context_errors", errors);
-      // returned context is mutated if passed
-      input.context = context;
-    }
+    const { context, ...parsed } = this.contextParser(input);
+    if (parsed.error)
+      return util.rejectResource(parsed.errorType, parsed.error);
 
     const { error, value: query } = util.validateOneOrMany(
       this.schema.create,
       input.payload
     );
-    if (error) return util.rejectResource("validation_error", error);
+    if (error) return util.rejectResource(cnst.VALIDATION_ERROR, error);
 
     const sql = util.toCreateQuery({
       ...this.queryBase(),
       query,
-      context: input.context,
+      context,
     });
     return util.resolveResource({ sql });
   }
@@ -79,20 +91,17 @@ export class Resource implements ts.IClassResource {
   read(input: ts.IParamsProcessBase) {
     // const { requestId } = input;
 
-    if (input.context) {
-      const { errors, context } = this.contextParser(input.context);
-      if (errors) return util.rejectResource("context_errors", errors);
-      // returned context is mutated if passed
-      input.context = context;
-    }
+    const { context, ...parsed } = this.contextParser(input);
+    if (parsed.error)
+      return util.rejectResource(parsed.errorType, parsed.error);
 
     const { error, value: query } = this.schema.read.validate(input.payload);
-    if (error) return util.rejectResource("validation_error", error);
+    if (error) return util.rejectResource(cnst.VALIDATION_ERROR, error);
 
     const sql = util.toReadQuery({
       ...this.queryBase(),
       query,
-      context: input.context,
+      context,
     });
     return util.resolveResource({ sql });
   }
@@ -100,19 +109,16 @@ export class Resource implements ts.IClassResource {
   update(input: ts.IParamsProcessWithSearch) {
     // const { requestId } = input;
 
-    if (input.context) {
-      const { errors, context } = this.contextParser(input.context);
-      if (errors) return util.rejectResource("context_errors", errors);
-      // returned context is mutated if passed
-      input.context = context;
-    }
+    const { context, ...parsed } = this.contextParser(input);
+    if (parsed.error)
+      return util.rejectResource(parsed.errorType, parsed.error);
 
     // need to remove context keys || dont know if this is true please check (25 April)
     const { error, value: query } = util.validateOneOrMany(
       this.schema.update,
       input.payload
     );
-    if (error) return util.rejectResource("validation_error", error);
+    if (error) return util.rejectResource(cnst.VALIDATION_ERROR, error);
 
     // if (input.searchQuery) {
     //   const validSearch = this.schema.search.validate(input.searchQuery);
@@ -122,7 +128,7 @@ export class Resource implements ts.IClassResource {
     const sql = util.toUpdateQuery({
       ...this.queryBase(),
       query,
-      context: input.context,
+      context,
       searchQuery: undefined, // undefined for now -- will accept mass updates
     });
     return util.resolveResource({ sql });
@@ -132,19 +138,16 @@ export class Resource implements ts.IClassResource {
   delete(input: ts.IParamsProcessDelete) {
     // const { requestId } = input;
 
-    if (input.context) {
-      const { errors, context } = this.contextParser(input.context);
-      if (errors) return util.rejectResource("context_errors", errors);
-      // returned context is mutated if passed
-      input.context = context;
-    }
+    const { context, ...parsed } = this.contextParser(input);
+    if (parsed.error)
+      return util.rejectResource(parsed.errorType, parsed.error);
 
     // need to remove context keys
     const { error, value: query } = util.validateOneOrMany(
       this.schema.update,
       input.payload
     );
-    if (error) return util.rejectResource("validation_error", error);
+    if (error) return util.rejectResource(cnst.VALIDATION_ERROR, error);
 
     // if (input.searchQuery) {
     //   const validSearch = this.schema.search.validate(input.searchQuery);
@@ -154,7 +157,7 @@ export class Resource implements ts.IClassResource {
     const sql = util.toDeleteQuery({
       ...this.queryBase(),
       query,
-      context: input.context,
+      context,
       searchQuery: undefined, // undefined for now -- will accept mass updates
       hardDelete: input.hardDelete,
     });
@@ -162,25 +165,15 @@ export class Resource implements ts.IClassResource {
   }
   search(input: ts.IParamsProcessBase) {
     // const { requestId } = input;
-
-    if (input.context) {
-      const { errors: contextErrors, context } = this.contextParser(
-        input.context
-      );
-      if (contextErrors)
-        return util.rejectResource("context_errors", contextErrors);
-      // returned context is mutated if passed
-      input.context = context;
-    }
-    else {
-      input.context = SEARCH_QUERY_CONTEXT;
-    }
+    const { context, ...parsed } = this.contextParser(input);
+    if (parsed.error)
+      return util.rejectResource(parsed.errorType, parsed.error);
 
     const { errors, components } = this.meta.searchQueryParser(
       input.payload,
       input.context
     );
-    if (errors.length) return util.rejectResource("context_errors", errors);
+    if (errors.length) return util.rejectResource(cnst.CONTEXT_ERRORS, errors);
 
     const sql = util.toSearchQuery({
       ...this.queryBase(),

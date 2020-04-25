@@ -235,7 +235,8 @@ export interface IClassResource {
   meta: IValidationExpanderMeta;
 
   queryBase(): IResourceQueryBase;
-  contextParser(rawContext: IParamsSearchQueryParser): IQueryContextResponse;
+  contextParser(input: IParamsProcessBase): IResourceContextParserResponse;
+
   create(payload: IParamsProcessBase): IRejectResource | IResolveResource;
   read(payload: IParamsProcessBase): IRejectResource | IResolveResource;
   update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
@@ -256,4 +257,8 @@ export interface IResolveResource {
     sql: knex.QueryBuilder;
     wip?: string; // this is for development functionality | to replace the .sql with the string
   };
+}
+
+export interface IResourceContextParserResponse extends IRejectResource {
+  context: ISearchQueryContext;
 }
