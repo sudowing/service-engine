@@ -4,12 +4,14 @@ import * as knexPostgis from "knex-postgis";
 
 import * as Joi from "@hapi/joi";
 import * as cnst from "./const";
+import * as database from "./database";
 import * as ts from "./interfaces";
 import * as util from "./utils";
 
 export const genericResourceCall = (
   operation: string,
   schema: Joi.Schema,
+  toQuery: any,
   caller: ts.IClassResource
 ) => (input: ts.IParamsProcessBase) => {
   const resource = caller.name;
@@ -20,7 +22,7 @@ export const genericResourceCall = (
       resource,
       operation,
     },
-    "resource_call"
+    cnst.RESOURCE_CALL
   );
 
   const { context, ...parsed } = caller.contextParser(input);
@@ -52,7 +54,7 @@ export const genericResourceCall = (
     return util.rejectResource(cnst.VALIDATION_ERROR, error);
   }
 
-  const sql = util.toCreateQuery({
+  const sql = toQuery({
     ...caller.queryBase(),
     query,
     context,
@@ -131,16 +133,36 @@ export class Resource implements ts.IClassResource {
   }
 
   create(input: ts.IParamsProcessBase) {
-    return genericResourceCall(cnst.CREATE, this.schema.create, this)(input);
+    return genericResourceCall(
+      cnst.CREATE,
+      this.schema.create,
+      database.toCreateQuery,
+      this
+    )(input);
   }
   read(input: ts.IParamsProcessBase) {
-    return genericResourceCall(cnst.READ, this.schema.read, this)(input);
+    return genericResourceCall(
+      cnst.READ,
+      this.schema.read,
+      database.toReadQuery,
+      this
+    )(input);
   }
   update(input: ts.IParamsProcessWithSearch) {
-    return genericResourceCall(cnst.UPDATE, this.schema.update, this)(input);
+    return genericResourceCall(
+      cnst.UPDATE,
+      this.schema.update,
+      database.toUpdateQuery,
+      this
+    )(input);
   }
   delete(input: ts.IParamsProcessDelete) {
-    return genericResourceCall(cnst.DELETE, this.schema.delete, this)(input);
+    return genericResourceCall(
+      cnst.DELETE,
+      this.schema.delete,
+      database.toDeleteQuery,
+      this
+    )(input);
   }
 
   search(input: ts.IParamsProcessBase) {
@@ -151,7 +173,7 @@ export class Resource implements ts.IClassResource {
         resource: this.name,
         operation: cnst.SEARCH,
       },
-      "resource_search"
+      cnst.RESOURCE_CALL
     );
 
     const { context, ...parsed } = this.contextParser(input);
@@ -185,7 +207,7 @@ export class Resource implements ts.IClassResource {
       return util.rejectResource(cnst.CONTEXT_ERRORS, errors);
     }
 
-    const sql = util.toSearchQuery({
+    const sql = database.toSearchQuery({
       ...this.queryBase(),
       context,
       components,

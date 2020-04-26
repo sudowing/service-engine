@@ -5,6 +5,9 @@ export const DELETE = "delete";
 export const SEARCH = "search";
 
 export const GET = "GET";
+export const POST = "POST";
+export const PUT = "PUT";
+export const PATCH = "PATCH";
 
 export const UNDERSCORE_IDS = "_ids";
 export const UNDERSCORE_BYKEY = "_byKey";
@@ -62,7 +65,6 @@ export const SUPPORTED_OPERATIONS = {
   geo_radius: true,
   geo_polygon: true,
 };
-
 export const DEFINED_ARG_LENGTHS = {
   range: 2,
   not_range: 2,
@@ -113,3 +115,4 @@ BASIC_QUERY_OPERATIONS.set("not", "<>");
 export const CONTEXT_ERRORS = "context_errors";
 export const VALIDATION_ERROR = "validation_error";
 export const RESOURCE_RESPONSE = "resource_response";
+export const RESOURCE_CALL = "resource_call";
