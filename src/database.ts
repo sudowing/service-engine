@@ -2,6 +2,8 @@ import * as cnst from "./const";
 import * as ts from "./interfaces";
 import { convertMetersToDecimalDegrees } from "./utils";
 
+/* tslint:disable */
+
 export const toSearchQuery = ({
   db,
   st,
@@ -66,18 +68,17 @@ export const toCreateQuery = ({
   resource,
   query,
   context,
-}: ts.IParamsToQueryBase) => {
-  return db.from(resource).select();
-};
+}: ts.IParamsToQueryBase) => db.insert(query, context.fields).into(resource); // fields exists. was set in generic
+
 export const toReadQuery = ({
   db,
   st,
   resource,
   query,
   context,
-}: ts.IParamsToQueryBase) => {
-  return db.from(resource).select();
-};
+}: ts.IParamsToQueryBase) =>
+  db.from(resource).select(context.fields).where(query); // fields exists. was set in generic
+
 export const toUpdateQuery = ({
   db,
   st,
@@ -85,9 +86,11 @@ export const toUpdateQuery = ({
   query,
   context,
   searchQuery,
-}: ts.IParamsToQueryWithSearch) => {
-  return db.from(resource).select();
-};
+}: ts.IParamsToQueryWithSearch) =>
+  db(resource)
+    .where(query) // pull only keys from query || ensure it's being done upstream
+    .update(query, context.fields); // remove keys & cannot update fields from query && fields exists. was set in generic
+
 export const toDeleteQuery = ({
   db,
   st,
@@ -96,6 +99,7 @@ export const toDeleteQuery = ({
   context,
   searchQuery,
   hardDelete,
-}: ts.IParamsToDeleteQueryWithSearch) => {
-  return db.from(resource).select();
-};
+}: ts.IParamsToDeleteQueryWithSearch) =>
+  db(resource) // need to handle hard delete && soft-delete (update bool flag)
+    .where(query)
+    .delete();

@@ -11,6 +11,7 @@ import * as util from "./utils";
 export const genericResourceCall = (
   operation: string,
   schema: Joi.Schema,
+  fields: string[],
   toQuery: any,
   caller: ts.IClassResource
 ) => (input: ts.IParamsProcessBase) => {
@@ -38,6 +39,9 @@ export const genericResourceCall = (
     );
     return util.rejectResource(parsed.errorType, parsed.error);
   }
+
+  // set fields to all available by default
+  context.fields = context.fields || fields;
 
   const { error, value: query } = util.validateOneOrMany(schema, input.payload);
   if (error) {
@@ -132,10 +136,12 @@ export class Resource implements ts.IClassResource {
     };
   }
 
+  // these generic calls need to be defined in the contstructor so they only get called once
   create(input: ts.IParamsProcessBase) {
     return genericResourceCall(
       cnst.CREATE,
       this.schema.create,
+      Object.keys(this.report.create),
       database.toCreateQuery,
       this
     )(input);
@@ -144,6 +150,7 @@ export class Resource implements ts.IClassResource {
     return genericResourceCall(
       cnst.READ,
       this.schema.read,
+      Object.keys(this.report.read),
       database.toReadQuery,
       this
     )(input);
@@ -152,6 +159,7 @@ export class Resource implements ts.IClassResource {
     return genericResourceCall(
       cnst.UPDATE,
       this.schema.update,
+      Object.keys(this.report.update),
       database.toUpdateQuery,
       this
     )(input);
@@ -160,6 +168,7 @@ export class Resource implements ts.IClassResource {
     return genericResourceCall(
       cnst.DELETE,
       this.schema.delete,
+      Object.keys(this.report.delete),
       database.toDeleteQuery,
       this
     )(input);
