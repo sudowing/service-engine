@@ -27,4 +27,4 @@ lib
 
 .DS_Store
 
-tsconfig.tsbuildinfo
+*.tsbuildinfo

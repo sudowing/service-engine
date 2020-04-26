@@ -7,6 +7,70 @@ import * as cnst from "./const";
 import * as ts from "./interfaces";
 import * as util from "./utils";
 
+export const genericResourceCall = (
+  operation: string,
+  schema: Joi.Schema,
+  caller: ts.IClassResource
+) => (input: ts.IParamsProcessBase) => {
+  const resource = caller.name;
+  const { requestId } = input;
+  caller.logger.info(
+    {
+      ...input,
+      resource,
+      operation,
+    },
+    "resource_call"
+  );
+
+  const { context, ...parsed } = caller.contextParser(input);
+  if (parsed.error) {
+    caller.logger.error(
+      {
+        requestId,
+        resource,
+        operation,
+        errors: parsed.error,
+      },
+      cnst.CONTEXT_ERRORS
+    );
+    return util.rejectResource(parsed.errorType, parsed.error);
+  }
+
+  const { error, value: query } = util.validateOneOrMany(schema, input.payload);
+  if (error) {
+    caller.logger.error(
+      {
+        requestId,
+        resource,
+        operation,
+        error,
+      },
+      cnst.VALIDATION_ERROR
+    );
+
+    return util.rejectResource(cnst.VALIDATION_ERROR, error);
+  }
+
+  const sql = util.toCreateQuery({
+    ...caller.queryBase(),
+    query,
+    context,
+  });
+
+  caller.logger.info(
+    {
+      requestId,
+      resource,
+      operation,
+      sql: sql.toString(),
+    },
+    cnst.RESOURCE_RESPONSE
+  );
+
+  return util.resolveResource({ sql });
+};
+
 export class Resource implements ts.IClassResource {
   public db: knex;
   public st: knexPostgis.KnexPostgis;
@@ -25,8 +89,6 @@ export class Resource implements ts.IClassResource {
     name,
     validator,
   }: ts.IClassResourceConstructor) {
-    // tslint:disable-next-line: no-console
-    console.log("logger", logger);
     this.db = db;
     this.st = st;
     this.logger = logger;
@@ -68,267 +130,19 @@ export class Resource implements ts.IClassResource {
     };
   }
 
-  // context in by post
   create(input: ts.IParamsProcessBase) {
-    const { requestId } = input;
-    this.logger.info(
-      {
-        ...input,
-        resource: this.name,
-        operation: "create",
-      },
-      "resource_create"
-    );
-
-    const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error) {
-      this.logger.error(
-        {
-          requestId,
-          resource: this.name,
-          operation: "create",
-          errors: parsed.error,
-        },
-        cnst.CONTEXT_ERRORS
-      );
-      return util.rejectResource(parsed.errorType, parsed.error);
-    }
-
-    const { error, value: query } = util.validateOneOrMany(
-      this.schema.create,
-      input.payload
-    );
-    if (error) {
-      this.logger.error(
-        {
-          requestId,
-          resource: this.name,
-          operation: cnst.CREATE,
-          error,
-        },
-        cnst.VALIDATION_ERROR
-      );
-
-      return util.rejectResource(cnst.VALIDATION_ERROR, error);
-    }
-
-    const sql = util.toCreateQuery({
-      ...this.queryBase(),
-      query,
-      context,
-    });
-
-    this.logger.info(
-      {
-        requestId,
-        resource: this.name,
-        operation: cnst.CREATE,
-        sql: sql.toString(),
-      },
-      cnst.RESOURCE_RESPONSE
-    );
-
-    return util.resolveResource({ sql });
+    return genericResourceCall(cnst.CREATE, this.schema.create, this)(input);
   }
-
   read(input: ts.IParamsProcessBase) {
-    const { requestId } = input;
-    this.logger.info(
-      {
-        ...input,
-        resource: this.name,
-        operation: cnst.READ,
-      },
-      "resource_read"
-    );
-
-    const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error) {
-      this.logger.error(
-        {
-          requestId,
-          resource: this.name,
-          operation: cnst.READ,
-          errors: parsed.error,
-        },
-        cnst.CONTEXT_ERRORS
-      );
-      return util.rejectResource(parsed.errorType, parsed.error);
-    }
-
-    const { error, value: query } = this.schema.read.validate(input.payload);
-    if (error) {
-      this.logger.error(
-        {
-          requestId,
-          resource: this.name,
-          operation: cnst.READ,
-          error,
-        },
-        cnst.VALIDATION_ERROR
-      );
-
-      return util.rejectResource(cnst.VALIDATION_ERROR, error);
-    }
-
-    const sql = util.toReadQuery({
-      ...this.queryBase(),
-      query,
-      context,
-    });
-
-    this.logger.info(
-      {
-        requestId,
-        resource: this.name,
-        operation: cnst.READ,
-        sql: sql.toString(),
-      },
-      cnst.RESOURCE_RESPONSE
-    );
-
-    return util.resolveResource({ sql });
+    return genericResourceCall(cnst.READ, this.schema.read, this)(input);
   }
-
   update(input: ts.IParamsProcessWithSearch) {
-    const { requestId } = input;
-    this.logger.info(
-      {
-        ...input,
-        resource: this.name,
-        operation: cnst.UPDATE,
-      },
-      "resource_update"
-    );
-
-    const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error) {
-      this.logger.error(
-        {
-          requestId,
-          resource: this.name,
-          operation: cnst.UPDATE,
-          errors: parsed.error,
-        },
-        cnst.CONTEXT_ERRORS
-      );
-      return util.rejectResource(parsed.errorType, parsed.error);
-    }
-
-    // need to remove context keys || dont know if this is true please check (25 April)
-    const { error, value: query } = util.validateOneOrMany(
-      this.schema.update,
-      input.payload
-    );
-    if (error) {
-      this.logger.error(
-        {
-          requestId,
-          resource: this.name,
-          operation: cnst.UPDATE,
-          error,
-        },
-        cnst.VALIDATION_ERROR
-      );
-
-      return util.rejectResource(cnst.VALIDATION_ERROR, error);
-    }
-
-    // if (input.searchQuery) {
-    //   const validSearch = this.schema.search.validate(input.searchQuery);
-    //   if (validSearch.error) util.rejectResource('validSearch', validSearch.error);
-    // }
-
-    const sql = util.toUpdateQuery({
-      ...this.queryBase(),
-      query,
-      context,
-      searchQuery: undefined, // undefined for now -- will accept mass updates
-    });
-
-    this.logger.info(
-      {
-        requestId,
-        resource: this.name,
-        operation: cnst.UPDATE,
-        sql: sql.toString(),
-      },
-      cnst.RESOURCE_RESPONSE
-    );
-
-    return util.resolveResource({ sql });
+    return genericResourceCall(cnst.UPDATE, this.schema.update, this)(input);
   }
-
-  // soft delete VS hard delete defined by db query fn
   delete(input: ts.IParamsProcessDelete) {
-    const { requestId } = input;
-    this.logger.info(
-      {
-        ...input,
-        resource: this.name,
-        operation: cnst.DELETE,
-      },
-      "resource_delete"
-    );
-
-    const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error) {
-      this.logger.error(
-        {
-          requestId,
-          resource: this.name,
-          operation: cnst.DELETE,
-          errors: parsed.error,
-        },
-        cnst.CONTEXT_ERRORS
-      );
-      return util.rejectResource(parsed.errorType, parsed.error);
-    }
-
-    // need to remove context keys
-    const { error, value: query } = util.validateOneOrMany(
-      this.schema.update,
-      input.payload
-    );
-    if (error) {
-      this.logger.error(
-        {
-          requestId,
-          resource: this.name,
-          operation: cnst.DELETE,
-          error,
-        },
-        cnst.VALIDATION_ERROR
-      );
-
-      return util.rejectResource(cnst.VALIDATION_ERROR, error);
-    }
-
-    // if (input.searchQuery) {
-    //   const validSearch = this.schema.search.validate(input.searchQuery);
-    //   if (validSearch.error) util.rejectResource('validSearch', validSearch.error);
-    // }
-
-    const sql = util.toDeleteQuery({
-      ...this.queryBase(),
-      query,
-      context,
-      searchQuery: undefined, // undefined for now -- will accept mass updates
-      hardDelete: input.hardDelete,
-    });
-
-    this.logger.info(
-      {
-        requestId,
-        resource: this.name,
-        operation: cnst.DELETE,
-        sql: sql.toString(),
-      },
-      cnst.RESOURCE_RESPONSE
-    );
-
-    return util.resolveResource({ sql });
+    return genericResourceCall(cnst.DELETE, this.schema.delete, this)(input);
   }
+
   search(input: ts.IParamsProcessBase) {
     const { requestId } = input;
     this.logger.info(

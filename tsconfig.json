@@ -4,7 +4,6 @@
       "noImplicitAny": false,
       "declaration": true,
       "declarationMap": false,
-      "composite": true,
       "baseUrl": "./lib",
       "rootDir": "src",
       "outDir": "lib",
