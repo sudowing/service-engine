@@ -14,7 +14,12 @@ export const genericResourceCall = (
   fields: string[],
   toQuery: any,
   caller: ts.IClassResource
-) => (input: ts.IParamsProcessBase) => {
+) => (
+  input:
+    | ts.IParamsProcessBase
+    | ts.IParamsProcessWithSearch
+    | ts.IParamsProcessDelete
+) => {
   const resource = caller.name;
   const { requestId } = input;
   caller.logger.info(
@@ -86,6 +91,7 @@ export class Resource implements ts.IClassResource {
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
   public meta: ts.IValidationExpanderMeta;
+  public generics: ts.TResponseGenerics;
 
   // need to add logger statements throughout
   constructor({
@@ -104,6 +110,40 @@ export class Resource implements ts.IClassResource {
     this.schema = schema;
     this.report = report;
     this.meta = meta;
+
+    // these generic calls need to be defined in the contstructor so they only get called once
+    const generics = {
+      create: genericResourceCall(
+        cnst.CREATE,
+        schema.create,
+        Object.keys(report.create),
+        database.toCreateQuery,
+        this
+      ),
+      read: genericResourceCall(
+        cnst.READ,
+        schema.read,
+        Object.keys(report.read),
+        database.toReadQuery,
+        this
+      ),
+      update: genericResourceCall(
+        cnst.UPDATE,
+        schema.update,
+        Object.keys(report.update),
+        database.toUpdateQuery,
+        this
+      ),
+      delete: genericResourceCall(
+        cnst.DELETE,
+        schema.delete,
+        Object.keys(report.delete),
+        database.toDeleteQuery,
+        this
+      ),
+    };
+
+    this.generics = generics;
 
     // this.middleware || for read && search
     // this.permissions (CRUD, hard/soft delete)
@@ -138,40 +178,16 @@ export class Resource implements ts.IClassResource {
 
   // these generic calls need to be defined in the contstructor so they only get called once
   create(input: ts.IParamsProcessBase) {
-    return genericResourceCall(
-      cnst.CREATE,
-      this.schema.create,
-      Object.keys(this.report.create),
-      database.toCreateQuery,
-      this
-    )(input);
+    return this.generics.create(input);
   }
   read(input: ts.IParamsProcessBase) {
-    return genericResourceCall(
-      cnst.READ,
-      this.schema.read,
-      Object.keys(this.report.read),
-      database.toReadQuery,
-      this
-    )(input);
+    return this.generics.read(input);
   }
   update(input: ts.IParamsProcessWithSearch) {
-    return genericResourceCall(
-      cnst.UPDATE,
-      this.schema.update,
-      Object.keys(this.report.update),
-      database.toUpdateQuery,
-      this
-    )(input);
+    return this.generics.update(input);
   }
   delete(input: ts.IParamsProcessDelete) {
-    return genericResourceCall(
-      cnst.DELETE,
-      this.schema.delete,
-      Object.keys(this.report.delete),
-      database.toDeleteQuery,
-      this
-    )(input);
+    return this.generics.delete(input);
   }
 
   search(input: ts.IParamsProcessBase) {

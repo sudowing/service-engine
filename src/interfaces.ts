@@ -209,6 +209,13 @@ export interface IValidationExpanderMeta {
   searchQueryParser: (query: any, context?: any) => ISearchQueryResponse;
 }
 
+export interface TResponseGenerics {
+  create: TResponseGenericCreate;
+  read: TResponseGenericRead;
+  update: TResponseGenericUpdate;
+  delete: TResponseGenericDelete;
+}
+
 export interface IValidationExpander {
   schema: IValidationExpanderSchema;
   report: IValidationExpanderReport;
@@ -232,6 +239,7 @@ export interface IClassResource {
   schema: IValidationExpanderSchema;
   report: IValidationExpanderReport;
   meta: IValidationExpanderMeta;
+  generics: TResponseGenerics;
 
   queryBase(): IResourceQueryBase;
   contextParser(input: IParamsProcessBase): IResourceContextParserResponse;
@@ -261,3 +269,19 @@ export interface IResolveResource {
 export interface IResourceContextParserResponse extends IRejectResource {
   context: ISearchQueryContext;
 }
+
+export type TResponseGenericCreate = (
+  input: IParamsProcessBase
+) => IRejectResource | IResolveResource;
+
+export type TResponseGenericRead = (
+  input: IParamsProcessBase
+) => IRejectResource | IResolveResource;
+
+export type TResponseGenericUpdate = (
+  input: IParamsProcessWithSearch
+) => IRejectResource | IResolveResource;
+
+export type TResponseGenericDelete = (
+  input: IParamsProcessDelete
+) => IRejectResource | IResolveResource;
