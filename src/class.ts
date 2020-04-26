@@ -70,8 +70,8 @@ export class Resource implements ts.IClassResource {
 
   // context in by post
   create(input: ts.IParamsProcessBase) {
-    // const { requestId } = input;
-    this.logger.debug(
+    const { requestId } = input;
+    this.logger.info(
       {
         ...input,
         resource: this.name,
@@ -81,70 +81,158 @@ export class Resource implements ts.IClassResource {
     );
 
     const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error)
+    if (parsed.error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: "create",
+          errors: parsed.error,
+        },
+        cnst.CONTEXT_ERRORS
+      );
       return util.rejectResource(parsed.errorType, parsed.error);
+    }
 
     const { error, value: query } = util.validateOneOrMany(
       this.schema.create,
       input.payload
     );
-    if (error) return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    if (error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.CREATE,
+          error,
+        },
+        cnst.VALIDATION_ERROR
+      );
+
+      return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    }
 
     const sql = util.toCreateQuery({
       ...this.queryBase(),
       query,
       context,
     });
+
+    this.logger.info(
+      {
+        requestId,
+        resource: this.name,
+        operation: cnst.CREATE,
+        sql: sql.toString(),
+      },
+      cnst.RESOURCE_RESPONSE
+    );
+
     return util.resolveResource({ sql });
   }
 
   read(input: ts.IParamsProcessBase) {
-    // const { requestId } = input;
-    this.logger.debug(
+    const { requestId } = input;
+    this.logger.info(
       {
         ...input,
         resource: this.name,
-        operation: "read",
+        operation: cnst.READ,
       },
       "resource_read"
     );
 
     const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error)
+    if (parsed.error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.READ,
+          errors: parsed.error,
+        },
+        cnst.CONTEXT_ERRORS
+      );
       return util.rejectResource(parsed.errorType, parsed.error);
+    }
 
     const { error, value: query } = this.schema.read.validate(input.payload);
-    if (error) return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    if (error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.READ,
+          error,
+        },
+        cnst.VALIDATION_ERROR
+      );
+
+      return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    }
 
     const sql = util.toReadQuery({
       ...this.queryBase(),
       query,
       context,
     });
+
+    this.logger.info(
+      {
+        requestId,
+        resource: this.name,
+        operation: cnst.READ,
+        sql: sql.toString(),
+      },
+      cnst.RESOURCE_RESPONSE
+    );
+
     return util.resolveResource({ sql });
   }
 
   update(input: ts.IParamsProcessWithSearch) {
-    // const { requestId } = input;
-    this.logger.debug(
+    const { requestId } = input;
+    this.logger.info(
       {
         ...input,
         resource: this.name,
-        operation: "update",
+        operation: cnst.UPDATE,
       },
       "resource_update"
     );
 
     const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error)
+    if (parsed.error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.UPDATE,
+          errors: parsed.error,
+        },
+        cnst.CONTEXT_ERRORS
+      );
       return util.rejectResource(parsed.errorType, parsed.error);
+    }
 
     // need to remove context keys || dont know if this is true please check (25 April)
     const { error, value: query } = util.validateOneOrMany(
       this.schema.update,
       input.payload
     );
-    if (error) return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    if (error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.UPDATE,
+          error,
+        },
+        cnst.VALIDATION_ERROR
+      );
+
+      return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    }
 
     // if (input.searchQuery) {
     //   const validSearch = this.schema.search.validate(input.searchQuery);
@@ -157,31 +245,64 @@ export class Resource implements ts.IClassResource {
       context,
       searchQuery: undefined, // undefined for now -- will accept mass updates
     });
+
+    this.logger.info(
+      {
+        requestId,
+        resource: this.name,
+        operation: cnst.UPDATE,
+        sql: sql.toString(),
+      },
+      cnst.RESOURCE_RESPONSE
+    );
+
     return util.resolveResource({ sql });
   }
 
   // soft delete VS hard delete defined by db query fn
   delete(input: ts.IParamsProcessDelete) {
-    // const { requestId } = input;
-    this.logger.debug(
+    const { requestId } = input;
+    this.logger.info(
       {
         ...input,
         resource: this.name,
-        operation: "delete",
+        operation: cnst.DELETE,
       },
       "resource_delete"
     );
 
     const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error)
+    if (parsed.error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.DELETE,
+          errors: parsed.error,
+        },
+        cnst.CONTEXT_ERRORS
+      );
       return util.rejectResource(parsed.errorType, parsed.error);
+    }
 
     // need to remove context keys
     const { error, value: query } = util.validateOneOrMany(
       this.schema.update,
       input.payload
     );
-    if (error) return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    if (error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.DELETE,
+          error,
+        },
+        cnst.VALIDATION_ERROR
+      );
+
+      return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    }
 
     // if (input.searchQuery) {
     //   const validSearch = this.schema.search.validate(input.searchQuery);
@@ -195,34 +316,77 @@ export class Resource implements ts.IClassResource {
       searchQuery: undefined, // undefined for now -- will accept mass updates
       hardDelete: input.hardDelete,
     });
+
+    this.logger.info(
+      {
+        requestId,
+        resource: this.name,
+        operation: cnst.DELETE,
+        sql: sql.toString(),
+      },
+      cnst.RESOURCE_RESPONSE
+    );
+
     return util.resolveResource({ sql });
   }
   search(input: ts.IParamsProcessBase) {
-    // const { requestId } = input;
-    this.logger.debug(
+    const { requestId } = input;
+    this.logger.info(
       {
         ...input,
         resource: this.name,
-        operation: "search",
+        operation: cnst.SEARCH,
       },
       "resource_search"
     );
 
     const { context, ...parsed } = this.contextParser(input);
-    if (parsed.error)
+    if (parsed.error) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.SEARCH,
+          errors: parsed.error,
+        },
+        cnst.CONTEXT_ERRORS
+      );
       return util.rejectResource(parsed.errorType, parsed.error);
+    }
 
     const { errors, components } = this.meta.searchQueryParser(
       input.payload,
       input.context
     );
-    if (errors.length) return util.rejectResource(cnst.CONTEXT_ERRORS, errors);
+    if (errors.length) {
+      this.logger.error(
+        {
+          requestId,
+          resource: this.name,
+          operation: cnst.DELETE,
+          errors,
+        },
+        cnst.VALIDATION_ERROR
+      );
+      return util.rejectResource(cnst.CONTEXT_ERRORS, errors);
+    }
 
     const sql = util.toSearchQuery({
       ...this.queryBase(),
       context,
       components,
     });
+
+    this.logger.info(
+      {
+        requestId,
+        resource: this.name,
+        operation: cnst.SEARCH,
+        sql: sql.toString(),
+      },
+      cnst.RESOURCE_RESPONSE
+    );
+
     return util.resolveResource({ sql });
   }
 }

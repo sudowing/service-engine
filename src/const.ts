@@ -112,3 +112,4 @@ BASIC_QUERY_OPERATIONS.set("not", "<>");
 
 export const CONTEXT_ERRORS = "context_errors";
 export const VALIDATION_ERROR = "validation_error";
+export const RESOURCE_RESPONSE = "resource_response";
