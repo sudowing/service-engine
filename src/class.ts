@@ -37,7 +37,7 @@ export class Resource implements ts.IClassResource {
     this.report = report;
     this.meta = meta;
 
-    // this.middleware
+    // this.middleware || for read && search
     // this.permissions (CRUD, hard/soft delete)
   }
 
