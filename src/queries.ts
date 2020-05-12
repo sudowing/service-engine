@@ -61,6 +61,9 @@ export const joiKeyComponent = (keyComponent: boolean) =>
         ? `.invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT)`
         : ``;
 
+export const joiRequired = (required: boolean) =>
+    required ? `.required()` : ``;
+
 const REGEX_CHAR = /character\((?<len>\d)\)/;
 
 export const joiBase = (type: string) => {
@@ -91,6 +94,8 @@ export const joiBase = (type: string) => {
 
 export const isTrueValue = val => val === 't';
 
+
+
 export const getDatabaseResources = async ({db}: ts.IDatabaseBootstrap) => {
 
     const query = getDatabaseResourcesRaw({db});
@@ -118,7 +123,7 @@ export const getDatabaseResources = async ({db}: ts.IDatabaseBootstrap) => {
         foreignkey_connnum,
     }) => {
         if (!catalog[table_name]) catalog[table_name] = {};
-        catalog[table_name][column_name] = `${joiBase(type)}${joiKeyComponent(isTrueValue(primarykey))}`;
+        catalog[table_name][column_name] = `${joiBase(type)}${joiKeyComponent(isTrueValue(primarykey))}${joiRequired(notnull)}`;
         return catalog;
     }, {});
 
