@@ -285,3 +285,8 @@ export type TResponseGenericUpdate = (
 export type TResponseGenericDelete = (
   input: IParamsProcessDelete
 ) => IRejectResource | IResolveResource;
+
+
+export interface IDatabaseBootstrap {
+  db: knex;
+}

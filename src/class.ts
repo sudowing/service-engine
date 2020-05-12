@@ -22,7 +22,7 @@ export const genericResourceCall = (
 ) => {
   const resource = caller.name;
   const { requestId } = input;
-  caller.logger.info(
+  caller.logger.debug(
     {
       ...input,
       resource,
@@ -192,7 +192,7 @@ export class Resource implements ts.IClassResource {
 
   search(input: ts.IParamsProcessBase) {
     const { requestId } = input;
-    this.logger.info(
+    this.logger.debug(
       {
         ...input,
         resource: this.name,
