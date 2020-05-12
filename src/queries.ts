@@ -61,7 +61,7 @@ export const joiKeyComponent = (keyComponent: boolean) =>
         ? `.invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT)`
         : ``;
 
-const REGEX_CHAR = /character\(\d\)/;
+const REGEX_CHAR = /character\((?<len>\d)\)/;
 
 export const joiBase = (type: string) => {
     switch(type) {
@@ -80,8 +80,11 @@ export const joiBase = (type: string) => {
         case 'uuid':
             return `Joi.string().guid()`
         default:
-            const reg = REGEX_CHAR.test(type);
-            console.log(type, reg);
+            const match = type.match(REGEX_CHAR);
+            if (match) {
+                return `Joi.string().length(${match.groups.len})`;
+            }
+
             return `unknown type`;
     }
 }
