@@ -13,21 +13,10 @@ export const keyParams = (input: {
     schema: { type }
 }));
 
-// [...qqqqq(keys), ...Object.entries(read)
-//     .map(([name, {type, required, keyComponent, geoqueryType, softDeleteFlag, updateDisabled, createRequired, createDisabled}]: any) => ({
-//     name,
-//     description: name,
-//     in: 'query',
-//     required,
-//     schema: { type }
-//     })
-
-
-
 export const genDatabaseResourceOpenApiDocs = (reports) => {
     const alpha = Object.entries(reports);
 
-    const models = [];
+    const schemas = {};
 
     const paths = alpha.reduce((record, [resource, {create, read, update, delete: del, search}]: [string, any]) => {
 
@@ -36,8 +25,7 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
 
         const Resource = pascalCase(resource);
 
-
-        const path = `/${resource}`;
+        const path = `/service/${resource}`;
         record[path] = {
             get: {
                 summary: `search ${resource}`,
@@ -53,11 +41,14 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                     })),
                 responses: {
                     '200': {
-                        description: `A paged array of ${resource}`,
+                        description: `A paged array of ${Resource} Records`,
                         content: {
                             'application/json': {
                                 schema: {
-                                    '$ref': `#/components/schemas/${Resource}`
+                                    type: 'array',
+                                    items: {
+                                        '$ref': `#/components/schemas/${Resource}`
+                                    }
                                 }
                             }
                         }
@@ -78,7 +69,7 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                     })),
                 responses: {
                     '200': {
-                        description: `A paged array of ${resource}`,
+                        description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
                                 schema: {
@@ -92,10 +83,10 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
         };
 
 
-        models.push([Resource, {
+        schemas[Resource] = {
             type: 'object',
             properties: record[path].get.parameters.reduce((props, {name, schema: type}) => ({ ...props, [name]: {type}}), {})
-        }]);
+        };
 
 
         if (keys.length) {
@@ -115,7 +106,7 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                     }))],
                 responses: {
                     '200': {
-                        description: `A paged array of ${resource}`,
+                        description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
                                 schema: {
@@ -140,7 +131,7 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                     }))],
                 responses: {
                     '200': {
-                        description: `A paged array of ${resource}`,
+                        description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
                                 schema: {
@@ -165,7 +156,7 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                     }))],
                 responses: {
                     '200': {
-                        description: `A paged array of ${resource}`,
+                        description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
                                 schema: {
@@ -184,16 +175,41 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
         return record;
 
 
-//     default:
-//       description: unexpected error
-//       content:
-//         application/json:
-//           schema:
-//             $ref: "#/components/schemas/Error"
-
     }, {});
 
-    return {models, paths}
+    const base = {
+        openapi: "3.0.0",
+        info: {
+          version: '1.0.0',
+          title: 'American Hunt Service Resources',
+          description: 'Super Early (not fully functional yet) description of service resources.',
+          termsOfService: 'http://swagger.io/terms/',
+          contact: {
+            name: 'Joe Wingard',
+            email: 'joe@email.com',
+            url: 'http://soccer-moms-with-guns.io',
+          },
+          license: {
+            name: 'Apache 2.0',
+            url: 'https://www.apache.org/licenses/LICENSE-2.0.html',
+          },
+        },
+        servers: [{url: 'http://core-service'}],
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return {components: {schemas}, paths, ...base}
 
 
 }
