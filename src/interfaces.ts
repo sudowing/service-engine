@@ -286,7 +286,8 @@ export type TResponseGenericDelete = (
   input: IParamsProcessDelete
 ) => IRejectResource | IResolveResource;
 
-
 export interface IDatabaseBootstrap {
   db: knex;
 }
+
+export type TDatabaseResources = [string, Joi.Schema];
