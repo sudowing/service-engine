@@ -15,17 +15,45 @@ export const standardHeaders = {
       },
       description: 'uuid issued to each request. Injected into all server logs. useful for debugging',
     },
-    'x-count': {
-      schema: {
-        type: 'string',
-      },
-      description: 'full count of all records that meet query criteria (omitting any pagiation specs). useful for rendering pagiation limits without making another service call.',
-    },
     'x-sql': {
       schema: {
         type: 'string',
       },
       description: 'plaintext SQL used to complete db transaction.',
+    },
+};
+
+
+
+
+const requestHeaders = {
+    'x-get-count': {
+        in: 'header',
+        schema: {
+          type: 'string',
+        },
+    },
+    'x-get-sql': {
+        in: 'header',
+        schema: {
+          type: 'string',
+        },
+    },
+};
+const requestHeaderParams = Object.entries(requestHeaders)
+    .map(([name, deff]) => ({
+        name,
+        ...deff,
+        description: SEARCH_QUERY_CONTEXT_DESCRIPTION[name] || '',
+    }));
+
+export const searchHeaders = {
+    ...standardHeaders,
+    'x-count': {
+      schema: {
+        type: 'string',
+      },
+      description: 'full count of all records that meet query criteria (omitting any pagiation specs). useful for rendering pagiation limits without making another service call.',
     },
 };
 
@@ -39,10 +67,13 @@ const searchContextParams = Object.keys(SEARCH_QUERY_CONTEXT)
         schema: { type: contextNumbers.includes(key) ? 'number': 'string' }
     }));
 
+// almost certainly a better way to do this
+export const fieldsContext = searchContextParams.filter(({name}) => name ==='|fields')[0];
+
 export const keyParams = (input: {
-    key: string,
+    field: string,
     type: string,
-}[]) => input.map(({key: name, type}) => ({
+}[]) => input.map(({field: name, type}) => ({
     name,
     description: name,
     in: 'query',
@@ -89,10 +120,11 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                         schema: { type }
                     })),
                     ...searchContextParams,
+                    ...requestHeaderParams,
                 ],
                 responses: {
                     '200': {
-                        headers: {...standardHeaders},
+                        headers: {...searchHeaders},
                         description: `A paged array of ${Resource} Records`,
                         content: {
                             'application/json': {
@@ -111,6 +143,8 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 summary: `create ${resource}`,
                 operationId: `create${Resource}`,
                 tags: [Resource],
+                parameters: [fieldsContext],
+
                 requestBody: {
                     description: `Single ${Resource} or array of ${Resource}`,
                     required: true,
@@ -145,16 +179,18 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
         };
 
 
+
         schemas[Resource] = {
             type: 'object',
             // property type could be more specific
-            properties: record[path].get.parameters.reduce((props, {name, schema: {type}}) =>
-                ({ ...props, [name]: {type}}), {})
+            properties: [...record[path].get.parameters]
+                .filter(({name}) => !name.startsWith('|')) // remove context keys
+                .reduce((props, {name, schema: {type}}) =>
+                    ({ ...props, [name]: {type}}), {})
         };
 
         if (keys.length) {
             const keyComponentParams = keyParams(keys);
-
 
             record[`${path}/record`] = {};
 
@@ -162,7 +198,7 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 summary: `read ${resource}`,
                 operationId: `read${Resource}`,
                 tags: [Resource],
-                parameters: keyComponentParams,
+                parameters: [...keyComponentParams, fieldsContext],
                 responses: {
                     '200': {
                         headers: {...standardHeaders},
@@ -181,7 +217,7 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 summary: `update ${resource}`,
                 operationId: `update${Resource}`,
                 tags: [Resource],
-                parameters: keyComponentParams,
+                parameters: [...keyComponentParams, fieldsContext],
 
 
                 requestBody: {
@@ -213,7 +249,7 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 summary: `delete ${resource}`,
                 operationId: `delete${Resource}`,
                 tags: [Resource],
-                parameters: keyComponentParams,
+                parameters: [...keyComponentParams],
 
                 responses: {
                     '200': {
