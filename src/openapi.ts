@@ -2,6 +2,43 @@ import {
     pascalCase,
   } from "change-case";
 
+import {
+    SEARCH_QUERY_CONTEXT, SEARCH_QUERY_CONTEXT_DESCRIPTION
+    // , SUPPORTED_OPERATIONS, DEFINED_ARG_LENGTHS
+} from './const';
+
+
+export const standardHeaders = {
+    'x-request-id': {
+      schema: {
+        type: 'string',
+      },
+      description: 'uuid issued to each request. Injected into all server logs. useful for debugging',
+    },
+    'x-count': {
+      schema: {
+        type: 'string',
+      },
+      description: 'full count of all records that meet query criteria (omitting any pagiation specs). useful for rendering pagiation limits without making another service call.',
+    },
+    'x-sql': {
+      schema: {
+        type: 'string',
+      },
+      description: 'plaintext SQL used to complete db transaction.',
+    },
+};
+
+const contextNumbers = ['page', 'limit'];
+
+const searchContextParams = Object.keys(SEARCH_QUERY_CONTEXT)
+    .map(key => ({
+        name: `|${key}`,
+        description: SEARCH_QUERY_CONTEXT_DESCRIPTION[key] || `query context: ${key}`,
+        in: 'query',
+        schema: { type: contextNumbers.includes(key) ? 'number': 'string' }
+    }));
+
 export const keyParams = (input: {
     key: string,
     type: string,
@@ -13,10 +50,21 @@ export const keyParams = (input: {
     schema: { type }
 }));
 
+export const ServiceModels = {
+    '_service_count': {
+        type: 'object',
+        properties: {
+            count: {
+                type: 'number'
+            }
+        }
+    }
+};
+
 export const genDatabaseResourceOpenApiDocs = (reports) => {
     const alpha = Object.entries(reports);
 
-    const schemas = {};
+    const schemas = {...ServiceModels};
 
     const paths = alpha.reduce((record, [resource, {create, read, update, delete: del, search}]: [string, any]) => {
 
@@ -31,7 +79,8 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 summary: `search ${resource}`,
                 operationId: `search${Resource}`,
                 tags: [Resource],
-                parameters: Object.entries(search)
+                parameters: [
+                    ...Object.entries(search)
                     .map(([name, {type, required, keyComponent, geoqueryType, softDeleteFlag, updateDisabled, createRequired, createDisabled}]: any) => ({
                         name,
                         description: name,
@@ -39,8 +88,11 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                         required,
                         schema: { type }
                     })),
+                    ...searchContextParams,
+                ],
                 responses: {
                     '200': {
+                        headers: {...standardHeaders},
                         description: `A paged array of ${Resource} Records`,
                         content: {
                             'application/json': {
@@ -59,17 +111,8 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 summary: `create ${resource}`,
                 operationId: `create${Resource}`,
                 tags: [Resource],
-                parameters: Object.entries(create)
-                    .map(([name, {type, required, keyComponent, geoqueryType, softDeleteFlag, updateDisabled, createRequired, createDisabled}]: any) => ({
-                        name,
-                        description: name,
-                        in: 'query',
-                        required,
-                        schema: { type }
-                    })),
-
                 requestBody: {
-                    description: `Optional description in *Markdown*`,
+                    description: `Single ${Resource} or array of ${Resource}`,
                     required: true,
                     content: {
                         'application/json': {
@@ -82,9 +125,9 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                         }
                     }
                 },
-
                 responses: {
                     '200': {
+                        headers: {...standardHeaders},
                         description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
@@ -109,24 +152,20 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 ({ ...props, [name]: {type}}), {})
         };
 
-
         if (keys.length) {
+            const keyComponentParams = keyParams(keys);
+
+
             record[`${path}/record`] = {};
 
             record[`${path}/record`].get = {
                 summary: `read ${resource}`,
                 operationId: `read${Resource}`,
                 tags: [Resource],
-                parameters: [...keyParams(keys), ...Object.entries(read)
-                    .map(([name, {type, required, keyComponent, geoqueryType, softDeleteFlag, updateDisabled, createRequired, createDisabled}]: any) => ({
-                    name,
-                    description: name,
-                    in: 'query',
-                    required,
-                    schema: { type }
-                    }))],
+                parameters: keyComponentParams,
                 responses: {
                     '200': {
+                        headers: {...standardHeaders},
                         description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
@@ -142,16 +181,23 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 summary: `update ${resource}`,
                 operationId: `update${Resource}`,
                 tags: [Resource],
-                parameters: [...keyParams(keys), ...Object.entries(update)
-                    .map(([name, {type, required, keyComponent, geoqueryType, softDeleteFlag, updateDisabled, createRequired, createDisabled}]: any) => ({
-                        name,
-                        description: name,
-                        in: 'body',
-                        required,
-                        schema: { type }
-                    }))],
+                parameters: keyComponentParams,
+
+
+                requestBody: {
+                    description: `Single ${Resource}`,
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                '$ref': `#/components/schemas/${Resource}`                            }
+                        }
+                    }
+                },
+
                 responses: {
                     '200': {
+                        headers: {...standardHeaders},
                         description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
@@ -167,21 +213,16 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                 summary: `delete ${resource}`,
                 operationId: `delete${Resource}`,
                 tags: [Resource],
-                parameters: [...keyParams(keys), ...Object.entries(del)
-                    .map(([name, {type, required, keyComponent, geoqueryType, softDeleteFlag, updateDisabled, createRequired, createDisabled}]: any) => ({
-                        name,
-                        description: name,
-                        in: 'body',
-                        required,
-                        schema: { type }
-                    }))],
+                parameters: keyComponentParams,
+
                 responses: {
                     '200': {
+                        headers: {...standardHeaders},
                         description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
                                 schema: {
-                                    '$ref': `#/components/schemas/${Resource}`
+                                    '$ref': `#/components/schemas/_service_count`
                                 }
                             }
                         }

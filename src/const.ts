@@ -100,6 +100,16 @@ export const SEARCH_QUERY_CONTEXT = {
   limit: undefined,
 };
 
+export const SEARCH_QUERY_CONTEXT_DESCRIPTION = {
+  fields: 'record fields to return in results',
+  seperator: 'character to be used as seperator in context & operations values',
+  notWhere: 'SQL query context. Apply query components to where OR get the inverse. Default is false.',
+  statementContext: 'SQL query context. Apply query components all together (and each) OR select any matching (OR).',
+  orderBy: 'seperated list of orderBy fields + direction (field desc || field asc). acs is default.',
+  page: 'pagination page',
+  limit: 'pagination limit',
+};
+
 export const SRID = 4326;
 export const DD_BASE = 1113200;
 
