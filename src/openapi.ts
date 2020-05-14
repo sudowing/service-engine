@@ -63,17 +63,36 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
                     .map(([name, {type, required, keyComponent, geoqueryType, softDeleteFlag, updateDisabled, createRequired, createDisabled}]: any) => ({
                         name,
                         description: name,
-                        in: 'body',
+                        in: 'query',
                         required,
                         schema: { type }
                     })),
+
+                requestBody: {
+                    description: `Optional description in *Markdown*`,
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'array',
+                                items: {
+                                    '$ref': `#/components/schemas/${Resource}`
+                                }
+                            }
+                        }
+                    }
+                },
+
                 responses: {
                     '200': {
                         description: `A ${Resource} Record`,
                         content: {
                             'application/json': {
                                 schema: {
-                                    '$ref': `#/components/schemas/${Resource}`
+                                    type: 'array',
+                                    items: {
+                                        '$ref': `#/components/schemas/${Resource}`
+                                    }
                                 }
                             }
                         }
@@ -85,7 +104,9 @@ export const genDatabaseResourceOpenApiDocs = (reports) => {
 
         schemas[Resource] = {
             type: 'object',
-            properties: record[path].get.parameters.reduce((props, {name, schema: type}) => ({ ...props, [name]: {type}}), {})
+            // property type could be more specific
+            properties: record[path].get.parameters.reduce((props, {name, schema: {type}}) =>
+                ({ ...props, [name]: {type}}), {})
         };
 
 

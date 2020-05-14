@@ -65,7 +65,7 @@ export const joiKeyComponent = (joi: Joi.Schema, keyComponent: boolean) =>
   keyComponent ? joi.invalid(SYMBOL_UNIQUE_KEY_COMPONENT) : joi;
 
 export const joiRequired = (joi: Joi.Schema, required: boolean) =>
-  required ? joi.required() : joi;
+  required ? joi : joi; // need to eval .required() here... think it's breaking the framework
 
 const REGEX_CHAR = /character\((?<len>\d)\)/;
 
@@ -143,10 +143,7 @@ export const genDatabaseResourceValidators = async ({
       }
     ) => {
       if (!catalog[table_name]) catalog[table_name] = {};
-      catalog[table_name][column_name] = joiRequired(
-        joiKeyComponent(joiBase(type), primarykey),
-        notnull
-      );
+      catalog[table_name][column_name] = joiKeyComponent(joiBase(type), primarykey);
       return catalog;
     },
     {}
