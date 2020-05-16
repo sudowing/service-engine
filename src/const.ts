@@ -101,15 +101,20 @@ export const SEARCH_QUERY_CONTEXT = {
 };
 
 export const SEARCH_QUERY_CONTEXT_DESCRIPTION = {
-  fields: 'record fields to return in results',
-  seperator: 'character to be used as seperator in context & operations values. default is pipe `|`',
-  notWhere: 'SQL query context. Apply query components to where OR get the inverse. Default is false.',
-  statementContext: 'SQL query context. Apply query components all together (and each) OR select any matching (OR).',
-  orderBy: 'seperated list of orderBy fields + direction (field desc || field asc). acs is default.',
-  page: 'pagination page',
-  limit: 'pagination limit',
-  'x-get-count': 'Request Search Query count(*) be sent back in a response header.',
-  'x-get-sql': 'Request plaintext SQL be sent back in a response header.',
+  fields: "record fields to return in results",
+  seperator:
+    "character to be used as seperator in context & operations values. default is pipe `|`",
+  notWhere:
+    "SQL query context. Apply query components to where OR get the inverse. Default is false.",
+  statementContext:
+    "SQL query context. Apply query components all together (and each) OR select any matching (OR).",
+  orderBy:
+    "seperated list of orderBy fields + direction (field desc || field asc). acs is default.",
+  page: "pagination page",
+  limit: "pagination limit",
+  "x-get-count":
+    "Request Search Query count(*) be sent back in a response header.",
+  "x-get-sql": "Request plaintext SQL be sent back in a response header.",
 };
 
 export const SRID = 4326;

@@ -150,7 +150,7 @@ export const reducerValidatorInspector = (
     ),
     typecast: typecastFn(schema.type), // prob need dynamaic assignment for geo fields (need input as numbers and strings?)
     validate: (value: string) =>
-      schema.validate((typecastFn(schema.type) as any)(value)),
+      schema.validate((typecastFn(schema.type) as any)(value)), // this needs to be async validation
   },
 });
 

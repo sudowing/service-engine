@@ -143,18 +143,30 @@ export const genDatabaseResourceValidators = async ({
       }
     ) => {
       if (!catalog[table_name]) catalog[table_name] = {};
-      catalog[table_name][column_name] = joiKeyComponent(joiBase(type), primarykey);
+      catalog[table_name][column_name] = joiKeyComponent(
+        joiBase(type),
+        primarykey
+      );
       return catalog;
     },
     {}
   );
 
-  return Object.entries(resources).reduce(
-    (validators, [key, value]: [string, object]) => {
-      return { ...validators, [key]: Joi.object(value) };
-    },
+  const dbResources = records.reduce((collection, record) => {
+    if (!collection[record.table_name]) collection[record.table_name] = {};
+    collection[record.table_name][record.column_name] = record;
+    return collection;
+  }, {});
+
+  const validators = Object.entries(resources).reduce(
+    (jois, [key, value]: [string, object]) => ({
+      ...jois,
+      [key]: Joi.object(value),
+    }),
     {}
   );
+
+  return { validators, dbResources };
 
   // can set other flags based on options arg
 

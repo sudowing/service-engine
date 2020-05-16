@@ -149,3 +149,13 @@ order by
     f.attname asc
 
 ```
+
+boolean
+character(4)
+character varying
+double precision
+integer
+numeric
+text
+timestamp without time zone
+uuid
