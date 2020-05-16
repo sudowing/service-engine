@@ -133,3 +133,6 @@ export const CONTEXT_ERRORS = "context_errors";
 export const VALIDATION_ERROR = "validation_error";
 export const RESOURCE_RESPONSE = "resource_response";
 export const RESOURCE_CALL = "resource_call";
+
+export const URL_ROOT_SERVICE = "/service";
+export const URL_ROOT_DEBUG = "/debug";
