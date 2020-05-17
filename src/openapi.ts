@@ -437,44 +437,40 @@ export const genDatabaseResourceOpenApiDocs = async ({ db, st, logger }) => {
     servers: [{ url: "http://core-service" }],
   };
 
-
   const serviceRoutes = {
-    '/ping': {
+    "/ping": {
       get: {
         summary: "heathcheck resource",
         operationId: "ping",
-        tags: [
-          "_service"
-        ],
+        tags: ["_service"],
         responses: {
-          '200': {
+          "200": {
             headers: {
-              'x-request-id': {
+              "x-request-id": {
                 schema: {
-                  type: "string"
+                  type: "string",
                 },
-                description: "uuid issued to each request. Injected into all server logs. useful for debugging"
-              }
+                description:
+                  "uuid issued to each request. Injected into all server logs. useful for debugging",
+              },
             },
             description: "heathcheck resource",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: "object"
-                }
-              }
-            }
-          }
-        }
-      }
+                  type: "object",
+                },
+              },
+            },
+          },
+        },
+      },
     },
-    '/openapi': {
+    "/openapi": {
       get: {
         summary: "openapi json",
         operationId: "openapi",
-        tags: [
-          "_service"
-        ],
+        tags: ["_service"],
         parameters: [
           {
             name: "debug",
@@ -482,85 +478,117 @@ export const genDatabaseResourceOpenApiDocs = async ({ db, st, logger }) => {
             in: "query",
             required: false,
             schema: {
-              type: "boolean"
-            }
-          }
+              type: "boolean",
+            },
+          },
         ],
         responses: {
-          '200': {
+          "200": {
             headers: {
-              'x-request-id': {
+              "x-request-id": {
                 schema: {
-                  type: "string"
+                  type: "string",
                 },
-                description: "uuid issued to each request. Injected into all server logs. useful for debugging"
-              }
+                description:
+                  "uuid issued to each request. Injected into all server logs. useful for debugging",
+              },
             },
             description: "A paged array of Account Records",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: "object"
-                }
-              }
-            }
-          }
-        }
-      }
+                  type: "object",
+                },
+              },
+            },
+          },
+        },
+      },
     },
-    '/db_resources': {
+    "/resources": {
       get: {
-        summary: "db resources available in service",
-        operationId: "dbResources",
-        tags: [
-          "_service"
-        ],
+        summary:
+          "resources available in service (resource & CRUD + Search Operations)",
+        operationId: "resources",
+        tags: ["_service"],
         responses: {
-          '200': {
+          "200": {
             headers: {
-              'x-request-id': {
+              "x-request-id": {
                 schema: {
-                  type: "string"
+                  type: "string",
                 },
-                description: "uuid issued to each request. Injected into all server logs. useful for debugging"
-              }
+                description:
+                  "uuid issued to each request. Injected into all server logs. useful for debugging",
+              },
+            },
+            description: "blah blah blah",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/db_resources": {
+      get: {
+        summary: "db resources available in service (tables, views, mat views)",
+        operationId: "dbResources",
+        tags: ["_service"],
+        responses: {
+          "200": {
+            headers: {
+              "x-request-id": {
+                schema: {
+                  type: "string",
+                },
+                description:
+                  "uuid issued to each request. Injected into all server logs. useful for debugging",
+              },
             },
             description: "A paged array of Account Records",
             content: {
-              'application/json': {
+              "application/json": {
                 schema: {
-                  type: "object"
-                }
-              }
-            }
-          }
-        }
-      }
+                  type: "object",
+                },
+              },
+            },
+          },
+        },
+      },
     },
-    '/db_resources/raw': {
+    "/db_resources/raw": {
       get: {
         summary: "db resources available in service",
         operationId: "dbResourcesRaw",
-        tags: [
-          "_service"
-        ],
+        tags: ["_service"],
         responses: {
-          '200': {
+          "200": {
             headers: {
-              'x-request-id': {
+              "x-request-id": {
                 schema: {
-                  type: "string"
+                  type: "string",
                 },
-                description: "uuid issued to each request. Injected into all server logs. useful for debugging"
-              }
+                description:
+                  "uuid issued to each request. Injected into all server logs. useful for debugging",
+              },
             },
-            description: "A paged array of Account Records"
-          }
-        }
-      }
+            description: "A paged array of Account Records",
+          },
+        },
+      },
     },
   };
 
-
-  return { dbResources, components: { schemas }, paths: {...paths, ...serviceRoutes}, ...base };
+  return {
+    dbResources,
+    components: { schemas },
+    paths: { ...paths, ...serviceRoutes },
+    ...base,
+  };
 };
