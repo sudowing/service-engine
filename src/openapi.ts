@@ -420,14 +420,14 @@ export const genDatabaseResourceOpenApiDocs = async ({ db, st, logger }) => {
     openapi: "3.0.0",
     info: {
       version: "1.0.0",
-      title: "American Hunt Service Resources",
+      title: "Some Service Naame",
       description:
         "Super Early (not fully functional yet) description of service resources.",
       termsOfService: "http://swagger.io/terms/",
       contact: {
         name: "Joe Wingard",
-        email: "joe@email.com",
-        url: "http://soccer-moms-with-guns.io",
+        email: "open-source@joewingard.com",
+        url: "https://github.com/sudowing/service-engine",
       },
       license: {
         name: "Apache 2.0",
@@ -437,5 +437,130 @@ export const genDatabaseResourceOpenApiDocs = async ({ db, st, logger }) => {
     servers: [{ url: "http://core-service" }],
   };
 
-  return { dbResources, components: { schemas }, paths, ...base };
+
+  const serviceRoutes = {
+    '/ping': {
+      get: {
+        summary: "heathcheck resource",
+        operationId: "ping",
+        tags: [
+          "_service"
+        ],
+        responses: {
+          '200': {
+            headers: {
+              'x-request-id': {
+                schema: {
+                  type: "string"
+                },
+                description: "uuid issued to each request. Injected into all server logs. useful for debugging"
+              }
+            },
+            description: "heathcheck resource",
+            content: {
+              'application/json': {
+                schema: {
+                  type: "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/openapi': {
+      get: {
+        summary: "openapi json",
+        operationId: "openapi",
+        tags: [
+          "_service"
+        ],
+        parameters: [
+          {
+            name: "debug",
+            description: "include debug routes (disabled by default)",
+            in: "query",
+            required: false,
+            schema: {
+              type: "boolean"
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            headers: {
+              'x-request-id': {
+                schema: {
+                  type: "string"
+                },
+                description: "uuid issued to each request. Injected into all server logs. useful for debugging"
+              }
+            },
+            description: "A paged array of Account Records",
+            content: {
+              'application/json': {
+                schema: {
+                  type: "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/db_resources': {
+      get: {
+        summary: "db resources available in service",
+        operationId: "dbResources",
+        tags: [
+          "_service"
+        ],
+        responses: {
+          '200': {
+            headers: {
+              'x-request-id': {
+                schema: {
+                  type: "string"
+                },
+                description: "uuid issued to each request. Injected into all server logs. useful for debugging"
+              }
+            },
+            description: "A paged array of Account Records",
+            content: {
+              'application/json': {
+                schema: {
+                  type: "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/db_resources/raw': {
+      get: {
+        summary: "db resources available in service",
+        operationId: "dbResourcesRaw",
+        tags: [
+          "_service"
+        ],
+        responses: {
+          '200': {
+            headers: {
+              'x-request-id': {
+                schema: {
+                  type: "string"
+                },
+                description: "uuid issued to each request. Injected into all server logs. useful for debugging"
+              }
+            },
+            description: "A paged array of Account Records"
+          }
+        }
+      }
+    },
+  };
+
+
+  return { dbResources, components: { schemas }, paths: {...paths, ...serviceRoutes}, ...base };
 };

@@ -3,6 +3,8 @@
 https://medium.com/the-andela-way/scaling-out-with-node-clusters-1dca4a39a2a
 
 
+npm bundleDependencies
+
 
 ```
 geoqueries were only ever done on the `center`. Anything marked as a geo field in the validator was published as geoJson
