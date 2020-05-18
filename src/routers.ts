@@ -108,10 +108,18 @@ export const serviceRouters = async ({ db, st, logger }) => {
 
     const operation = operations.get(j({ method, record }));
 
+    const stripKeys = (keys: string[], obj: object) =>
+      Object.fromEntries(
+        Object.entries(obj).filter(([key]) => !keys.includes(key))
+      );
+
     const input =
       method === "GET"
-        ? seperateQueryAndContext(ctx.request.query)
-        : { payload: ctx.request.body || {} };
+      ? seperateQueryAndContext(ctx.request.query)
+      : seperateQueryAndContext({
+        ...stripKeys(resources[resource].meta.uniqueKeyComponents, ctx.request.body),
+        ...ctx.request.query
+      }) // keys must come from querystring
 
     const serviceResponse = resources[resource][operation]({
       ...input,
@@ -146,6 +154,14 @@ export const serviceRouters = async ({ db, st, logger }) => {
       }
       delete serviceResponse.result.sql;
     }
+    else {
+      ctx.response.status = HTTP_STATUS.BAD_REQUEST;
+      ctx.response.body = serviceResponse;
+      return;
+    }
+
+    // ON UPDATE
+    //   MUST REQUIRE KEYS----
 
     // if single record searched and not returned -- 404
 

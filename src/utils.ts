@@ -69,12 +69,30 @@ export const modifyValidator = (
             : cnst.REQUIRED_FLAG;
         }
       } else if (operation === cnst.UPDATE) {
+
+
+
+
+        // required all pk fields for update
+        if (
+          schema._invalids &&
+          schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)
+        ) {
+          schema._flags = schema._flags
+            ? { ...schema._flags, ...cnst.REQUIRED_FLAG }
+            : cnst.REQUIRED_FLAG;
+        }
+
+        // blacklist immutable fields (future feature to set via config)
         if (
           schema._invalids &&
           schema._invalids.has(cnst.SYMBOL_UPDATE_DISABLED)
         ) {
           newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].delete(id);
         }
+
+
+
       } else if (operation === cnst.READ) {
         if (
           schema._invalids &&

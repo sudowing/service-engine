@@ -131,7 +131,7 @@ export class Resource implements ts.IClassResource {
         cnst.UPDATE,
         schema.update,
         Object.keys(report.update),
-        database.toUpdateQuery,
+        database.toUpdateQuery(this.meta.uniqueKeyComponents),
         this
       ),
       delete: genericResourceCall(

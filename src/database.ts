@@ -79,17 +79,27 @@ export const toReadQuery = ({
 }: ts.IParamsToQueryBase) =>
   db.from(resource).select(context.fields).where(query); // fields exists. was set in generic
 
-export const toUpdateQuery = ({
+export const toUpdateQuery = (keys: string[]) => ({
   db,
   st,
   resource,
   query,
   context,
   searchQuery,
-}: ts.IParamsToQueryWithSearch) =>
-  db(resource)
-    .where(query) // pull only keys from query || ensure it's being done upstream
-    .update(query, context.fields); // remove keys & cannot update fields from query && fields exists. was set in generic
+}: ts.IParamsToQueryWithSearch) => {
+
+  const { pk, values } = Object.entries(query)
+    .reduce((bundle, [key, value]) => {
+      const data = keys.includes(key) ? bundle.pk : bundle.values;
+      data[key] = value;
+      return bundle;
+    },
+    { pk: {}, values: {}});
+
+  return db(resource)
+    .where(pk) // pull only keys from query || ensure it's being done upstream
+    .update(values, context.fields); // remove keys & cannot update fields from query && fields exists. was set in generic
+}
 
 export const toDeleteQuery = ({
   db,
