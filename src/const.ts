@@ -46,6 +46,7 @@ export const GEO_RADIUS = "geo_radius";
 export const GEO_POLYGON = "geo_polygon";
 
 export const PIPE_SEPERATOR = "|seperator";
+export const SEPERATOR = "seperator";
 // values are weither they support multiple values seperated by commas
 export const SUPPORTED_OPERATIONS = {
   [EQUAL]: false,

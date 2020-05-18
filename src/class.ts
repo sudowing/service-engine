@@ -165,8 +165,9 @@ export class Resource implements ts.IClassResource {
     };
     if (input.context) {
       const result = util.queryContextParser(this.validator, input.context);
-      if (result.errors)
+      if (result.errors.length) {
         rejection = util.rejectResource(cnst.CONTEXT_ERRORS, result.errors);
+      }
       // returned context is mutated if passed
       context = result.context;
     }
@@ -190,6 +191,7 @@ export class Resource implements ts.IClassResource {
     return this.generics.delete(input);
   }
 
+
   search(input: ts.IParamsProcessBase) {
     const { requestId } = input;
     this.logger.debug(
@@ -200,7 +202,6 @@ export class Resource implements ts.IClassResource {
       },
       cnst.RESOURCE_CALL
     );
-
     const { context, ...parsed } = this.contextParser(input);
     if (parsed.error) {
       this.logger.error(
