@@ -217,7 +217,7 @@ export class Resource implements ts.IClassResource {
 
     const { errors, components } = this.meta.searchQueryParser(
       input.payload,
-      input.context
+      context
     );
     if (errors.length) {
       this.logger.error(

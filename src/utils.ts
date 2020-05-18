@@ -363,6 +363,8 @@ export const queryContextParser = (
         } else {
           context[key] = value;
         }
+      } else {
+        context[key] = value;
       }
     }
   });

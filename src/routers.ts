@@ -73,6 +73,8 @@ export const serviceRouters = async ({ db, st, logger }) => {
 
   const serviceView = async (ctx) => {
     const requestId = uuid();
+    ctx.set("x-request-id", requestId);
+    let records = null;
 
     // '/:category/:resource/record
     const { category, resource } = ctx.params;
@@ -135,23 +137,42 @@ export const serviceRouters = async ({ db, st, logger }) => {
 
     // insert db, components
     if (serviceResponse.result) {
-      serviceResponse.result.sqlString = serviceResponse.result.sql.toString();
-      serviceResponse.result.data = await serviceResponse.result.sql;
+      const sqlString = serviceResponse.result.sql.toString();
+      serviceResponse.result.sqlString = sqlString;
+      ctx.set("x-sql", sqlString);
+
+      if (category === "service") {
+        records = await serviceResponse.result.sql;
+      }
       delete serviceResponse.result.sql;
     }
 
-    ctx.response.body = {
-      now: Date.now(),
-      requestId,
-      url,
-      record,
-      method,
-      category,
-      resource,
-      operation,
-      input,
-      serviceResponse,
-    };
+    // if single record searched and not returned -- 404
+
+    const output =
+      category === "service"
+        ? record
+          ? records[0] || null
+          : records
+        : {
+            now: Date.now(),
+            requestId,
+            url,
+            record,
+            method,
+            category,
+            resource,
+            operation,
+            input,
+            serviceResponse,
+          };
+
+    if (output === null) {
+      ctx.status = HTTP_STATUS.NOT_FOUND;
+      return;
+    }
+
+    ctx.response.body = output;
   };
 
   router.get("/:category/:resource", serviceView);
