@@ -79,7 +79,7 @@ export const genericResourceCall = (
     cnst.RESOURCE_RESPONSE
   );
 
-  return util.resolveResource({ sql });
+  return util.resolveResource({ sql, context, query });
 };
 
 export class Resource implements ts.IClassResource {

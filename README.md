@@ -161,3 +161,76 @@ numeric
 text
 timestamp without time zone
 uuid
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  // const query = {
+  //   zulu: "true",
+  //   // field_gt: "field__gt",
+  //   // field_gte: "field__gte",
+  //   // field_lt: "field__lt",
+  //   // field_lte: "field__lte",
+  //   // field_not: "field__not",
+  //   // field_range: "field__range",
+  //   // field_in: "field__in",
+  //   // field_not_in: "field__not_in",
+  //   // field_like: "field__like",
+  //   // field_or: "field__or",
+  //   // field_geo_bbox: "field__geo_bbox",
+  //   // field_geo_radius: "field__geo_radius",
+  //   // field_geo_polygon: "field__geo_polygon",
+  //   // field_geo_geojson: "field__geo_geojson",
+  //   "alpha.gt": "field.gt",
+  //   "bravo.gte": "field.gte",
+  //   "charlie.lt": '42',
+  //   "delta.lte": "111",
+  //   "echo.not": "field.not",
+  //   "echo.null": "field.not",
+  //   "echo.not_null": "field.not",
+  //   "foxtrot.range": "5.1,9.7",
+  //   "foxtrot.not_range": "5.1,9.7",
+  //   "golf.in": "braves,marlins,nationals,mets,phillies",
+  //   "hotel.not_in": "braves,marlins,nationals,mets,phillies",
+  //   "alpha.like": "field.like",
+  //   "mike.geo_bbox": "1.1,2.2,3.3,4.4",
+  //   "november.geo_radius": "1.2,2.3,111000",
+  //   // "mike.geo_bbox": "one, two, three, four",
+  //   // "november.geo_radius": "one, two, three",
+  //   // "|seperator": ",",
+  //   "|fields": "alpha,bravo,charlie",
+  //   "|orderBy": "one:desc,charlie:asc,three:desc,four",
+  //   "|delta": "delta",
+  //   "|echo": "echo",
+  
+  // };
+  
+  // const recordKeys = {
+  //   alpha: 'alpha',
+  //   hotel: 'hotel',
+  // };
+  
+  // const recordCreate = {
+  //   bravo: 'bravo',
+  // };
+  
+  // const resources = {
+  //   some_resource: new engine.Resource({
+  //     db, st, logger, name: 'some_resource', validator: test_table
+  //   }),
+  // };
+  

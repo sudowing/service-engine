@@ -262,7 +262,8 @@ export interface IResolveResource {
   error?: undefined;
   result: {
     sql: knex.QueryBuilder;
-    wip?: string; // this is for development functionality | to replace the .sql with the string
+    context: ISearchQueryContext;
+    query: any;
   };
 }
 
