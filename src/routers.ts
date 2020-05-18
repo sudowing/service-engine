@@ -1,72 +1,166 @@
-// import * as statusCodes from "http-status-codes";
-// import { Context } from "koa";
-// import * as Router from "koa-router";
-// import { GET } from "./const";
-// import * as ts from "./interfaces";
-// import {
-//   generateOperations,
-//   nameRestEndpointGetRecords,
-//   uniqueKeyComponents,
-//   validatorInspector,
-// } from "./utils";
+import * as Router from "@koa/router";
+import * as HTTP_STATUS from "http-status";
 
-// const controller = (
-//   operation: ts.IOperation,
-//   opts?: ts.IParamsControllerSpecs
-// ) => async (ctx: Context) => {
-//   const query = ctx.method === GET ? ctx.request.query : ctx.request.body;
-//   const payload = Array.isArray(query) ? query : [query || {}];
+import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
+import { genDatabaseResourceOpenApiDocs } from "./openapi";
+import { Resource } from "./class";
+import { uuid } from "./utils";
 
-//   // get context
+import { parse as parseURL } from "url";
 
-//   // if (count) ctx.response.set(cnst.X_REQUEST_COUNT, count.toString());
-//   // if (sql) ctx.response.set(cnst.X_REQUEST_SQL, sql);
+const uniqueResource = (url: string) =>
+  parseURL(url, true).pathname.endsWith("/record");
 
-//   try {
-//     const { sql } = await operation({
-//       payload: opts.unique ? payload[0] : payload,
-//     });
-//     const body = { sql: sql.toString() };
+const seperateQueryAndContext = (input) =>
+  Object.entries(input).reduce(
+    (query, [key, value]) => {
+      const info = key.startsWith("|") ? query.context : query.payload;
+      info[key.replace("|", "")] = value;
+      return query;
+    },
+    { payload: {}, context: {} }
+  );
 
-//     ctx.response.status = statusCodes.OK;
-//     ctx.response.body = body;
-//   } catch (err) {
-//     const body = { err };
+const j = JSON.stringify; // convience
+const operations = new Map();
+operations.set(j({ method: "POST", record: false }), "create");
+operations.set(j({ method: "GET", record: false }), "search");
+operations.set(j({ method: "PUT", record: true }), "update");
+operations.set(j({ method: "DELETE", record: true }), "delete");
+operations.set(j({ method: "GET", record: true }), "read");
 
-//     ctx.response.status = statusCodes.BAD_REQUEST;
-//     ctx.response.body = body;
-//   }
-// };
+export const serviceRouters = async ({ db, st, logger }) => {
+  const router = new Router();
 
-// export const generateServiceRouter = ({
-//   db,
-//   st,
-//   resources,
-// }: ts.IServiceConfig) =>
-//   Object.entries(resources).reduce((router: Router, [resource, validator]) => {
-//     const { resourceEndpoint, uniqueEndpoint } = nameRestEndpointGetRecords(
-//       resource
-//     );
+  const { validators, dbResources } = await genDatabaseResourceValidators({
+    db,
+  });
+  const { rows: dbResourceRawRows } = await db.raw(
+    getDatabaseResources({ db })
+  );
+  const apiDocs = await genDatabaseResourceOpenApiDocs({
+    db,
+    st,
+    logger,
+  });
 
-//     const { create, read, update, del } = generateOperations({
-//       db,
-//       st,
-//       validator,
-//       resource,
-//     });
+  router.get("/ping", (ctx) => {
+    ctx.response.body = { hello: "world", now: Date.now() };
+  });
 
-//     router.post(resourceEndpoint, controller(create));
+  router.get("/openapi", async (ctx) => {
+    ctx.response.body = apiDocs;
+  });
 
-//     router.get(resourceEndpoint, controller(read));
-//     router.put(resourceEndpoint, controller(update));
-//     router.del(resourceEndpoint, controller(del));
+  router.get("/db_resources", async (ctx) => {
+    ctx.response.body = dbResources;
+  });
 
-//     // if unique make record endpoint
-//     if (uniqueKeyComponents(validatorInspector(validator)).length) {
-//       router.get(uniqueEndpoint, controller(read, { unique: true }));
-//       router.put(uniqueEndpoint, controller(update, { unique: true }));
-//       router.del(uniqueEndpoint, controller(del, { unique: true }));
-//     }
+  router.get("/db_resources/raw", async (ctx) => {
+    ctx.response.body = dbResourceRawRows;
+  });
 
-//     return router;
-//   }, new Router());
+  router.get("/resources", async (ctx) => {
+    const resources = Object.entries(validators).reduce(
+      (batch, [name, validator]: any) => ({
+        ...batch,
+        [name]: new Resource({ db, st, logger, name, validator }).report,
+      }),
+      {}
+    );
+    ctx.response.body = resources;
+  });
+
+  const serviceView = async (ctx) => {
+    const requestId = uuid();
+
+    // '/:category/:resource/record
+    const { category, resource } = ctx.params;
+    const method = ctx.method;
+    const url = ctx.request.url;
+    const record = uniqueResource(url);
+
+    // only process for /service & /debug
+    if (category !== "service" && category !== "debug") {
+      ctx.response.status = HTTP_STATUS.NOT_FOUND;
+      return;
+    }
+
+    const resources = Object.entries(validators).reduce(
+      (batch, [name, validator]: any) => ({
+        ...batch,
+        [name]: new Resource({ db, st, logger, name, validator }),
+      }),
+      {}
+    );
+
+    // only process for /service & /debug && only if resource exists and operation on resource exists
+    if (
+      (category !== "service" && category !== "debug") ||
+      !operations.has(j({ method, record })) ||
+      !resources.hasOwnProperty(resource)
+    ) {
+      ctx.response.status = HTTP_STATUS.NOT_FOUND;
+      return;
+    }
+
+    const operation = operations.get(j({ method, record }));
+
+    const input =
+      method === "GET"
+        ? seperateQueryAndContext(ctx.request.query)
+        : { payload: ctx.request.body || {} };
+
+    const serviceResponse = resources[resource][operation]({
+      ...input,
+      requestId,
+    });
+
+    // create(input: ts.IParamsProcessBase) {
+    // read(input: ts.IParamsProcessBase) {
+    // update(input: ts.IParamsProcessWithSearch) {
+    // delete(input: ts.IParamsProcessDelete) {
+    // search(input: ts.IParamsProcessBase) {
+
+    // IParamsProcessBase
+    //   payload: any;
+    //   context?: any;
+    //   requestId: string;
+
+    // IParamsProcessWithSearch extends IParamsProcessBase
+    //   searchQuery?: any;
+
+    // IParamsProcessDelete extends IParamsProcessWithSearch
+    //   hardDelete?: boolean;
+
+    // insert db, components
+    if (serviceResponse.result) {
+      serviceResponse.result.sqlString = serviceResponse.result.sql.toString();
+      serviceResponse.result.data = await serviceResponse.result.sql;
+      delete serviceResponse.result.sql;
+    }
+
+    ctx.response.body = {
+      now: Date.now(),
+      requestId,
+      url,
+      record,
+      method,
+      category,
+      resource,
+      operation,
+      input,
+      serviceResponse,
+    };
+  };
+
+  router.get("/:category/:resource", serviceView);
+  router.post("/:category/:resource", serviceView);
+
+  router.get("/:category/:resource/record", serviceView);
+  router.post("/:category/:resource/record", serviceView);
+  router.put("/:category/:resource/record", serviceView);
+  router.delete("/:category/:resource/record", serviceView);
+
+  return { router };
+};
