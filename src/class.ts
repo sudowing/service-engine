@@ -248,6 +248,6 @@ export class Resource implements ts.IClassResource {
       cnst.RESOURCE_RESPONSE
     );
 
-    return util.resolveResource({ sql });
+    return util.resolveResource({ sql, query: components, context });
   }
 }
