@@ -191,7 +191,6 @@ export class Resource implements ts.IClassResource {
     return this.generics.delete(input);
   }
 
-
   search(input: ts.IParamsProcessBase) {
     const { requestId } = input;
     this.logger.debug(

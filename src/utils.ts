@@ -339,9 +339,7 @@ export const queryContextParser = (
   const errors = [];
   const context: ts.ISearchQueryContext = {
     ...cnst.SEARCH_QUERY_CONTEXT,
-    ...(query[cnst.SEPERATOR]
-      ? { seperator: query[cnst.SEPERATOR] }
-      : {}), // support user provided seperators for fields that support multiple values
+    ...(query[cnst.SEPERATOR] ? { seperator: query[cnst.SEPERATOR] } : {}), // support user provided seperators for fields that support multiple values
   };
 
   Object.entries(query).forEach(([key, rawValue]) => {
