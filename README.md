@@ -29,25 +29,7 @@ Now I am able to fully test my unpublished module locally.
 Additionally, there is an npm pack command which can help you test your unpublished modules, although not quite as robust.
 ```
 
-dynamic seperator? comma and pipe
-dynamic field/column labels
 
-pagination
-    page
-    limit
-order
-
-geoquery on point only
-
-
-
-
-// parse polygon values
-// polygon passed in url as base64 to avoid comma parsing
-const parsedPolygon = Buffer.from(
-    polygon || cnst.EMPTY_STRING,
-    cnst.BASE_64
-).toString();
 
 
 
@@ -106,67 +88,6 @@ horitonatlly scalable organization store
 
 
 
-```
-
-select
-    f.attnum AS number,  
-    c.relname as table_name,
-    f.attname AS column_name,  
-    f.attnum,  
-    f.attnotnull AS notnull,  
-    pg_catalog.format_type(f.atttypid,f.atttypmod) AS type,  
-    CASE  
-        WHEN p.contype = 'p' THEN 't'  
-        ELSE 'f'  
-    END AS primarykey,  
-    CASE  
-        WHEN p.contype = 'u' THEN 't'  
-        ELSE 'f'
-    END AS uniquekey,
-    CASE
-        WHEN p.contype = 'f' THEN g.relname
-    END AS foreignkey,
-    CASE
-        WHEN p.contype = 'f' THEN p.confkey
-    END AS foreignkey_fieldnum,
-    CASE
-        WHEN p.contype = 'f' THEN g.relname
-    END AS foreignkey,
-    CASE
-        WHEN p.contype = 'f' THEN p.conkey
-    END AS foreignkey_connnum
-FROM pg_attribute f  
-    JOIN pg_class c ON c.oid = f.attrelid  
-    JOIN pg_type t ON t.oid = f.atttypid  
-    LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum  
-    LEFT JOIN pg_namespace n ON n.oid = c.relnamespace  
-    LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey)  
-    LEFT JOIN pg_class AS g ON p.confrelid = g.oid  
-WHERE c.relkind = 'r'::char  
-    AND n.nspname = 'public'  -- Replace with Schema name  
-    AND f.attnum > 0
-order by
-    c.relname asc,
-    f.attnum asc,
-    f.attname asc
-
-```
-
-boolean
-character(4)
-character varying
-double precision
-integer
-numeric
-text
-timestamp without time zone
-uuid
-
-
-
-
-
-
 
 
 
@@ -219,36 +140,7 @@ uuid
   
   // };
   
-  // const recordKeys = {
-  //   alpha: 'alpha',
-  //   hotel: 'hotel',
-  // };
-  
-  // const recordCreate = {
-  //   bravo: 'bravo',
-  // };
-  
-  // const resources = {
-  //   some_resource: new engine.Resource({
-  //     db, st, logger, name: 'some_resource', validator: test_table
-  //   }),
-  // };
-  
 
   http://0.0.0.0:3001/debug/account/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=t
 
 
-
-  views & materialized views are read + search only
-  /resources accepts a get param for a single resource
-
-  define relationships via config if fk not set
-    fk defines itself (used for GraphQL)
-
-
-middleware that issues uuid
-count function that will send count back on search only
-
-get param for openapi docs to seperate debug routes
-
-config to pass to openaapi docs to set meta
