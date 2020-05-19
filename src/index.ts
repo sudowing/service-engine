@@ -11,8 +11,7 @@ import { createLogger } from "bunyan";
 
 import { serviceRouters } from "./routers";
 
-export const startEngine = async ({ db, metadata }) => {
-
+export const ignite = async ({ db, metadata }) => {
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
 
