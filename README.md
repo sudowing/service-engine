@@ -1,6 +1,7 @@
 # service-engine
 
 
+## Quick Start
 
 ### install lib and dependencies
 ```
@@ -10,17 +11,17 @@ npm i knex pg service-engine
 ### example app
 ```
 import * as knex from "knex";
-import { startEngine } from "service-engine";
+import { ignite } from "service-engine";
 
 const port = 3001;
 
 const metadata = {
-    appShortName: 'hunt-core-service',
-    title: "American Hunt Core Service",
-    description: "Basic description of core resources.",
-    termsOfService: "http://huntem.io/terms/",
+    appShortName: 'sample-app-name',
+    title: "Sample App Name",
+    description: "Basic description of service resources.",
+    termsOfService: "http://website/terms/",
     name: "Joe Wingard",
-    email: "joe@americanhunt.com",
+    email: "open-source@joewingard.com",
     url: "https://github.com/sudowing/service-engine",
     servers: [
         'https://alpha.com',
@@ -35,7 +36,7 @@ const knexConfig = {
 }
 
 const main = async () => {
-    const { App, logger } = await startEngine({db: knex(knexConfig), metadata});
+    const { App, logger } = await ignite({db: knex(knexConfig), metadata});
     App.listen({ port }, () => {
         logger.info({ port }, "App Started 🔥");
     });
@@ -43,6 +44,8 @@ const main = async () => {
 
 main();
 ```
+
+## Project Vision
 
 any db supported by knex
 
