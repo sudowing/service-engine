@@ -138,9 +138,8 @@ export const RESOURCE_CALL = "resource_call";
 export const URL_ROOT_SERVICE = "/service";
 export const URL_ROOT_DEBUG = "/debug";
 
-
-export const HEADER_REQUEST_ID = 'x-request-id';
-export const HEADER_GET_SQL = 'x-get-sql';
-export const HEADER_SQL = 'x-sql';
-export const HEADER_GET_COUNT = 'x-get-count';
-export const HEADER_COUNT = 'x-count';
+export const HEADER_REQUEST_ID = "x-request-id";
+export const HEADER_GET_SQL = "x-get-sql";
+export const HEADER_SQL = "x-sql";
+export const HEADER_GET_COUNT = "x-get-count";
+export const HEADER_COUNT = "x-count";

@@ -30,7 +30,7 @@ operations.set(j({ method: "PUT", record: true }), "update");
 operations.set(j({ method: "DELETE", record: true }), "delete");
 operations.set(j({ method: "GET", record: true }), "read");
 
-export const serviceRouters = async ({ db, st, logger }) => {
+export const serviceRouters = async ({ db, st, logger, metadata }) => {
   const router = new Router();
 
   router.use(prepRequestForService);
@@ -45,6 +45,7 @@ export const serviceRouters = async ({ db, st, logger }) => {
     db,
     st,
     logger,
+    metadata,
   });
 
   router.get("/ping", (ctx) => {
@@ -144,13 +145,15 @@ export const serviceRouters = async ({ db, st, logger }) => {
       if (category === "service") {
         records = await serviceResponse.result.sql;
 
-        if (operation === 'search' && ctx.get(cnst.HEADER_GET_COUNT)) {
-          const {result: searchCountResult} = resources[resource][operation]({
+        if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
+          const { result: searchCountResult } = resources[resource][operation]({
             payload: input.payload,
             reqId,
           });
-  
-          sqlSearchCount = db.from(db.raw(`(${searchCountResult.sql.toString()}) as main`));
+
+          sqlSearchCount = db.from(
+            db.raw(`(${searchCountResult.sql.toString()}) as main`)
+          );
           // this is needed to make the db result mysql/postgres agnostic
           sqlSearchCount.count("* as count");
 

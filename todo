@@ -1,28 +1,12 @@
 
-uuid in header // put in controller
-sql in header
-count in header for search
-
 
 subquery
-
-logloglogs
-
-swagger docs
 update logger with file and trace
 make every http call get logged to debug
 
-
-middleware & CRUD OPTIONS in service-config
-
-PROVIDE support for defined pagination limits (from implementor)
+CRUD OPTIONS in service-config
 
 ALL VALIDATION needs to be async
-
-
-
-
-
 
   views & materialized views are read + search only
   /resources accepts a get param for a single resource
@@ -31,11 +15,9 @@ ALL VALIDATION needs to be async
     fk defines itself (used for GraphQL)
 
 
-count function that will send count back on search only
 
 get param for openapi docs to seperate debug routes
 
-config to pass to openaapi docs to set meta
 
 
 add graphql schemas

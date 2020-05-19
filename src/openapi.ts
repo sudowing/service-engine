@@ -121,7 +121,12 @@ export const ServiceModels = {
 
 // SUPPORTED_OPERATIONS, DEFINED_ARG_LENGTHS
 
-export const genDatabaseResourceOpenApiDocs = async ({ db, st, logger }) => {
+export const genDatabaseResourceOpenApiDocs = async ({
+  db,
+  st,
+  logger,
+  metadata,
+}) => {
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
   });
@@ -416,11 +421,26 @@ export const genDatabaseResourceOpenApiDocs = async ({ db, st, logger }) => {
     {}
   );
 
+  const {
+    name: contactName,
+    email: contactEmail,
+    url: contactUrl,
+    servers,
+    ...metaInfo
+  } = metadata;
+  const metaContact = {
+    name: contactName,
+    email: contactEmail,
+    url: contactUrl,
+  };
+  // tslint:disable-next-line: no-shadowed-variable
+  const metaServers = servers.map((url) => ({ url }));
+
   const base = {
     openapi: "3.0.0",
     info: {
-      version: "1.0.0",
-      title: "Some Service Naame",
+      version: process.env.npm_package_version || "1.0.1", // get app version
+      title: "Some Service Name",
       description:
         "Super Early (not fully functional yet) description of service resources.",
       termsOfService: "http://swagger.io/terms/",
@@ -428,13 +448,13 @@ export const genDatabaseResourceOpenApiDocs = async ({ db, st, logger }) => {
         name: "Joe Wingard",
         email: "open-source@joewingard.com",
         url: "https://github.com/sudowing/service-engine",
+        ...metaContact,
       },
-      license: {
-        name: "Apache 2.0",
-        url: "https://www.apache.org/licenses/LICENSE-2.0.html",
-      },
+      ...metaInfo,
     },
-    servers: [{ url: "http://core-service" }],
+    servers: metaServers.length
+      ? metaServers
+      : [{ url: "http://core-service" }],
   };
 
   const serviceRoutes = {
@@ -586,7 +606,6 @@ export const genDatabaseResourceOpenApiDocs = async ({ db, st, logger }) => {
   };
 
   return {
-    dbResources,
     components: { schemas },
     paths: { ...paths, ...serviceRoutes },
     ...base,
