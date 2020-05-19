@@ -4,6 +4,7 @@ import * as HTTP_STATUS from "http-status";
 import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import { Resource } from "./class";
+import * as cnst from "./const";
 import { prepRequestForService } from "./middleware";
 
 import { parse as parseURL } from "url";
@@ -125,36 +126,37 @@ export const serviceRouters = async ({ db, st, logger }) => {
             ...ctx.request.query,
           }); // keys must come from querystring
 
+    let sqlSearchCount = null; // placeholder for unpagination count
     const serviceResponse = resources[resource][operation]({
       ...input,
       reqId,
     });
 
-    // create(input: ts.IParamsProcessBase) {
-    // read(input: ts.IParamsProcessBase) {
-    // update(input: ts.IParamsProcessWithSearch) {
-    // delete(input: ts.IParamsProcessDelete) {
-    // search(input: ts.IParamsProcessBase) {
-
-    // IParamsProcessBase
-    //   payload: any;
-    //   context?: any;
-    //   reqId: string;
-
-    // IParamsProcessWithSearch extends IParamsProcessBase
-    //   searchQuery?: any;
-
-    // IParamsProcessDelete extends IParamsProcessWithSearch
-    //   hardDelete?: boolean;
-
     // insert db, components
     if (serviceResponse.result) {
       const sqlString = serviceResponse.result.sql.toString();
       serviceResponse.result.sqlString = sqlString;
-      ctx.set("x-sql", sqlString);
+
+      if (ctx.get(cnst.HEADER_GET_SQL)) {
+        ctx.set(cnst.HEADER_SQL, sqlString);
+      }
 
       if (category === "service") {
         records = await serviceResponse.result.sql;
+
+        if (operation === 'search' && ctx.get(cnst.HEADER_GET_COUNT)) {
+          const {result: searchCountResult} = resources[resource][operation]({
+            payload: input.payload,
+            reqId,
+          });
+  
+          sqlSearchCount = db.from(db.raw(`(${searchCountResult.sql.toString()}) as main`));
+          // this is needed to make the db result mysql/postgres agnostic
+          sqlSearchCount.count("* as count");
+
+          const [{ count }] = await sqlSearchCount; // can/should maybe log this
+          ctx.set(cnst.HEADER_COUNT, count);
+        }
       }
       delete serviceResponse.result.sql;
     } else {
