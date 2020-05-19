@@ -138,7 +138,7 @@ export class Resource implements ts.IClassResource {
         cnst.DELETE,
         schema.delete,
         Object.keys(report.delete),
-        database.toDeleteQuery,
+        database.toDeleteQuery(this.meta.uniqueKeyComponents),
         this
       ),
     };

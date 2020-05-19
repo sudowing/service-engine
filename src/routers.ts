@@ -160,15 +160,12 @@ export const serviceRouters = async ({ db, st, logger }) => {
       return;
     }
 
-    // ON UPDATE
-    //   MUST REQUIRE KEYS----
-
     // if single record searched and not returned -- 404
 
     const output =
       category === "service"
         ? record
-          ? records[0] || null
+          ? Array.isArray(records) ? records[0] : {count: records} // unique resources that are not arrays are only delete
           : records
         : {
             now: Date.now(),

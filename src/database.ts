@@ -101,15 +101,52 @@ export const toUpdateQuery = (keys: string[]) => ({
     .update(values, context.fields); // remove keys & cannot update fields from query && fields exists. was set in generic
 }
 
-export const toDeleteQuery = ({
+export const toDeleteQuery = (keys: string[]) => ({
   db,
   st,
   resource,
   query,
-  context,
   searchQuery,
   hardDelete,
-}: ts.IParamsToDeleteQueryWithSearch) =>
-  db(resource) // need to handle hard delete && soft-delete (update bool flag)
-    .where(query)
-    .delete();
+}: ts.IParamsToDeleteQueryWithSearch) => {
+  const { pk }: any = Object.entries(query)
+    .reduce((bundle, [key, value]) => {
+      const data = keys.includes(key) ? bundle.pk : bundle.values;
+      data[key] = value;
+      return bundle;
+    },
+    { pk: {}, values: {}});
+
+  if (hardDelete) {
+    // hard delete
+    return db(resource).where(pk).delete();
+  }
+
+  // if soft delete
+  pk.active = true;
+
+  const sqlcount = db(resource).count().where(pk);
+  const sqlUpdate = db(resource).where(pk).update({active: false});
+
+  const softDelete = new Promise( async (resolve, reject) => {
+    try {
+      const [{count}]: any = await sqlcount;
+
+      const n = Number(count);
+
+
+      if (n !== 0) {
+        // no need to do the delete if no matching records exist. Call it a day
+        await sqlUpdate;
+      }
+
+      resolve(n);
+    }
+    catch(err){
+      reject(err);
+    }
+  });
+  softDelete.toString = () => sqlUpdate.toString();
+  return softDelete;
+
+}

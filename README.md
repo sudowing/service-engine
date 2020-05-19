@@ -236,3 +236,19 @@ uuid
   
 
   http://0.0.0.0:3001/debug/account/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=t
+
+
+
+  views & materialized views are read + search only
+  /resources accepts a get param for a single resource
+
+  define relationships via config if fk not set
+    fk defines itself (used for GraphQL)
+
+
+middleware that issues uuid
+count function that will send count back on search only
+
+get param for openapi docs to seperate debug routes
+
+config to pass to openaapi docs to set meta
