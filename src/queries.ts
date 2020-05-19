@@ -8,47 +8,61 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
 
   if (db.client.config.client === "pg") {
     sql = `
-        select
-            f.attnum AS num,
-            c.relname as table_name,
-            f.attname AS column_name,
-            f.attnum,
-            f.attnotnull AS notnull,
-            pg_catalog.format_type(f.atttypid,f.atttypmod) AS type,
-            CASE
-                WHEN p.contype = 'p' THEN true
-                ELSE false
-            END AS primarykey,
-            CASE
-                WHEN p.contype = 'u' THEN true
-                ELSE false
-            END AS uniquekey,
-            CASE
-                WHEN p.contype = 'f' THEN g.relname
-            END AS foreignkey,
-            CASE
-                WHEN p.contype = 'f' THEN p.confkey
-            END AS foreignkey_fieldnum,
-            CASE
-                WHEN p.contype = 'f' THEN g.relname
-            END AS foreignkey,
-            CASE
-                WHEN p.contype = 'f' THEN p.conkey
-            END AS foreignkey_connnum
-        FROM pg_attribute f
-            JOIN pg_class c ON c.oid = f.attrelid
-            JOIN pg_type t ON t.oid = f.atttypid
-            LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum
-            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey)
-            LEFT JOIN pg_class AS g ON p.confrelid = g.oid
-        WHERE c.relkind = 'r'::char
-            AND n.nspname = 'public'  -- Replace with Schema name
-            AND f.attnum > 0
-        order by
-            c.relname asc,
-            f.attnum asc,
-            f.attname asc
+      select
+      s.nspname resource_schema,
+      case
+        when c.relkind = 'r' then 'table'
+        when c.relkind = 'v' then 'view'
+        when c.relkind = 'm' then 'materialized view'
+        else 'unknown'
+      end as resource_type,
+      c.relname as resource_name,
+      a.attnum as resource_column_id,
+      a.attname as resource_column_name,
+      a.attnotnull as notnull,
+      pg_catalog.format_type(a.atttypid,
+      a.atttypmod) as type,
+      case
+        when p.contype = 'p' then true
+        else false
+      end as primarykey,
+      case
+        when p.contype = 'u' then true
+        else false
+      end as uniquekey,
+      case
+        when p.contype = 'f' then p.confkey
+      end as foreignkey_fieldnum,
+      case
+        when p.contype = 'f' then c.relname
+      end as foreignkey,
+      case
+        when p.contype = 'f' then p.conkey
+      end as foreignkey_connnum
+    from
+      pg_attribute a
+    join pg_class c on
+      c.oid = a.attrelid
+    join pg_namespace s on
+      c.relnamespace = s.oid
+    left join pg_attrdef d on
+      d.adrelid = c.oid
+      and d.adnum = a.attnum
+    left join pg_namespace n on
+      n.oid = c.relnamespace
+    left join pg_constraint p on
+      p.conrelid = c.oid
+      and a.attnum = any (p.conkey)
+    where
+      c.relkind in ('r','v','m') -- tables, views, materialized views
+      and a.attnum > 0
+      and not a.attisdropped
+      and s.nspname = 'public'
+    order by
+      s.nspname,
+      c.relname,
+      a.attnum,
+      a.attname;
     `;
   }
 
@@ -130,20 +144,22 @@ export const genDatabaseResourceValidators = async ({
     (
       catalog,
       {
-        num,
-        table_name,
-        column_name,
+        resource_schema,
+        resource_type,
+        resource_name,
+        resource_column_id,
+        resource_column_name,
         notnull,
         type,
         primarykey,
         uniquekey,
-        foreignkey,
         foreignkey_fieldnum,
+        foreignkey,
         foreignkey_connnum,
       }
     ) => {
-      if (!catalog[table_name]) catalog[table_name] = {};
-      catalog[table_name][column_name] = joiKeyComponent(
+      if (!catalog[resource_name]) catalog[resource_name] = {};
+      catalog[resource_name][resource_column_name] = joiKeyComponent(
         joiBase(type),
         primarykey
       );
@@ -153,8 +169,8 @@ export const genDatabaseResourceValidators = async ({
   );
 
   const dbResources = records.reduce((collection, record) => {
-    if (!collection[record.table_name]) collection[record.table_name] = {};
-    collection[record.table_name][record.column_name] = record;
+    if (!collection[record.resource_name]) collection[record.resource_name] = {};
+    collection[record.resource_name][record.resource_column_name] = record;
     return collection;
   }, {});
 
