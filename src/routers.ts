@@ -4,7 +4,7 @@ import * as HTTP_STATUS from "http-status";
 import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import { Resource } from "./class";
-import { uuid } from "./utils";
+import { prepRequestForService } from "./middleware";
 
 import { parse as parseURL } from "url";
 
@@ -31,6 +31,8 @@ operations.set(j({ method: "GET", record: true }), "read");
 
 export const serviceRouters = async ({ db, st, logger }) => {
   const router = new Router();
+
+  router.use(prepRequestForService);
 
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
@@ -72,8 +74,7 @@ export const serviceRouters = async ({ db, st, logger }) => {
   });
 
   const serviceView = async (ctx) => {
-    const requestId = uuid();
-    ctx.set("x-request-id", requestId);
+    const { reqId } = ctx.state;
     let records = null;
 
     // '/:category/:resource/record
@@ -126,7 +127,7 @@ export const serviceRouters = async ({ db, st, logger }) => {
 
     const serviceResponse = resources[resource][operation]({
       ...input,
-      requestId,
+      reqId,
     });
 
     // create(input: ts.IParamsProcessBase) {
@@ -138,7 +139,7 @@ export const serviceRouters = async ({ db, st, logger }) => {
     // IParamsProcessBase
     //   payload: any;
     //   context?: any;
-    //   requestId: string;
+    //   reqId: string;
 
     // IParamsProcessWithSearch extends IParamsProcessBase
     //   searchQuery?: any;
@@ -173,7 +174,7 @@ export const serviceRouters = async ({ db, st, logger }) => {
           : records
         : {
             now: Date.now(),
-            requestId,
+            reqId,
             url,
             record,
             method,
