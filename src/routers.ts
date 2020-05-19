@@ -190,7 +190,7 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
             serviceResponse,
           };
 
-    if (output === null) {
+    if ([null, undefined].includes(output)) {
       ctx.status = HTTP_STATUS.NOT_FOUND;
       return;
     }
