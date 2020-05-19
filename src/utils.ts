@@ -69,10 +69,6 @@ export const modifyValidator = (
             : cnst.REQUIRED_FLAG;
         }
       } else if (operation === cnst.UPDATE) {
-
-
-
-
         // required all pk fields for update
         if (
           schema._invalids &&
@@ -90,9 +86,6 @@ export const modifyValidator = (
         ) {
           newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].delete(id);
         }
-
-
-
       } else if (operation === cnst.READ) {
         if (
           schema._invalids &&

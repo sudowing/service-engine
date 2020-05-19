@@ -115,11 +115,14 @@ export const serviceRouters = async ({ db, st, logger }) => {
 
     const input =
       method === "GET"
-      ? seperateQueryAndContext(ctx.request.query)
-      : seperateQueryAndContext({
-        ...stripKeys(resources[resource].meta.uniqueKeyComponents, ctx.request.body),
-        ...ctx.request.query
-      }) // keys must come from querystring
+        ? seperateQueryAndContext(ctx.request.query)
+        : seperateQueryAndContext({
+            ...stripKeys(
+              resources[resource].meta.uniqueKeyComponents,
+              ctx.request.body
+            ),
+            ...ctx.request.query,
+          }); // keys must come from querystring
 
     const serviceResponse = resources[resource][operation]({
       ...input,
@@ -153,8 +156,7 @@ export const serviceRouters = async ({ db, st, logger }) => {
         records = await serviceResponse.result.sql;
       }
       delete serviceResponse.result.sql;
-    }
-    else {
+    } else {
       ctx.response.status = HTTP_STATUS.BAD_REQUEST;
       ctx.response.body = serviceResponse;
       return;
@@ -165,7 +167,9 @@ export const serviceRouters = async ({ db, st, logger }) => {
     const output =
       category === "service"
         ? record
-          ? Array.isArray(records) ? records[0] : {count: records} // unique resources that are not arrays are only delete
+          ? Array.isArray(records)
+            ? records[0]
+            : { count: records } // unique resources that are not arrays are only delete
           : records
         : {
             now: Date.now(),

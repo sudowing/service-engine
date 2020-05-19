@@ -87,19 +87,19 @@ export const toUpdateQuery = (keys: string[]) => ({
   context,
   searchQuery,
 }: ts.IParamsToQueryWithSearch) => {
-
-  const { pk, values } = Object.entries(query)
-    .reduce((bundle, [key, value]) => {
+  const { pk, values } = Object.entries(query).reduce(
+    (bundle, [key, value]) => {
       const data = keys.includes(key) ? bundle.pk : bundle.values;
       data[key] = value;
       return bundle;
     },
-    { pk: {}, values: {}});
+    { pk: {}, values: {} }
+  );
 
   return db(resource)
     .where(pk) // pull only keys from query || ensure it's being done upstream
     .update(values, context.fields); // remove keys & cannot update fields from query && fields exists. was set in generic
-}
+};
 
 export const toDeleteQuery = (keys: string[]) => ({
   db,
@@ -109,13 +109,14 @@ export const toDeleteQuery = (keys: string[]) => ({
   searchQuery,
   hardDelete,
 }: ts.IParamsToDeleteQueryWithSearch) => {
-  const { pk }: any = Object.entries(query)
-    .reduce((bundle, [key, value]) => {
+  const { pk }: any = Object.entries(query).reduce(
+    (bundle, [key, value]) => {
       const data = keys.includes(key) ? bundle.pk : bundle.values;
       data[key] = value;
       return bundle;
     },
-    { pk: {}, values: {}});
+    { pk: {}, values: {} }
+  );
 
   if (hardDelete) {
     // hard delete
@@ -126,14 +127,13 @@ export const toDeleteQuery = (keys: string[]) => ({
   pk.active = true;
 
   const sqlcount = db(resource).count().where(pk);
-  const sqlUpdate = db(resource).where(pk).update({active: false});
+  const sqlUpdate = db(resource).where(pk).update({ active: false });
 
-  const softDelete = new Promise( async (resolve, reject) => {
+  const softDelete = new Promise(async (resolve, reject) => {
     try {
-      const [{count}]: any = await sqlcount;
+      const [{ count }]: any = await sqlcount;
 
       const n = Number(count);
-
 
       if (n !== 0) {
         // no need to do the delete if no matching records exist. Call it a day
@@ -141,12 +141,10 @@ export const toDeleteQuery = (keys: string[]) => ({
       }
 
       resolve(n);
-    }
-    catch(err){
+    } catch (err) {
       reject(err);
     }
   });
   softDelete.toString = () => sqlUpdate.toString();
   return softDelete;
-
-}
+};
