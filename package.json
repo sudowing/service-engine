@@ -78,5 +78,9 @@
     "sinon": "^9.0.1",
     "tslint": "^6.1.0"
   },
-  "bundledDependencies": ["knex","knex-postgis","pg"]
+  "bundledDependencies": [
+    "knex",
+    "knex-postgis",
+    "pg"
+  ]
 }

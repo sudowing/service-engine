@@ -380,6 +380,20 @@ export const genDatabaseResourceOpenApiDocs = async ({
         };
       }
 
+      // no create on views & materialized views
+      const nonTableResources = ["view", "materialized view"];
+      const nonTableResource = nonTableResources.includes(
+        dbResources[resource][searchEntries[0][0]].resource_type
+      );
+      if (nonTableResource) {
+        delete record[path].post;
+        const uniqueRecord = record[`${path}/record`];
+        if (uniqueRecord) {
+          delete uniqueRecord.put;
+          delete uniqueRecord.delete;
+        }
+      }
+
       const debugResponses = {
         ["200"]: {
           description:

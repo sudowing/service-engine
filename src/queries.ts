@@ -83,32 +83,6 @@ export const joiRequired = (joi: Joi.Schema, required: boolean) =>
 
 const REGEX_CHAR = /character\((?<len>\d)\)/;
 
-export const joiBaseText = (type: string) => {
-  switch (type) {
-    case "boolean":
-      return `Joi.boolean()`;
-    case "character":
-    case "character varying":
-    case "text":
-    case "timestamp without time zone":
-      return `Joi.string()`;
-    case "integer":
-      return `Joi.number().integer()`;
-    case "double precision":
-    case "numeric":
-      return `Joi.number()`;
-    case "uuid":
-      return `Joi.string().guid()`;
-    default:
-      const match = type.match(REGEX_CHAR);
-      if (match) {
-        return `Joi.string().length(${match.groups.len})`;
-      }
-
-      throw new Error(`unknown type ${type}`);
-  }
-};
-
 export const joiBase = (type: string) => {
   switch (type) {
     case "boolean":
@@ -116,9 +90,12 @@ export const joiBase = (type: string) => {
     case "character":
     case "character varying":
     case "text":
+    case "name":
+    case "smallint[]":
     case "timestamp without time zone":
       return Joi.string();
     case "integer":
+    case "smallint":
       return Joi.number().integer();
     case "double precision":
     case "numeric":
@@ -169,7 +146,8 @@ export const genDatabaseResourceValidators = async ({
   );
 
   const dbResources = records.reduce((collection, record) => {
-    if (!collection[record.resource_name]) collection[record.resource_name] = {};
+    if (!collection[record.resource_name])
+      collection[record.resource_name] = {};
     collection[record.resource_name][record.resource_column_name] = record;
     return collection;
   }, {});
