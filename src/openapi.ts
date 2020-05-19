@@ -126,6 +126,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   st,
   logger,
   metadata,
+  debugMode,
 }) => {
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
@@ -408,25 +409,27 @@ export const genDatabaseResourceOpenApiDocs = async ({
         },
       };
 
-      Object.entries(record).forEach(([url, operations]) => {
-        record[url.replace(URL_ROOT_SERVICE, URL_ROOT_DEBUG)] = Object.keys(
-          operations
-        ).reduce(
-          (newOperations, operation) => ({
-            ...newOperations,
-            [operation]: {
-              ...record[url][operation],
-              summary: `debug ${record[url][operation].summary} (no db call)`,
-              operationId: `debug_${record[url][operation].operationId}`,
-              // tags: ['debug'],
-              responses: debugResponses,
-            },
-          }),
-          {}
-        );
+      if (debugMode) {
+        Object.entries(record).forEach(([url, operations]) => {
+          record[url.replace(URL_ROOT_SERVICE, URL_ROOT_DEBUG)] = Object.keys(
+            operations
+          ).reduce(
+            (newOperations, operation) => ({
+              ...newOperations,
+              [operation]: {
+                ...record[url][operation],
+                summary: `debug ${record[url][operation].summary} (no db call)`,
+                operationId: `debug_${record[url][operation].operationId}`,
+                // tags: ['debug'],
+                responses: debugResponses,
+              },
+            }),
+            {}
+          );
 
-        // console.log('add debug stuff ', url.replace(URL_ROOT_SERVICE, URL_ROOT_DEBUG), Object.keys(operations));
-      });
+          // console.log('add debug stuff ', url.replace(URL_ROOT_SERVICE, URL_ROOT_DEBUG), Object.keys(operations));
+        });
+      }
 
       // _debug_resource_response
 
@@ -512,7 +515,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
             in: "query",
             required: false,
             schema: {
-              type: "boolean",
+              type: "string",
             },
           },
         ],

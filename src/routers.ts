@@ -46,6 +46,14 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
     st,
     logger,
     metadata,
+    debugMode: false,
+  });
+  const apiDocsDebug = await genDatabaseResourceOpenApiDocs({
+    db,
+    st,
+    logger,
+    metadata,
+    debugMode: true,
   });
 
   router.get("/ping", (ctx) => {
@@ -53,7 +61,9 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
   });
 
   router.get("/openapi", async (ctx) => {
-    ctx.response.body = apiDocs;
+    const { debug } = ctx.request.query;
+    const docs = debug ? apiDocsDebug : apiDocs;
+    ctx.response.body = docs;
   });
 
   router.get("/db_resources", async (ctx) => {

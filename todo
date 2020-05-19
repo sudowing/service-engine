@@ -8,7 +8,7 @@ CRUD OPTIONS in service-config
 
 ALL VALIDATION needs to be async
 
-  views & materialized views are read + search only
+
   /resources accepts a get param for a single resource
 
   define relationships via config if fk not set
@@ -16,7 +16,6 @@ ALL VALIDATION needs to be async
 
 
 
-get param for openapi docs to seperate debug routes
 
 
 
