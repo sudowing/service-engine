@@ -1,0 +1,7 @@
+{
+    "defaultSeverity": "error",
+    "extends": "./node_modules/tslint/lib/configs/recommended",
+    "jsRules": {},
+    "rules": {},
+    "rulesDirectory": []
+}
