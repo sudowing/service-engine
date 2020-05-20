@@ -1,0 +1,25 @@
+
+
+subquery
+update logger with file and trace
+make every http call get logged to debug
+
+CRUD OPTIONS in service-config
+
+ALL VALIDATION needs to be async
+
+
+  /resources accepts a get param for a single resource
+
+  define relationships via config if fk not set
+    fk defines itself (used for GraphQL)
+
+
+
+
+
+
+add graphql schemas
+add support for mysql (count object will look different)
+add support for sqlite
+add support for oracle

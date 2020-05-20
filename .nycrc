@@ -1,0 +1,41 @@
+{
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+    ],
+    "exclude": [
+        "src/tests/**/*.ts",
+        "src/tests/**/*.tsx"
+    ],    
+    "extension": [
+        ".ts",
+        ".tsx"
+    ],
+    "require": [
+        "ts-node/register"
+    ],
+    "reporter": [
+        "text-summary",
+        "html"
+    ],
+    "sourceMap": true,
+    "instrument": true,
+    "watermarks": {
+        "lines": [
+            80,
+            90
+        ],
+        "functions": [
+            80,
+            90
+        ],
+        "branches": [
+            80,
+            90
+        ],
+        "statements": [
+            80,
+            90
+        ]
+    }
+}
