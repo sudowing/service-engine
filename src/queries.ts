@@ -89,10 +89,12 @@ export const joiBase = (type: string) => {
       return Joi.boolean();
     case "character":
     case "character varying":
+    case "character varying(255)":
     case "text":
     case "name":
     case "smallint[]":
     case "timestamp without time zone":
+    case "timestamp with time zone":
       return Joi.string();
     case "integer":
     case "smallint":

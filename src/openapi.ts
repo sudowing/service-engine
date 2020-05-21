@@ -6,7 +6,8 @@ import {
   SEARCH_QUERY_CONTEXT_DESCRIPTION,
   SUPPORTED_OPERATIONS,
   URL_ROOT_SERVICE,
-  URL_ROOT_DEBUG,
+  DEBUG,
+  SERVICE,
 } from "./const";
 import * as ts from "./interfaces";
 import { genDatabaseResourceValidators } from "./queries";
@@ -120,6 +121,7 @@ export const ServiceModels = {
 };
 
 // SUPPORTED_OPERATIONS, DEFINED_ARG_LENGTHS
+export const pathGenerator = pathPrefix => path => `${pathPrefix}${path}`;
 
 export const genDatabaseResourceOpenApiDocs = async ({
   db,
@@ -131,6 +133,9 @@ export const genDatabaseResourceOpenApiDocs = async ({
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
   });
+
+  const genPath = pathGenerator(metadata.routerPrefix);
+
 
   // this has other uses -- needs to be isolated
   const resources = Object.entries(
@@ -205,8 +210,10 @@ export const genDatabaseResourceOpenApiDocs = async ({
 
       const Resource = pascalCase(resource);
 
-      const path = `${URL_ROOT_SERVICE}/${resource}`;
-      record[path] = {
+      const pathResource = genPath(`${URL_ROOT_SERVICE}/${resource}`);
+      const pathResourceRecord = `${pathResource}/record`;
+
+      record[pathResource] = {
         get: {
           summary: `search ${resource}`,
           operationId: `search${Resource}`,
@@ -295,7 +302,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
       schemas[Resource] = {
         type: "object",
         // property type could be more specific
-        properties: [...record[path].get.parameters]
+        properties: [...record[pathResource].get.parameters]
           .filter((prop) => !prop.name.startsWith("|") && prop.in !== "header") // remove context keys
           .reduce(
             (props, { name, schema }) => ({ ...props, [name]: { ...schema } }),
@@ -306,9 +313,11 @@ export const genDatabaseResourceOpenApiDocs = async ({
       if (keys.length) {
         const keyComponentParams = keyParams(oa3DataSchema)(keys, resource);
 
-        record[`${path}/record`] = {};
 
-        record[`${path}/record`].get = {
+
+        record[pathResourceRecord] = {};
+
+        record[pathResourceRecord].get = {
           summary: `read ${resource}`,
           operationId: `read${Resource}`,
           tags: [Resource],
@@ -327,7 +336,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
             },
           },
         };
-        record[`${path}/record`].put = {
+        record[pathResourceRecord].put = {
           summary: `update ${resource}`,
           operationId: `update${Resource}`,
           tags: [Resource],
@@ -359,7 +368,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
             },
           },
         };
-        record[`${path}/record`].delete = {
+        record[pathResourceRecord].delete = {
           summary: `delete ${resource}`,
           operationId: `delete${Resource}`,
           tags: [Resource],
@@ -387,8 +396,8 @@ export const genDatabaseResourceOpenApiDocs = async ({
         dbResources[resource][searchEntries[0][0]].resource_type
       );
       if (nonTableResource) {
-        delete record[path].post;
-        const uniqueRecord = record[`${path}/record`];
+        delete record[pathResource].post;
+        const uniqueRecord = record[pathResourceRecord];
         if (uniqueRecord) {
           delete uniqueRecord.put;
           delete uniqueRecord.delete;
@@ -409,34 +418,53 @@ export const genDatabaseResourceOpenApiDocs = async ({
         },
       };
 
-      if (debugMode) {
-        Object.entries(record).forEach(([url, operations]) => {
-          record[url.replace(URL_ROOT_SERVICE, URL_ROOT_DEBUG)] = Object.keys(
-            operations
-          ).reduce(
-            (newOperations, operation) => ({
-              ...newOperations,
-              [operation]: {
-                ...record[url][operation],
-                summary: `debug ${record[url][operation].summary} (no db call)`,
-                operationId: `debug_${record[url][operation].operationId}`,
-                // tags: ['debug'],
-                responses: debugResponses,
+      const debugRecord: any = {};
+      if (!!debugMode) {
+        for (const [url, operations] of Object.entries(record)) {
+
+          const pathChunks = url.split('/');
+
+          // const debugPath: string = [
+          //   ...pathChunks.slice(0,2),
+          //   pathChunks[2].replace(SERVICE, DEBUG),
+          //   ...pathChunks.slice(3),
+          // ].join('/');
+
+          console.log('**********');
+          console.log('oooo.url');
+          console.log({url, pathChunks: pathChunks[2], SERVICE});
+          console.log('**********');
+
+          debugRecord[url.replace(URL_ROOT_SERVICE, DEBUG)] =
+            Object.keys(operations).reduce(
+              (newOperations, operation) => {
+                const {summary, operationId, ...doc}: any = {...record[url][operation]};
+
+                return{
+                  ...newOperations,
+                  [operation]: {
+                    ...doc,
+                    summary: `debug ${summary} (no db call)`,
+                    operationId: `debug_${operationId}`,
+                    // tags: ['debug'],
+                    responses: debugResponses,
+                  },
+                }
               },
-            }),
-            {}
-          );
+              {}
+            );
+        }
 
-          // console.log('add debug stuff ', url.replace(URL_ROOT_SERVICE, URL_ROOT_DEBUG), Object.keys(operations));
-        });
-      }
+      };
 
-      // _debug_resource_response
+     
+    // return {...record, ...debugRecord};
+    return !!debugMode ? debugRecord : record;
 
-      return record;
-    },
-    {}
-  );
+
+  });
+
+
 
   const {
     name: contactName,

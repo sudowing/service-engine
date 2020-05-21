@@ -5,7 +5,6 @@ import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import { Resource } from "./class";
 import * as cnst from "./const";
-import { prepRequestForService } from "./middleware";
 
 import { parse as parseURL } from "url";
 
@@ -31,9 +30,12 @@ operations.set(j({ method: "DELETE", record: true }), "delete");
 operations.set(j({ method: "GET", record: true }), "read");
 
 export const serviceRouters = async ({ db, st, logger, metadata }) => {
-  const router = new Router();
 
-  router.use(prepRequestForService);
+  const appRouter = new Router();
+  const serviceRouter = new Router({
+    prefix: metadata.routerPrefix
+  });
+
 
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
@@ -56,25 +58,25 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
     debugMode: true,
   });
 
-  router.get("/ping", (ctx) => {
+  appRouter.get("/ping", (ctx) => {
     ctx.response.body = { hello: "world", now: Date.now() };
   });
 
-  router.get("/openapi", async (ctx) => {
+  appRouter.get("/openapi", async (ctx) => {
     const { debug } = ctx.request.query;
     const docs = debug ? apiDocsDebug : apiDocs;
     ctx.response.body = docs;
   });
 
-  router.get("/db_resources", async (ctx) => {
+  appRouter.get("/db_resources", async (ctx) => {
     ctx.response.body = dbResources;
   });
 
-  router.get("/db_resources/raw", async (ctx) => {
+  appRouter.get("/db_resources/raw", async (ctx) => {
     ctx.response.body = dbResourceRawRows;
   });
 
-  router.get("/resources", async (ctx) => {
+  appRouter.get("/resources", async (ctx) => {
     const resources = Object.entries(validators).reduce(
       (batch, [name, validator]: any) => ({
         ...batch,
@@ -208,13 +210,13 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
     ctx.response.body = output;
   };
 
-  router.get("/:category/:resource", serviceView);
-  router.post("/:category/:resource", serviceView);
+  serviceRouter.get("/:category/:resource", serviceView);
+  serviceRouter.post("/:category/:resource", serviceView);
 
-  router.get("/:category/:resource/record", serviceView);
-  router.post("/:category/:resource/record", serviceView);
-  router.put("/:category/:resource/record", serviceView);
-  router.delete("/:category/:resource/record", serviceView);
+  serviceRouter.get("/:category/:resource/record", serviceView);
+  serviceRouter.post("/:category/:resource/record", serviceView);
+  serviceRouter.put("/:category/:resource/record", serviceView);
+  serviceRouter.delete("/:category/:resource/record", serviceView);
 
-  return { router };
+  return { appRouter, serviceRouter };
 };

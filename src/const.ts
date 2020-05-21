@@ -136,7 +136,8 @@ export const RESOURCE_RESPONSE = "resource_response";
 export const RESOURCE_CALL = "resource_call";
 
 export const URL_ROOT_SERVICE = "/service";
-export const URL_ROOT_DEBUG = "/debug";
+export const DEBUG = "debug";
+export const SERVICE = "service";
 
 export const HEADER_REQUEST_ID = "x-request-id";
 export const HEADER_GET_SQL = "x-get-sql";
