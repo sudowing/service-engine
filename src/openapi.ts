@@ -7,7 +7,6 @@ import {
   SUPPORTED_OPERATIONS,
   URL_ROOT_SERVICE,
   DEBUG,
-  SERVICE,
 } from "./const";
 import * as ts from "./interfaces";
 import { genDatabaseResourceValidators } from "./queries";
@@ -121,7 +120,7 @@ export const ServiceModels = {
 };
 
 // SUPPORTED_OPERATIONS, DEFINED_ARG_LENGTHS
-export const pathGenerator = pathPrefix => path => `${pathPrefix}${path}`;
+export const pathGenerator = (pathPrefix) => (path) => `${pathPrefix}${path}`;
 
 export const genDatabaseResourceOpenApiDocs = async ({
   db,
@@ -135,7 +134,6 @@ export const genDatabaseResourceOpenApiDocs = async ({
   });
 
   const genPath = pathGenerator(metadata.routerPrefix);
-
 
   // this has other uses -- needs to be isolated
   const resources = Object.entries(
@@ -191,6 +189,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   // createDisabled: boolean;
 
   const schemas = { ...ServiceModels };
+  const debugRecord: any = {};
 
   // eventually will need to confirm CRUD ops are enabled
   const paths = resources.reduce(
@@ -313,8 +312,6 @@ export const genDatabaseResourceOpenApiDocs = async ({
       if (keys.length) {
         const keyComponentParams = keyParams(oa3DataSchema)(keys, resource);
 
-
-
         record[pathResourceRecord] = {};
 
         record[pathResourceRecord].get = {
@@ -418,53 +415,43 @@ export const genDatabaseResourceOpenApiDocs = async ({
         },
       };
 
-      const debugRecord: any = {};
       if (!!debugMode) {
-        for (const [url, operations] of Object.entries(record)) {
+        for (const [url, operations] of Object.entries({ ...record })) {
+          const pathChunks = url.split("/");
 
-          const pathChunks = url.split('/');
+          const debugPath: string = [
+            ...pathChunks.slice(0, 2),
+            DEBUG,
+            ...pathChunks.slice(3),
+          ].join("/");
 
-          // const debugPath: string = [
-          //   ...pathChunks.slice(0,2),
-          //   pathChunks[2].replace(SERVICE, DEBUG),
-          //   ...pathChunks.slice(3),
-          // ].join('/');
+          const resourceType = pathChunks[2];
 
-          console.log('**********');
-          console.log('oooo.url');
-          console.log({url, pathChunks: pathChunks[2], SERVICE});
-          console.log('**********');
+          // only want to generate these on the originals.
+          // this block is within a loop iterating over all paths
+          // and this block adds to the paths -- so we'll be processing our new outputs :-1:
 
-          debugRecord[url.replace(URL_ROOT_SERVICE, DEBUG)] =
-            Object.keys(operations).reduce(
-              (newOperations, operation) => {
-                const {summary, operationId, ...doc}: any = {...record[url][operation]};
-
-                return{
-                  ...newOperations,
-                  [operation]: {
-                    ...doc,
-                    summary: `debug ${summary} (no db call)`,
-                    operationId: `debug_${operationId}`,
-                    // tags: ['debug'],
-                    responses: debugResponses,
-                  },
-                }
-              },
-              {}
-            );
+          if (resourceType !== DEBUG) {
+            debugRecord[debugPath] = {};
+            for (const operation of Object.keys(operations)) {
+              const { summary, operationId, ...doc }: any = {
+                ...record[url][operation],
+              };
+              debugRecord[debugPath][operation] = {
+                ...doc,
+                summary: `debug ${summary}`,
+                operationId: `debug_${operationId}`,
+                responses: debugResponses,
+              };
+            }
+          }
         }
+      }
 
-      };
-
-     
-    // return {...record, ...debugRecord};
-    return !!debugMode ? debugRecord : record;
-
-
-  });
-
-
+      return { ...record, ...debugRecord };
+    },
+    {}
+  );
 
   const {
     name: contactName,
