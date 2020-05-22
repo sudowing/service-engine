@@ -17,21 +17,25 @@ export const ignite = async ({ db, metadata }) => {
   const st = knexPostgis(db);
 
   // this is set here as it is used by the router && the openapi doc generator
-  metadata.appName = metadata.shortAppName || 'service-engine-app';
+  metadata.appName = metadata.shortAppName || "service-engine-app";
   metadata.routerPrefix = `/${metadata.appName}`;
-
 
   const logger = createLogger({
     name: metadata.appName,
     level: 0,
   });
 
-  const { appRouter, serviceRouter } = await serviceRouters({ db, st, logger, metadata });
+  const { appRouter, serviceRouter } = await serviceRouters({
+    db,
+    st,
+    logger,
+    metadata,
+  });
 
   const App = new Koa()
     .use(cors())
     .use(bodyParser())
-    .use(prepRequestForService)    
+    .use(prepRequestForService)
     .use(appRouter.routes())
     .use(appRouter.allowedMethods())
     .use(serviceRouter.routes())

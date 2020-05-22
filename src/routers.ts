@@ -30,12 +30,10 @@ operations.set(j({ method: "DELETE", record: true }), "delete");
 operations.set(j({ method: "GET", record: true }), "read");
 
 export const serviceRouters = async ({ db, st, logger, metadata }) => {
-
   const appRouter = new Router();
   const serviceRouter = new Router({
-    prefix: metadata.routerPrefix
+    prefix: metadata.routerPrefix,
   });
-
 
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,

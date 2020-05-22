@@ -5,7 +5,7 @@ import { SYMBOL_UNIQUE_KEY_COMPONENT } from "./const";
 
 export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
   let sql = "unknown db";
-  const migrationTable = db.client.config.migrations.tableName || '';
+  const migrationTable = db.client.config.migrations.tableName || "";
 
   if (db.client.config.client === "pg") {
     sql = `
