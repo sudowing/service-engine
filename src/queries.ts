@@ -5,6 +5,7 @@ import { SYMBOL_UNIQUE_KEY_COMPONENT } from "./const";
 
 export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
   let sql = "unknown db";
+  const migrationTable = db.client.config.migrations.tableName || '';
 
   if (db.client.config.client === "pg") {
     sql = `
@@ -58,6 +59,7 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
       and a.attnum > 0
       and not a.attisdropped
       and s.nspname = 'public'
+      and c.relname not in ('${migrationTable}', '${migrationTable}_lock')
     order by
       s.nspname,
       c.relname,
