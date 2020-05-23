@@ -1,7 +1,7 @@
 import * as Joi from "@hapi/joi";
 
 import * as ts from "./interfaces";
-import { SYMBOL_UNIQUE_KEY_COMPONENT } from "./const";
+import { SYMBOL_UNIQUE_KEY_COMPONENT, REGEX_CHAR } from "./const";
 
 export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
   let sql = "unknown db";
@@ -83,7 +83,6 @@ export const joiKeyComponent = (joi: Joi.Schema, keyComponent: boolean) =>
 export const joiRequired = (joi: Joi.Schema, required: boolean) =>
   required ? joi : joi; // need to eval .required() here... think it's breaking the framework
 
-const REGEX_CHAR = /character\((?<len>\d)\)/;
 
 export const joiBase = (type: string) => {
   switch (type) {
@@ -118,10 +117,10 @@ export const joiBase = (type: string) => {
 
 export const genDatabaseResourceValidators = async ({
   db,
-}: ts.IDatabaseBootstrap) => {
-  const { rows: records } = await db.raw(getDatabaseResources({ db }));
+  dbResourceRawRows,
+}: ts.IDatabaseBootstrapRaw) => {
 
-  const resources = records.reduce(
+  const resources = dbResourceRawRows.reduce(
     (
       catalog,
       {
@@ -149,7 +148,7 @@ export const genDatabaseResourceValidators = async ({
     {}
   );
 
-  const dbResources = records.reduce((collection, record) => {
+  const dbResources = dbResourceRawRows.reduce((collection, record) => {
     if (!collection[record.resource_name])
       collection[record.resource_name] = {};
     collection[record.resource_name][record.resource_column_name] = record;

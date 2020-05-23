@@ -1,10 +1,10 @@
 import * as Router from "@koa/router";
 import * as HTTP_STATUS from "http-status";
 
-import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import { Resource } from "./class";
 import * as cnst from "./const";
+import { gqlSchema } from "./schema";
 
 import { parse as parseURL } from "url";
 
@@ -29,23 +29,23 @@ operations.set(j({ method: "PUT", record: true }), "update");
 operations.set(j({ method: "DELETE", record: true }), "delete");
 operations.set(j({ method: "GET", record: true }), "read");
 
-export const serviceRouters = async ({ db, st, logger, metadata }) => {
+export const serviceRouters = async ({ db, st, logger, metadata,
+  validators, dbResources, dbResourceRawRows, Resources
+ }) => {
   const appRouter = new Router();
   const serviceRouter = new Router({
     prefix: metadata.routerPrefix,
   });
 
-  const { validators, dbResources } = await genDatabaseResourceValidators({
-    db,
-  });
-  const { rows: dbResourceRawRows } = await db.raw(
-    getDatabaseResources({ db })
-  );
+  const ResourceReports = Resources.map(([name, resource]) => [name, resource.report])
+
+
   const apiDocs = await genDatabaseResourceOpenApiDocs({
     db,
     st,
     logger,
     metadata,
+    validators, dbResources, ResourceReports,
     debugMode: false,
   });
   const apiDocsDebug = await genDatabaseResourceOpenApiDocs({
@@ -53,8 +53,15 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
     st,
     logger,
     metadata,
+    validators, dbResources, ResourceReports,
     debugMode: true,
   });
+
+
+  appRouter.get("/schema", async (ctx) => {
+    ctx.response.body = await gqlSchema({validators, dbResources, dbResourceRawRows, Resources});
+  });
+
 
   appRouter.get("/ping", (ctx) => {
     ctx.response.body = { hello: "world", now: Date.now() };

@@ -291,4 +291,8 @@ export interface IDatabaseBootstrap {
   db: knex;
 }
 
+export interface IDatabaseBootstrapRaw extends IDatabaseBootstrap {
+  dbResourceRawRows: any;
+}
+
 export type TDatabaseResources = [string, Joi.Schema];

@@ -11,6 +11,9 @@ import { createLogger } from "bunyan";
 
 import { prepRequestForService } from "./middleware";
 import { serviceRouters } from "./routers";
+import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
+import { Resource } from "./class";
+import { TDatabaseResources } from "./interfaces";
 
 export const ignite = async ({ db, metadata }) => {
   // only if db is postgres. will have to alter for mysql etc
@@ -25,11 +28,29 @@ export const ignite = async ({ db, metadata }) => {
     level: 0,
   });
 
+  const { rows: dbResourceRawRows } = await db.raw(getDatabaseResources({ db }));
+  const { validators, dbResources } = await genDatabaseResourceValidators({db, dbResourceRawRows});
+
+
+  // this has other uses -- needs to be isolated
+  const Resources = Object.entries(
+    validators
+  ).map(([name, validator]: TDatabaseResources) => [
+    name,
+    new Resource({ db, st, logger, name, validator }),
+  ]);
+
+
+
+
+
+
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
     st,
     logger,
     metadata,
+    validators, dbResources, dbResourceRawRows, Resources
   });
 
   const App = new Koa()

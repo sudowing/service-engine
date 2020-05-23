@@ -1,6 +1,5 @@
 import { pascalCase } from "change-case";
 
-import * as clss from "./class";
 import {
   SEARCH_QUERY_CONTEXT,
   SEARCH_QUERY_CONTEXT_DESCRIPTION,
@@ -8,8 +7,6 @@ import {
   URL_ROOT_SERVICE,
   DEBUG,
 } from "./const";
-import * as ts from "./interfaces";
-import { genDatabaseResourceValidators } from "./queries";
 
 export const standardHeaders = {
   "x-request-id": {
@@ -128,20 +125,12 @@ export const genDatabaseResourceOpenApiDocs = async ({
   logger,
   metadata,
   debugMode,
+  validators, dbResources, ResourceReports
 }) => {
-  const { validators, dbResources } = await genDatabaseResourceValidators({
-    db,
-  });
 
   const genPath = pathGenerator(metadata.routerPrefix);
 
-  // this has other uses -- needs to be isolated
-  const resources = Object.entries(
-    validators
-  ).map(([name, validator]: ts.TDatabaseResources) => [
-    name,
-    new clss.Resource({ db, st, logger, name, validator }).report,
-  ]);
+
 
   // takes input from validators and extends info with dbResources to build details oa3DataSchema
   const oa3DataSchema = ({ resource, name, type }) => {
@@ -192,7 +181,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   const debugRecord: any = {};
 
   // eventually will need to confirm CRUD ops are enabled
-  const paths = resources.reduce(
+  const paths = ResourceReports.reduce(
     (
       record,
       [resource, { create, read, update, delete: del, search }]: [string, any]
