@@ -125,12 +125,11 @@ export const genDatabaseResourceOpenApiDocs = async ({
   logger,
   metadata,
   debugMode,
-  validators, dbResources, ResourceReports
+  validators,
+  dbResources,
+  ResourceReports,
 }) => {
-
   const genPath = pathGenerator(metadata.routerPrefix);
-
-
 
   // takes input from validators and extends info with dbResources to build details oa3DataSchema
   const oa3DataSchema = ({ resource, name, type }) => {

@@ -83,7 +83,6 @@ export const joiKeyComponent = (joi: Joi.Schema, keyComponent: boolean) =>
 export const joiRequired = (joi: Joi.Schema, required: boolean) =>
   required ? joi : joi; // need to eval .required() here... think it's breaking the framework
 
-
 export const joiBase = (type: string) => {
   switch (type) {
     case "boolean":
@@ -119,7 +118,6 @@ export const genDatabaseResourceValidators = async ({
   db,
   dbResourceRawRows,
 }: ts.IDatabaseBootstrapRaw) => {
-
   const resources = dbResourceRawRows.reduce(
     (
       catalog,

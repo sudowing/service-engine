@@ -1,5 +1,5 @@
 import * as cors from "@koa/cors";
-// import { ApolloServer } from "apollo-server-koa";
+import { ApolloServer } from "apollo-server-koa";
 // import * as config from 'config';
 
 import * as knexPostgis from "knex-postgis";
@@ -14,6 +14,7 @@ import { serviceRouters } from "./routers";
 import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
 import { Resource } from "./class";
 import { TDatabaseResources } from "./interfaces";
+import { gqlModule } from "./graphql";
 
 export const ignite = async ({ db, metadata }) => {
   // only if db is postgres. will have to alter for mysql etc
@@ -28,9 +29,13 @@ export const ignite = async ({ db, metadata }) => {
     level: 0,
   });
 
-  const { rows: dbResourceRawRows } = await db.raw(getDatabaseResources({ db }));
-  const { validators, dbResources } = await genDatabaseResourceValidators({db, dbResourceRawRows});
-
+  const { rows: dbResourceRawRows } = await db.raw(
+    getDatabaseResources({ db })
+  );
+  const { validators, dbResources } = await genDatabaseResourceValidators({
+    db,
+    dbResourceRawRows,
+  });
 
   // this has other uses -- needs to be isolated
   const Resources = Object.entries(
@@ -40,17 +45,26 @@ export const ignite = async ({ db, metadata }) => {
     new Resource({ db, st, logger, name, validator }),
   ]);
 
+  const { AppModule } = await gqlModule({
+    validators,
+    dbResources,
+    dbResourceRawRows,
+    Resources,
+  });
 
+  const { schema, context } = AppModule;
 
-
-
+  const apolloServer = new ApolloServer({ schema, context }); // ,debug
 
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
     st,
     logger,
     metadata,
-    validators, dbResources, dbResourceRawRows, Resources
+    validators,
+    dbResources,
+    dbResourceRawRows,
+    Resources,
   });
 
   const App = new Koa()
@@ -63,5 +77,7 @@ export const ignite = async ({ db, metadata }) => {
     .use(serviceRouter.allowedMethods())
     .use(compress());
 
-  return { App, logger };
+  apolloServer.applyMiddleware({ app: App, path: `/` });
+
+  return { App, logger, apolloServer };
 };

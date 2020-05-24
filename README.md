@@ -193,3 +193,16 @@ Additionally, there is an npm pack command which can help you test your unpublis
 ```
 
 
+
+https://medium.com/@brygrill/creating-a-geojson-featurecollection-type-for-graphql-352591451b4a
+
+
+
+
+knex
+hapi/joi
+
+koa
+apollo-graphql
+
+

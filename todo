@@ -5,6 +5,8 @@ update logger with file and trace
 make every http call get logged to debug
 
 CRUD OPTIONS in service-config
+relationships in service-config (for when fk is not a constraint)
+unique vs primary key (applies to materialized views specificlly - but could have other value)
 
 ALL VALIDATION needs to be async
 
@@ -17,7 +19,7 @@ ALL VALIDATION needs to be async
 
 
 
-
+add all supported types for postres -- ensure non breaking
 
 add graphql schemas
 add support for mysql (count object will look different)

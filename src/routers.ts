@@ -4,7 +4,7 @@ import * as HTTP_STATUS from "http-status";
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import { Resource } from "./class";
 import * as cnst from "./const";
-import { gqlSchema } from "./schema";
+import { gqlModule } from "./graphql";
 
 import { parse as parseURL } from "url";
 
@@ -29,23 +29,34 @@ operations.set(j({ method: "PUT", record: true }), "update");
 operations.set(j({ method: "DELETE", record: true }), "delete");
 operations.set(j({ method: "GET", record: true }), "read");
 
-export const serviceRouters = async ({ db, st, logger, metadata,
-  validators, dbResources, dbResourceRawRows, Resources
- }) => {
+export const serviceRouters = async ({
+  db,
+  st,
+  logger,
+  metadata,
+  validators,
+  dbResources,
+  dbResourceRawRows,
+  Resources,
+}) => {
   const appRouter = new Router();
   const serviceRouter = new Router({
     prefix: metadata.routerPrefix,
   });
 
-  const ResourceReports = Resources.map(([name, resource]) => [name, resource.report])
-
+  const ResourceReports = Resources.map(([name, resource]) => [
+    name,
+    resource.report,
+  ]);
 
   const apiDocs = await genDatabaseResourceOpenApiDocs({
     db,
     st,
     logger,
     metadata,
-    validators, dbResources, ResourceReports,
+    validators,
+    dbResources,
+    ResourceReports,
     debugMode: false,
   });
   const apiDocsDebug = await genDatabaseResourceOpenApiDocs({
@@ -53,18 +64,24 @@ export const serviceRouters = async ({ db, st, logger, metadata,
     st,
     logger,
     metadata,
-    validators, dbResources, ResourceReports,
+    validators,
+    dbResources,
+    ResourceReports,
     debugMode: true,
   });
 
-
   appRouter.get("/schema", async (ctx) => {
-    ctx.response.body = await gqlSchema({validators, dbResources, dbResourceRawRows, Resources});
+    const { typeDefsString } = await gqlModule({
+      validators,
+      dbResources,
+      dbResourceRawRows,
+      Resources,
+    });
+    ctx.response.body = { typeDefsString };
   });
 
-
   appRouter.get("/ping", (ctx) => {
-    ctx.response.body = { hello: "world", now: Date.now() };
+    ctx.response.body = { message: "hello world", timestamp: Date.now() };
   });
 
   appRouter.get("/openapi", async (ctx) => {

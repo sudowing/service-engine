@@ -44,7 +44,7 @@
     "@types/lodash": "^4.14.149",
     "@types/mocha": "^7.0.2",
     "@types/sinon": "^7.5.2",
-    "apollo-server-koa": "^2.11.0",
+    "apollo-server-koa": "^2.13.1",
     "bunyan": "^1.8.12",
     "change-case": "^4.1.1",
     "graphql": "^14.6.0",
