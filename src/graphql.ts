@@ -62,31 +62,31 @@ export const gqlTypes = (dbResources) => {
 
     schema.query.push(`
         Search${ResourceName}(
-            payload?: in${ResourceName}
-            context?: inputContext
-            options? serviceOptions
+            payload: in${ResourceName}
+            context: inputContext
+            options: serviceOptions
         ): [${ResourceName}!]
         Read${ResourceName}(
             payload: keys${ResourceName}!
-            context?: inputContext
-            options? serviceOptions
+            context: inputContext
+            options: serviceOptions
         ): ${ResourceName}
     `);
     schema.mutation.push(`
         Create${ResourceName}(
             payload: ${ResourceName}
-            context?: inputContext
-            options? serviceOptions
+            context: inputContext
+            options: serviceOptions
         ): [${ResourceName}!]
         Update${ResourceName}(
             payload: keys${ResourceName}!
-            context?: inputContext
-            options? serviceOptions
+            context: inputContext
+            options: serviceOptions
         ): ${ResourceName}
         Delete${ResourceName}(
             payload: keys${ResourceName}!
-            context?: inputContext
-            options? serviceOptions
+            context: inputContext
+            options: serviceOptions
         ): ${ResourceName}
     `);
   }
@@ -123,15 +123,27 @@ export const gqlSchema = async ({
             wip: JSONB
         }
 
-        type serviceOptions {
-          sql?: Boolean
-          debug?: Boolean
+
+        input inputContext {
+          seperator: String
+          notWhere: Boolean
+          statementContext: String
+          orderBy: [String!]
+          page: Float
+          limit: Float
         }
+
+
         type serviceOptions {
-          count? Number
-          sql?: String
-          debug?: JSONB
+          sql: Boolean
+          debug: Boolean
         }
+        type serviceResponseBase {
+          count: Number
+          sql: String
+          debug: JSONB
+        }
+
         scalar serviceCoordinates
 
         type servicePointGeometry {
