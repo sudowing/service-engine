@@ -47,6 +47,7 @@ export const gqlTypes = (dbResources) => {
     schema[`type ${ResourceName}`] = [];
     schema[`input keys${ResourceName}`] = [];
     schema[`input in${ResourceName}`] = [];
+    schema[`input input${ResourceName}`] = [];
 
     for (const [field, record] of Object.entries(dbResources[name])) {
         const {notnull, type, primarykey}: any = record;
@@ -55,6 +56,7 @@ export const gqlTypes = (dbResources) => {
         schema[`input in${ResourceName}`].push(`${field}: ${schemaScalar}`);
 
         schema[`type ${ResourceName}`].push(`${field}: ${schemaScalar}${notnull ? '!' : ''}`);
+        schema[`input input${ResourceName}`].push(`${field}: ${schemaScalar}${notnull ? '!' : ''}`);
         if (primarykey) {
             schema[`input keys${ResourceName}`].push(`${field}: ${schemaScalar}`);
         }
@@ -64,29 +66,29 @@ export const gqlTypes = (dbResources) => {
         Search${ResourceName}(
             payload: in${ResourceName}
             context: inputContext
-            options: serviceOptions
+            options: inOptions
         ): [${ResourceName}!]
         Read${ResourceName}(
             payload: keys${ResourceName}!
             context: inputContext
-            options: serviceOptions
+            options: inOptions
         ): ${ResourceName}
     `);
     schema.mutation.push(`
         Create${ResourceName}(
-            payload: ${ResourceName}
+            payload: input${ResourceName}
             context: inputContext
-            options: serviceOptions
+            options: inOptions
         ): [${ResourceName}!]
         Update${ResourceName}(
             payload: keys${ResourceName}!
             context: inputContext
-            options: serviceOptions
+            options: inOptions
         ): ${ResourceName}
         Delete${ResourceName}(
             payload: keys${ResourceName}!
             context: inputContext
-            options: serviceOptions
+            options: inOptions
         ): ${ResourceName}
     `);
   }
@@ -134,12 +136,12 @@ export const gqlSchema = async ({
         }
 
 
-        type serviceOptions {
+        input inOptions {
           sql: Boolean
           debug: Boolean
         }
         type serviceResponseBase {
-          count: Number
+          count: Float
           sql: String
           debug: JSONB
         }
@@ -216,7 +218,7 @@ async (obj, args, ctx, info) => {
             response.count = count;
           }
 
-          return response;
+          return response.data;
 
           // if single record searched and not returned -- 404
           // if ([null, undefined].includes(output)) {
