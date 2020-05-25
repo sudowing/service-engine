@@ -169,9 +169,12 @@ export const gqlSchema = async ({
 
 export const makeServiceResolver = (db) => (resourceOperation) =>
 async (obj, args, ctx, info) => {
-  const {reqId} = ctx;
+  const reqId = ctx.reqId || 'reqId';
 
-  const { payload, context, options } = args;
+  const defaultInput = { payload: {}, context: {}, options: {}, }
+
+  const input = {...defaultInput, ...args};
+  const { payload, context, options } = input
 
   const fields = Object.keys(graphqlFields(info));
   context.fields = fields;
