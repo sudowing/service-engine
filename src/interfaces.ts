@@ -121,6 +121,7 @@ export interface IParamsProcessBase {
   payload: any;
   context?: any;
   requestId: string;
+  apiType: string;
 }
 
 export interface IParamsProcessWithSearch extends IParamsProcessBase {
@@ -297,20 +298,18 @@ export interface IDatabaseBootstrapRaw extends IDatabaseBootstrap {
 
 export type TDatabaseResources = [string, Joi.Schema];
 
-
-
 export interface IServiceResolverResponse {
-  data: any|any[]|null;
+  data: any | any[] | null;
   sql: string;
   count?: number;
   debug: {
-      now: number;
-      reqId: any;
-      input: {
-          payload: any;
-          context: any;
-          options: any;
-      };
-      serviceResponse: any;
+    now: number;
+    reqId: any;
+    input: {
+      payload: any;
+      context: any;
+      options: any;
+    };
+    serviceResponse: any;
   };
 }

@@ -50,16 +50,20 @@ export const gqlTypes = (dbResources) => {
     schema[`input input${ResourceName}`] = [];
 
     for (const [field, record] of Object.entries(dbResources[name])) {
-        const {notnull, type, primarykey}: any = record;
-        const schemaScalar = toSchemaScalar(type);
+      const { notnull, type, primarykey }: any = record;
+      const schemaScalar = toSchemaScalar(type);
 
-        schema[`input in${ResourceName}`].push(`${field}: ${schemaScalar}`);
+      schema[`input in${ResourceName}`].push(`${field}: ${schemaScalar}`);
 
-        schema[`type ${ResourceName}`].push(`${field}: ${schemaScalar}${notnull ? '!' : ''}`);
-        schema[`input input${ResourceName}`].push(`${field}: ${schemaScalar}${notnull ? '!' : ''}`);
-        if (primarykey) {
-            schema[`input keys${ResourceName}`].push(`${field}: ${schemaScalar}`);
-        }
+      schema[`type ${ResourceName}`].push(
+        `${field}: ${schemaScalar}${notnull ? "!" : ""}`
+      );
+      schema[`input input${ResourceName}`].push(
+        `${field}: ${schemaScalar}${notnull ? "!" : ""}`
+      );
+      if (primarykey) {
+        schema[`input keys${ResourceName}`].push(`${field}: ${schemaScalar}`);
+      }
     }
 
     schema.query.push(`
@@ -103,12 +107,14 @@ export const gqlSchema = async ({
   dbResourceRawRows,
   Resources,
 }) => {
-  const {query, mutation, ...other} = gqlTypes(dbResources);
-  const items = Object.entries(other).map(([name, definition]) => `
+  const { query, mutation, ...other } = gqlTypes(dbResources);
+  const items = Object.entries(other).map(
+    ([name, definition]) => `
       ${name} {
           ${definition.join(ln)}
       }
-  `);
+  `
+  );
 
   const typeDefsString = `
         type Query {
@@ -166,96 +172,82 @@ export const gqlSchema = async ({
   };
 };
 
+const apiType = "GRAPHQL";
+export const makeServiceResolver = (resource) => (operation: string) => async (
+  obj,
+  args,
+  ctx,
+  info
+) => {
+  const reqId = ctx.reqId || "reqId";
+  const defaultInput = { payload: {}, context: {}, options: {} };
 
-export const makeServiceResolver = (db) => (resourceOperation) =>
-async (obj, args, ctx, info) => {
-  const reqId = ctx.reqId || 'reqId';
-
-  const defaultInput = { payload: {}, context: {}, options: {}, }
-
-  const input = {...defaultInput, ...args};
-  const { payload, context, options } = input
+  const input = { ...defaultInput, ...args };
+  const { payload, context, options } = input;
 
   const fields = Object.keys(graphqlFields(info));
   context.fields = fields;
 
-  const serviceResponse = resourceOperation({
+  const serviceResponse = resource[operation]({
     payload,
     context,
     reqId,
+    apiType,
   });
 
   if (serviceResponse.result) {
-    try{
+    try {
+      const sql = serviceResponse.result.sql.toString();
+      const data = await serviceResponse.result.sql;
+      delete serviceResponse.result.sql;
+      const debug = {
+        now: Date.now(),
+        reqId,
+        input: {
+          payload,
+          context,
+          options,
+        },
+        serviceResponse,
+      };
 
-          const sql = serviceResponse.result.sql.toString();
-          const data = await serviceResponse.result.sql;
-          delete serviceResponse.result.sql;
-          const debug = {
-            now: Date.now(),
-            reqId,
-            input: {
-              payload,
-              context,
-              options,
-            },
-            serviceResponse,
-          };
+      // send count as additional field
+      const response: IServiceResolverResponse = { data, sql, debug };
 
-          // send count as additional field
-          const response: IServiceResolverResponse = {data, sql, debug}
+      if (options.count) {
+        const { result: searchCountResult } = resource[operation]({
+          payload,
+          reqId,
+          apiType,
+        });
 
-          if (options.count) {
-            const { result: searchCountResult } = resourceOperation({
-              payload,
-              reqId,
-            });
+        const sqlSearchCount = resource.db.from(
+          resource.db.raw(`(${searchCountResult.sql.toString()}) as main`)
+        );
+        // this is needed to make the db result mysql/postgres agnostic
+        sqlSearchCount.count("* as count");
 
-            const sqlSearchCount = db.from(
-              db.raw(`(${searchCountResult.sql.toString()}) as main`)
-            );
-            // this is needed to make the db result mysql/postgres agnostic
-            sqlSearchCount.count("* as count");
+        const [{ count }] = await sqlSearchCount; // can/should maybe log this
+        response.count = count;
+      }
 
-            const [{ count }] = await sqlSearchCount; // can/should maybe log this
-            response.count = count;
-          }
+      return response.data;
 
-          return response.data;
-
-          // if single record searched and not returned -- 404
-          // if ([null, undefined].includes(output)) {
-
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    catch(err){
+      // if single record searched and not returned -- 404
+      // if ([null, undefined].includes(output)) {
+    } catch (err) {
       // log error && // not a user input error
-      throw new UserInputError('cnst.INTERNAL_SERVER_ERROR', {
-          detail: serviceResponse,
-          reqId
+      throw new UserInputError("cnst.INTERNAL_SERVER_ERROR", {
+        detail: serviceResponse,
+        reqId,
       });
     }
-
   } else {
-    throw new UserInputError('HTTP_STATUS.BAD_REQUEST', {
+    throw new UserInputError("HTTP_STATUS.BAD_REQUEST", {
       detail: serviceResponse,
-      reqId
+      reqId,
     });
   }
-
 };
 
 export const gqlModule = async ({
@@ -271,23 +263,26 @@ export const gqlModule = async ({
     Resources,
   });
 
-  const serviceResolvers = Resources.reduce(({Query, Mutation}, [name, resource]) => {
-    const ResourceName = pascalCase(name);
-    const resolver = makeServiceResolver(resource.db);
-    return {
-      Query: {
-        ...Query,
-        [`Read${ResourceName}`]: resolver(resource.read),
-        [`Search${ResourceName}`]: resolver(resource.search),
-      },
-      Mutation: {
-        ...Mutation,
-        [`Create${ResourceName}`]: resolver(resource.create),
-        [`Update${ResourceName}`]: resolver(resource.update),
-        [`Delete${ResourceName}`]: resolver(resource.delete),
-      },
-    };
-  }, {Query: {}, Mutation: {}});
+  const serviceResolvers = Resources.reduce(
+    ({ Query, Mutation }, [name, resource]) => {
+      const ResourceName = pascalCase(name);
+      const resolver = makeServiceResolver(resource);
+      return {
+        Query: {
+          ...Query,
+          [`Read${ResourceName}`]: resolver("read"),
+          [`Search${ResourceName}`]: resolver("search"),
+        },
+        Mutation: {
+          ...Mutation,
+          [`Create${ResourceName}`]: resolver("create"),
+          [`Update${ResourceName}`]: resolver("update"),
+          [`Delete${ResourceName}`]: resolver("delete"),
+        },
+      };
+    },
+    { Query: {}, Mutation: {} }
+  );
 
   const appResolvers = {
     JSONB: GraphQLJSON,
@@ -297,7 +292,7 @@ export const gqlModule = async ({
         return {
           timestamp: Date.now(),
           message: "go braves",
-          wip: {fields}
+          wip: { fields },
         };
       },
     },

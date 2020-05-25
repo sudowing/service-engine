@@ -164,7 +164,11 @@ export class Resource implements ts.IClassResource {
       error: undefined,
     };
     if (input.context) {
-      const result = util.queryContextParser(this.validator, input.context);
+      const result = util.queryContextParser(
+        this.validator,
+        input.context,
+        input.apiType
+      );
       if (result.errors.length) {
         rejection = util.rejectResource(cnst.CONTEXT_ERRORS, result.errors);
       }
@@ -193,6 +197,7 @@ export class Resource implements ts.IClassResource {
 
   search(input: ts.IParamsProcessBase) {
     const { requestId } = input;
+
     this.logger.debug(
       {
         ...input,
@@ -202,6 +207,9 @@ export class Resource implements ts.IClassResource {
       cnst.RESOURCE_CALL
     );
     const { context, ...parsed } = this.contextParser(input);
+
+    context.fields = context.fields || Object.keys(this.report.search);
+
     if (parsed.error) {
       this.logger.error(
         {

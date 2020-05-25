@@ -18,7 +18,7 @@ const seperateQueryAndContext = (input) =>
       info[key.replace("|", "")] = value;
       return query;
     },
-    { payload: {}, context: {} }
+    { payload: {}, context: {}, apiType: "REST" } // apiType -- needed for corrent queryContext parsing
   );
 
 const j = JSON.stringify; // convience
