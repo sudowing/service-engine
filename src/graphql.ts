@@ -61,9 +61,7 @@ export const gqlTypes = (dbResources) => {
         `${field}: ${schemaScalar}${notnull ? "!" : ""}`
       );
 
-      schema[`input input${ResourceName}`].push(
-        `${field}: ${schemaScalar}${notnull ? "!" : ""}`
-      );
+      schema[`input input${ResourceName}`].push(`${field}: ${schemaScalar}`);
       if (primarykey) {
         schema[`input keys${ResourceName}`].push(`${field}: ${schemaScalar}`);
       }
@@ -81,7 +79,7 @@ export const gqlTypes = (dbResources) => {
     `);
     schema.mutation.push(`
         Create${ResourceName}(
-            payload: input${ResourceName}
+            payload: [input${ResourceName}!]!
         ): resCreate${ResourceName}
         Update${ResourceName}(
             payload: keys${ResourceName}!
@@ -228,7 +226,7 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
       const data = await serviceResponse.result.sql;
 
       // update & delete will one day support search query for bulk mutation (already supported in the class I think)
-      const singleRecord = ["read", "update", "delete"].includes(operation);
+      const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
 
       delete serviceResponse.result.sql;
       const debug = {
@@ -249,7 +247,8 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
         debug,
       };
 
-      if (options.count) {
+      if (operation === "search" && options.count) {
+        // later could apply to update & delete
         const { result: searchCountResult } = resource[operation]({
           payload,
           reqId,

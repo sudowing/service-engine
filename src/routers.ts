@@ -81,7 +81,11 @@ export const serviceRouters = async ({
   });
 
   appRouter.get("/ping", (ctx) => {
-    ctx.response.body = { message: "hello world", timestamp: Date.now() };
+    ctx.response.body = {
+      message: "hello world",
+      timestamp: Date.now(),
+      metadata,
+    };
   });
 
   appRouter.get("/openapi", async (ctx) => {
