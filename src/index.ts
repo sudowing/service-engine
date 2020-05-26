@@ -77,7 +77,10 @@ export const ignite = async ({ db, metadata }) => {
     .use(serviceRouter.allowedMethods())
     .use(compress());
 
-  apolloServer.applyMiddleware({ app: App, path: `/` });
+  apolloServer.applyMiddleware({
+    app: App,
+    path: `/${metadata.appName}/graphql/`,
+  });
 
   return { App, logger, apolloServer };
 };

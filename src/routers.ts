@@ -77,7 +77,7 @@ export const serviceRouters = async ({
       dbResourceRawRows,
       Resources,
     });
-    ctx.response.body = { typeDefsString };
+    ctx.response.body = typeDefsString;
   });
 
   appRouter.get("/ping", (ctx) => {

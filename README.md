@@ -206,3 +206,17 @@ koa
 apollo-graphql
 
 
+
+
+# Write your query or mutation here
+query someQuery($payload: inAccount, $context: inputContext, $options: serviceInputOptions){
+  SearchAccount(payload: $payload, context:$context, options: $options){
+    count
+    sql
+    # debug
+    data{
+      id,
+      uuid
+    }
+  }
+}

@@ -5,7 +5,9 @@ import * as graphqlFields from "graphql-fields";
 import GraphQLJSON from "graphql-type-json";
 import { UserInputError } from "apollo-server-koa";
 
-import { REGEX_CHAR } from "./const";
+import { v4 as uuidv4 } from "uuid";
+
+import { HEADER_REQUEST_ID, REGEX_CHAR } from "./const";
 import { IServiceResolverResponse } from "./interfaces";
 
 export const toSchemaScalar = (type: string) => {
@@ -58,6 +60,7 @@ export const gqlTypes = (dbResources) => {
       schema[`type ${ResourceName}`].push(
         `${field}: ${schemaScalar}${notnull ? "!" : ""}`
       );
+
       schema[`input input${ResourceName}`].push(
         `${field}: ${schemaScalar}${notnull ? "!" : ""}`
       );
@@ -70,31 +73,54 @@ export const gqlTypes = (dbResources) => {
         Search${ResourceName}(
             payload: in${ResourceName}
             context: inputContext
-            options: inOptions
-        ): [${ResourceName}!]
+            options: serviceInputOptions
+        ): resSearch${ResourceName}
         Read${ResourceName}(
             payload: keys${ResourceName}!
-            context: inputContext
-            options: inOptions
-        ): ${ResourceName}
+        ): resRead${ResourceName}
     `);
     schema.mutation.push(`
         Create${ResourceName}(
             payload: input${ResourceName}
-            context: inputContext
-            options: inOptions
-        ): [${ResourceName}!]
+        ): resCreate${ResourceName}
         Update${ResourceName}(
             payload: keys${ResourceName}!
-            context: inputContext
-            options: inOptions
-        ): ${ResourceName}
+        ): resUpdate${ResourceName}
         Delete${ResourceName}(
             payload: keys${ResourceName}!
-            context: inputContext
-            options: inOptions
-        ): ${ResourceName}
+        ): resDelete${ResourceName}
     `);
+
+    schema[`type resCreate${ResourceName}`] = `
+          sql: String
+          debug: JSONB
+          data: [${ResourceName}]
+      `;
+
+    schema[`type resRead${ResourceName}`] = `
+          sql: String
+          debug: JSONB
+          data: ${ResourceName}
+      `;
+
+    schema[`type resUpdate${ResourceName}`] = `
+          sql: String
+          debug: JSONB
+          data: [${ResourceName}]
+      `;
+
+    schema[`type resDelete${ResourceName}`] = `
+          sql: String
+          debug: JSONB
+          data: Float
+      `;
+
+    schema[`type resSearch${ResourceName}`] = `
+          sql: String
+          debug: JSONB
+          count: Float
+          data: [${ResourceName}]
+      `;
   }
   return schema;
 };
@@ -111,9 +137,9 @@ export const gqlSchema = async ({
   const items = Object.entries(other).map(
     ([name, definition]) => `
       ${name} {
-          ${definition.join(ln)}
+          ${Array.isArray(definition) ? definition.join(ln) : definition}
       }
-  `
+    `
   );
 
   const typeDefsString = `
@@ -142,9 +168,8 @@ export const gqlSchema = async ({
         }
 
 
-        input inOptions {
-          sql: Boolean
-          debug: Boolean
+        input serviceInputOptions {
+          count: Boolean
         }
         type serviceResponseBase {
           count: Float
@@ -179,14 +204,16 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
   ctx,
   info
 ) => {
-  const reqId = ctx.reqId || "reqId";
+  const reqId = ctx.reqId || "reqId no issued";
   const defaultInput = { payload: {}, context: {}, options: {} };
 
   const input = { ...defaultInput, ...args };
   const { payload, context, options } = input;
 
-  const fields = Object.keys(graphqlFields(info));
-  context.fields = fields;
+  // because I'm now publishing request metadata (debug, sql, count) with records the value of record/records key
+  // cant use this
+  // const fields = Object.keys(graphqlFields(info));
+  // context.fields = fields;
 
   const serviceResponse = resource[operation]({
     payload,
@@ -199,6 +226,10 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
     try {
       const sql = serviceResponse.result.sql.toString();
       const data = await serviceResponse.result.sql;
+
+      // update & delete will one day support search query for bulk mutation (already supported in the class I think)
+      const singleRecord = ["read", "update", "delete"].includes(operation);
+
       delete serviceResponse.result.sql;
       const debug = {
         now: Date.now(),
@@ -212,7 +243,11 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
       };
 
       // send count as additional field
-      const response: IServiceResolverResponse = { data, sql, debug };
+      const response: IServiceResolverResponse = {
+        data: singleRecord ? (data.length ? data[0] : null) : data,
+        sql,
+        debug,
+      };
 
       if (options.count) {
         const { result: searchCountResult } = resource[operation]({
@@ -231,7 +266,7 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
         response.count = count;
       }
 
-      return response.data;
+      return response;
 
       // if single record searched and not returned -- 404
       // if ([null, undefined].includes(output)) {
@@ -296,19 +331,18 @@ export const gqlModule = async ({
         };
       },
     },
-    // AppPing: {
-    //   timestamp(obj, args, context, info) {
-    //     return obj.timestamp;
-    //   },
-    //   message(obj, args, context, info) {
-    //     return obj.message;
-    //   },
-    // },
   };
 
   const AppModule = new GraphQLModule({
     typeDefs,
     resolvers: [appResolvers, serviceResolvers],
+    context({ ctx }) {
+      const reqId = uuidv4();
+      ctx.response.set(HEADER_REQUEST_ID, reqId);
+      return {
+        reqId,
+      };
+    },
   });
 
   return {
