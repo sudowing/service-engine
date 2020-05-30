@@ -22,7 +22,7 @@ export const toSchemaScalar = (type: string) => {
     case "numeric":
     case "real":
     case "double precision":
-        return 'Float';
+        return 'String'; // String because of arbitrary precision that cannot be jsonifieds
     case "smallserial":
     case "serial":
     case "bigserial":
@@ -144,6 +144,18 @@ export const gqlTypes = (dbResources) => {
     query: [],
     mutation: [],
   };
+
+  console.log('**********');
+  console.log('oooo.dbResources');
+  console.log(JSON.stringify({dbResources}));
+  console.log('**********');
+
+
+
+
+
+
+
   for (const name of Object.keys(dbResources)) {
     const ResourceName = pascalCase(name);
     schema[`type ${ResourceName}`] = [];

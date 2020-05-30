@@ -220,3 +220,20 @@ query someQuery($payload: inAccount, $context: inputContext, $options: serviceIn
     }
   }
 }
+
+
+  // can set other flags based on options arg
+
+  // alpha: Joi.string().invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT),
+  // bravo: Joi.string().invalid(engine.SYMBOL_CREATE_REQUIRED),
+  // charlie: Joi.number().invalid(engine.SYMBOL_UPDATE_DISABLED),
+  // delta: Joi.number().invalid(engine.SYMBOL_CREATE_DISABLED),
+  // echo: Joi.boolean(),
+  // foxtrot: Joi.number(),
+  // golf: Joi.string(),
+  // hotel: Joi.string().invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT),
+  // mike: Joi.number().invalid(...engine.SYMBOLS_GEO_POINT),
+  // november: Joi.number().invalid(...engine.SYMBOLS_GEO_POLYGON),
+  // oscar: Joi.number().invalid(...engine.SYMBOLS_GEO_POINT),
+  // papa: Joi.number().invalid(...engine.SYMBOLS_GEO_POLYGON),
+  // zulu: Joi.boolean().invalid(engine.SYMBOL_SOFT_DELETE),

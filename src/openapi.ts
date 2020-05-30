@@ -148,18 +148,12 @@ export const genDatabaseResourceOpenApiDocs = async ({
     return newType;
   };
 
-  // type 	format 	Description
-  // number 	– 	Any numbers.
-  // number 	float 	Floating-point numbers.
-  // number 	double 	Floating-point numbers with double precision.
-  // integer 	– 	Integer numbers.
-  // integer 	int32 	Signed 32-bit integers (commonly used integer type).
-  // integer 	int64 	Signed 64-bit integers (long type).
   const dbDataTypetoOA3DataType = (dbDataType) => {
     switch (dbDataType) {
-      case "numeric":
       case "integer":
-      case "double precision":
+      // ignore numeric and double precision here as they are now strings due to arbitrary precision
+      // case "numeric":
+      // case "double precision":
         const type = dbDataType === "integer" ? "integer" : "number";
         const format = dbDataType === "double precision" ? "double" : undefined;
         return { type, format };
@@ -167,14 +161,6 @@ export const genDatabaseResourceOpenApiDocs = async ({
         return { type: dbDataType };
     }
   };
-  // type: string;
-  // required: boolean;
-  // keyComponent: boolean;
-  // geoqueryType: null | string;
-  // softDeleteFlag: boolean;
-  // updateDisabled: boolean;
-  // createRequired: boolean;
-  // createDisabled: boolean;
 
   const schemas = { ...ServiceModels };
   const debugRecord: any = {};

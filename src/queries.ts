@@ -59,6 +59,7 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
       and a.attnum > 0
       and not a.attisdropped
       -- and s.nspname = 'public'
+      and s.nspname not in ('information_schema', 'pg_catalog')
       and c.relname not in ('${migrationTable}', '${migrationTable}_lock')
     order by
       s.nspname,
@@ -95,7 +96,7 @@ export const joiBase = (type: string) => {
     case "numeric":
     case "real":
     case "double precision":
-        return Joi.number(); // have special values (Infinity, -Infinity, NaN)
+        return Joi.string(); // string because of arbitrary presision that cannot be jsonified -- have special values (Infinity, -Infinity, NaN)
     case "smallserial":
     case "serial":
     case "bigserial":
@@ -268,19 +269,4 @@ export const genDatabaseResourceValidators = async ({
 
   return { validators, dbResources };
 
-  // can set other flags based on options arg
-
-  // alpha: Joi.string().invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT),
-  // bravo: Joi.string().invalid(engine.SYMBOL_CREATE_REQUIRED),
-  // charlie: Joi.number().invalid(engine.SYMBOL_UPDATE_DISABLED),
-  // delta: Joi.number().invalid(engine.SYMBOL_CREATE_DISABLED),
-  // echo: Joi.boolean(),
-  // foxtrot: Joi.number(),
-  // golf: Joi.string(),
-  // hotel: Joi.string().invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT),
-  // mike: Joi.number().invalid(...engine.SYMBOLS_GEO_POINT),
-  // november: Joi.number().invalid(...engine.SYMBOLS_GEO_POLYGON),
-  // oscar: Joi.number().invalid(...engine.SYMBOLS_GEO_POINT),
-  // papa: Joi.number().invalid(...engine.SYMBOLS_GEO_POLYGON),
-  // zulu: Joi.boolean().invalid(engine.SYMBOL_SOFT_DELETE),
 };
