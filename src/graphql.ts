@@ -10,6 +10,8 @@ import { v4 as uuidv4 } from "uuid";
 import { HEADER_REQUEST_ID } from "./const";
 import { IServiceResolverResponse } from "./interfaces";
 
+import * as fs from 'fs';
+
 // currently POSTGRES 12 only. need to support mysql, sqlite, oracle, etc
 export const toSchemaScalar = (type: string) => {
   switch (type) {
@@ -145,17 +147,6 @@ export const gqlTypes = (dbResources) => {
     mutation: [],
   };
 
-  console.log('**********');
-  console.log('oooo.dbResources');
-  console.log(JSON.stringify({dbResources}));
-  console.log('**********');
-
-
-
-
-
-
-
   for (const name of Object.keys(dbResources)) {
     const ResourceName = pascalCase(name);
     schema[`type ${ResourceName}`] = [];
@@ -194,7 +185,7 @@ export const gqlTypes = (dbResources) => {
             payload: [input${ResourceName}!]!
         ): resCreate${ResourceName}
         Update${ResourceName}(
-            keys: keys${ResourceName}!
+            keys: keys${ResourceName}!,
             payload: in${ResourceName}!
         ): resUpdate${ResourceName}
         Delete${ResourceName}(
@@ -298,14 +289,30 @@ export const gqlSchema = async ({
         # these are for jsonb cases where you do not care to fully type
         scalar JSONB
 
+        
         ${items.join(ln)}
 
     `;
 
+
+  let typeDefs = null;
+  fs.writeFileSync('gql_schema.txt', typeDefsString);
+  try{
+    typeDefs = gql(typeDefsString);
+  }
+  catch(err){
+    console.log('**********');
+    console.log('oooo gql.err');
+    console.log(err);
+    console.log('**********');
+    throw err;
+  }
+
   return {
     typeDefsString,
-    typeDefs: gql(typeDefsString),
+    typeDefs,
   };
+  
 };
 
 const apiType = "GRAPHQL";
