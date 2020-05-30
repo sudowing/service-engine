@@ -58,7 +58,7 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
       c.relkind in ('r','v','m') -- tables, views, materialized views
       and a.attnum > 0
       and not a.attisdropped
-      and s.nspname = 'public'
+      -- and s.nspname = 'public'
       and c.relname not in ('${migrationTable}', '${migrationTable}_lock')
     order by
       s.nspname,
@@ -152,7 +152,7 @@ export const joiBase = (type: string) => {
     // 8.10. Bit String Types":
     // case "bit(n)": // ignore. default will be string
     // case "bit varying(n)": // ignore. default will be string
-        return Joi.string();
+    //    return Joi.string();
 
     // 8.11. Text Search Types":
     // 8.11.1. tsvector":
@@ -212,7 +212,6 @@ export const joiBase = (type: string) => {
       if (match) {
         return Joi.string().length(Number(match.groups.len));
       }
-      console.log(`unknown type ${type}`);
       return Joi.string();
   }
 };
@@ -239,8 +238,9 @@ export const genDatabaseResourceValidators = async ({
         foreignkey_connnum,
       }
     ) => {
-      if (!catalog[resource_name]) catalog[resource_name] = {};
-      catalog[resource_name][resource_column_name] = joiKeyComponent(
+      const resourceName = `${resource_schema}_${resource_name}`
+      if (!catalog[resourceName]) catalog[resourceName] = {};
+      catalog[resourceName][resource_column_name] = joiKeyComponent(
         joiBase(type),
         primarykey
       );
@@ -250,9 +250,11 @@ export const genDatabaseResourceValidators = async ({
   );
 
   const dbResources = dbResourceRawRows.reduce((collection, record) => {
-    if (!collection[record.resource_name])
-      collection[record.resource_name] = {};
-    collection[record.resource_name][record.resource_column_name] = record;
+    const resourceName = `${record.resource_schema}_${record.resource_name}`
+
+    if (!collection[resourceName])
+      collection[resourceName] = {};
+    collection[resourceName][record.resource_column_name] = record;
     return collection;
   }, {});
 

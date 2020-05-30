@@ -7,35 +7,135 @@ import { UserInputError } from "apollo-server-koa";
 
 import { v4 as uuidv4 } from "uuid";
 
-import { HEADER_REQUEST_ID, REGEX_CHAR } from "./const";
+import { HEADER_REQUEST_ID } from "./const";
 import { IServiceResolverResponse } from "./interfaces";
 
+// currently POSTGRES 12 only. need to support mysql, sqlite, oracle, etc
 export const toSchemaScalar = (type: string) => {
   switch (type) {
-    case "boolean":
-      return "Boolean";
-    case "character":
-    case "character varying":
-    case "character varying(255)":
-    case "text":
-    case "name":
-    case "smallint[]":
-    case "timestamp without time zone":
-    case "timestamp with time zone":
-    case "uuid":
-      return "String";
-    case "integer":
+    // 8.1. Numeric Types":
     case "smallint":
-    case "double precision":
+    case "integer":
+    case "bigint":
+        return 'Float';
+    case "decimal":
     case "numeric":
-      return "Float";
-    default:
-      const match = type.match(REGEX_CHAR);
-      if (match) {
-        return "String";
-      }
+    case "real":
+    case "double precision":
+        return 'Float';
+    case "smallserial":
+    case "serial":
+    case "bigserial":
+        return 'Float';
+    case "int2":
+    case "int4":
+    case "int8":
+        return 'Float';
+    // 8.2. Monetary Types":
+    case "money || bigint in js":
+        return 'String'; // string as it is arbitrary length
+    // 8.3. Character Types":
+    // case "character varying(n)": // ignore. default will be string
+    // case "varchar(n)": // ignore. default will be string
+    // case "character(n)": // ignore. default will be string
+    // case "char(n)": // ignore. default will be string
+    case "character varying":
+    case "text":
+    case '"char"':
+    case "name":
+        return 'String';
+    // 8.4. Binary Data Types":
+    case "bytea":
+        return 'String';
+    // 8.5. Date/Time Types":
+    // case "timestamp": tz optional // ignore. default will be string
+    // case "timestamp": wtz // ignore. default will be string
+    case "timestamp without time zone":
+    case "date":
+    // case "time": tz optional // ignore. default will be string
+    // case "time": wtz // ignore. default will be string
+    case "interval":
+        return 'String';
+    // 8.6. Boolean Type":
+    case "boolean":
+        return 'Boolean';
+    // 8.7. Enumerated Types":
+      // ignore. default will be string
+    // 8.8. Geometric Types":
+    case "point":
+    case "line":
+    case "lseg":
+    case "box":
+    case "path":
+    case "path":
+    case "polygon":
+    case "circle":
+        return 'String'; // will want geoJson on output
+    // 8.9. Network Address Types":
+    case "cidr":
+    case "inet":
+    case "macaddr":
+        return 'String';
+    // 8.10. Bit String Types":
+    // case "bit(n)": // ignore. default will be string
+    // case "bit varying(n)": // ignore. default will be string
+    //    return 'String';
 
-      throw new Error(`unknown type ${type}`);
+    // 8.11. Text Search Types":
+    // 8.11.1. tsvector":
+    // 8.11.2. tsquery":
+
+    // 8.12. UUID Type":
+    case "uuid":
+    case "string":
+        return 'String';
+    // 8.13. XML Type":
+    case "xml":
+        return 'String';
+    // 8.14. JSON Types":
+    case "json":
+    case "jsonb":
+    case "jsonpath":
+        return 'String'; // will want to use JSONB on output
+
+    // 8.15. Arrays":
+      // ignore. default will be string
+      // in the future -- breaking change will type
+
+    // 8.16. Composite Types":
+      // ignore. default will be string
+
+    // 8.17. Range Types":
+    case "int4range":
+    case "int8range":
+        return 'Float';
+    case "numrange":
+    case "* float":
+        return 'Float';
+    case "tsrange":
+    case "tstzrange":
+    case "daterange":
+        return 'String';
+    // 8.18. Domain Types": // ignore. let default catch it
+    // 8.19. Object Identifier Types":
+    case "oid":
+        return 'Float';
+    case "regproc":
+    case "regprocedure":
+    case "regoper":
+    case "regoperator":
+    case "regclass":
+    case "regtype":
+    case "regrole":
+    case "regnamespace":
+    case "regconfig":
+    case "regdictionary":
+        return 'String';
+    // 8.20. pg_lsn Type":
+    case "pg_lsn":
+        return 'String';
+    default:
+      return 'String';
   }
 };
 
