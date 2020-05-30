@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "npx tsc",
+    "build": "rm -R lib/ && npx tsc",
     "lint": "npm run lint:prettier && npm run lint:tslint",
     "lint:fix": "npm run lint:prettier:fix && npm run lint:tslint:fix",
     "lint:prettier": "npx prettier -l 'src/**/*.ts'",

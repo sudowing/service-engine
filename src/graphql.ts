@@ -82,7 +82,8 @@ export const gqlTypes = (dbResources) => {
             payload: [input${ResourceName}!]!
         ): resCreate${ResourceName}
         Update${ResourceName}(
-            payload: keys${ResourceName}!
+            keys: keys${ResourceName}!
+            payload: in${ResourceName}!
         ): resUpdate${ResourceName}
         Delete${ResourceName}(
             payload: keys${ResourceName}!
@@ -104,7 +105,7 @@ export const gqlTypes = (dbResources) => {
     schema[`type resUpdate${ResourceName}`] = `
           sql: String
           debug: JSONB
-          data: [${ResourceName}]
+          data: ${ResourceName}
       `;
 
     schema[`type resDelete${ResourceName}`] = `
@@ -206,7 +207,7 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
   const defaultInput = { payload: {}, context: {}, options: {} };
 
   const input = { ...defaultInput, ...args };
-  const { payload, context, options } = input;
+  const { payload, context, options, keys } = input;
 
   // because I'm now publishing request metadata (debug, sql, count) with records the value of record/records key
   // cant use this
@@ -214,7 +215,7 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
   // context.fields = fields;
 
   const serviceResponse = resource[operation]({
-    payload,
+    payload: operation !== "update" ? payload : { ...payload, ...keys },
     context,
     reqId,
     apiType,

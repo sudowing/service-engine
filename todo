@@ -21,6 +21,7 @@ ALL VALIDATION needs to be async
 
 add all supported types for postres -- ensure non breaking
 
+
 add graphql schemas
 add support for mysql (count object will look different)
 add support for sqlite
