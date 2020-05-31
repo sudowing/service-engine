@@ -83,7 +83,7 @@ export const toReadQuery = ({
   context,
   schemaResource,
 }: ts.IParamsToQueryBase) =>
-  db.from(resource).select(context.fields).where(query); // fields exists. was set in generic
+  db.from(sqlSchemaResource(schemaResource)).select(context.fields).where(query); // fields exists. was set in generic
 
 export const toUpdateQuery = (keys: string[]) => ({
   db,
