@@ -9,64 +9,96 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
 
   if (db.client.config.client === "pg") {
     sql = `
-      select
-      s.nspname resource_schema,
-      case
-        when c.relkind = 'r' then 'table'
-        when c.relkind = 'v' then 'view'
-        when c.relkind = 'm' then 'materialized view'
-        else 'unknown'
-      end as resource_type,
-      c.relname as resource_name,
-      a.attnum as resource_column_id,
-      a.attname as resource_column_name,
-      a.attnotnull as notnull,
-      pg_catalog.format_type(a.atttypid,
-      a.atttypmod) as type,
-      case
-        when p.contype = 'p' then true
-        else false
-      end as primarykey,
-      case
-        when p.contype = 'u' then true
-        else false
-      end as uniquekey,
-      case
-        when p.contype = 'f' then p.confkey
-      end as foreignkey_fieldnum,
-      case
-        when p.contype = 'f' then c.relname
-      end as foreignkey,
-      case
-        when p.contype = 'f' then p.conkey
-      end as foreignkey_connnum
+    select distinct
+    resource_schema,
+    resource_type,
+    resource_name,
+    resource_column_id,
+    resource_column_name,
+    "notnull",
+    "type",
+    case
+      when primarykey >0 then true
+      else false
+    end as primarykey,
+    case
+      when uniquekey >0 then true
+      else false
+    end as uniquekey
+  from
+    (
+    select
+      "oid",
+      resource_schema,
+      resource_type,
+      resource_name,
+      resource_column_id,
+      resource_column_name,
+      "notnull",
+      "type",
+      max(primarykey) primarykey,
+      max(uniquekey) uniquekey
     from
-      pg_attribute a
-    join pg_class c on
-      c.oid = a.attrelid
-    join pg_namespace s on
-      c.relnamespace = s.oid
-    left join pg_attrdef d on
-      d.adrelid = c.oid
-      and d.adnum = a.attnum
-    left join pg_namespace n on
-      n.oid = c.relnamespace
-    left join pg_constraint p on
-      p.conrelid = c.oid
-      and a.attnum = any (p.conkey)
-    where
-      c.relkind in ('r','v','m') -- tables, views, materialized views
-      and a.attnum > 0
-      and not a.attisdropped
-      -- and s.nspname = 'public'
-      and s.nspname not in ('information_schema', 'pg_catalog')
-      and c.relname not in ('${migrationTable}', '${migrationTable}_lock')
+      (
+        select
+          c.oid oid,
+          s.nspname resource_schema,
+          case
+            when c.relkind = 'r' then 'table'
+            when c.relkind = 'v' then 'view'
+            when c.relkind = 'm' then 'materialized view'
+            else 'unknown'
+          end as resource_type,
+          c.relname as resource_name,
+          a.attnum as resource_column_id,
+          a.attname as resource_column_name,
+          a.attnotnull as notnull,
+          pg_catalog.format_type(a.atttypid, a.atttypmod) as type,
+          case
+            when p.contype = 'p' then 1
+            else 0
+          end as primarykey,
+          case
+            when p.contype = 'u' then 1
+            else 0
+          end as uniquekey
+        from
+          pg_attribute a
+        join pg_class c on
+          c.oid = a.attrelid
+        join pg_namespace s on
+          c.relnamespace = s.oid
+        left join pg_attrdef d on
+          d.adrelid = c.oid
+          and d.adnum = a.attnum
+        left join pg_namespace n on
+          n.oid = c.relnamespace
+        left join pg_constraint p on
+          p.conrelid = c.oid
+          and a.attnum = any (p.conkey)
+        where
+          c.relkind in ('r', 'v', 'm') -- tables, views, materialized views
+          and a.attnum > 0
+          and not a.attisdropped
+          and s.nspname not in ('information_schema', 'pg_catalog')
+          and c.relname not in ('knex_migrations', 'knex_migrations_lock')
+          and c.relname not in ('${migrationTable}', '${migrationTable}_lock')
+        ) main
+    group by
+      "oid",
+      resource_schema,
+      resource_type,
+      resource_name,
+      resource_column_id,
+      resource_column_name,
+      "notnull",
+      "type"
+      ) base
     order by
-      s.nspname,
-      c.relname,
-      a.attnum,
-      a.attname;
-    `;
+    	resource_schema,
+    	resource_name,
+    	resource_column_name;
+          `;
   }
 
   return sql;
