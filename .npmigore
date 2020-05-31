@@ -1,0 +1,9 @@
+.nyc_output
+coverage
+docs
+src
+node_modules
+.gitignore
+notes.txt
+todo
+
