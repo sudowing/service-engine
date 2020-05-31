@@ -74,8 +74,26 @@ export const DEFINED_ARG_LENGTHS = {
 };
 
 export const SYMBOL_GEOQUERY = Symbol("geoquery");
+
+
 export const SYMBOL_GEOQUERY_POINT = Symbol("geoquery-point");
+export const SYMBOL_GEOQUERY_LINE = Symbol("geoquery-line");
+export const SYMBOL_GEOQUERY_LSEG = Symbol("geoquery-lseg");
+export const SYMBOL_GEOQUERY_BOX = Symbol("geoquery-box");
+export const SYMBOL_GEOQUERY_PATH = Symbol("geoquery-path");
 export const SYMBOL_GEOQUERY_POLYGON = Symbol("geoquery-polygon");
+export const SYMBOL_GEOQUERY_CIRCLE = Symbol("geoquery-circle");
+
+export const SYMBOLS_GEO_POINT = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POINT];
+export const SYMBOLS_GEO_LINE = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_LINE];
+export const SYMBOLS_GEO_LSEG = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_LSEG];
+export const SYMBOLS_GEO_BOX = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_BOX];
+export const SYMBOLS_GEO_PATH = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_PATH];
+export const SYMBOLS_GEO_POLYGON = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POLYGON];
+export const SYMBOLS_GEO_CIRCLE = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_CIRCLE];
+
+
+
 export const SYMBOL_SOFT_DELETE = Symbol("soft_delete");
 export const SYMBOL_UNIQUE_KEY_COMPONENT = Symbol(
   "symbol_unique_key_component"
@@ -83,9 +101,6 @@ export const SYMBOL_UNIQUE_KEY_COMPONENT = Symbol(
 export const SYMBOL_UPDATE_DISABLED = Symbol("update_disabled");
 export const SYMBOL_CREATE_REQUIRED = Symbol("create_required");
 export const SYMBOL_CREATE_DISABLED = Symbol("create_disabled");
-
-export const SYMBOLS_GEO_POINT = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POINT];
-export const SYMBOLS_GEO_POLYGON = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POLYGON];
 
 export const FALSEY_STRING_VALUES = ["", "f", "false", "0"];
 

@@ -1,7 +1,7 @@
 import * as Joi from "@hapi/joi";
 
 import * as ts from "./interfaces";
-import { SYMBOL_UNIQUE_KEY_COMPONENT, REGEX_CHAR } from "./const";
+import * as cnst from "./const";
 
 export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
   let sql = "unknown db";
@@ -111,7 +111,7 @@ export const joiRequiredText = (required: boolean) =>
   required ? `.required()` : ``;
 
 export const joiKeyComponent = (joi: Joi.Schema, keyComponent: boolean) =>
-  keyComponent ? joi.invalid(SYMBOL_UNIQUE_KEY_COMPONENT) : joi;
+  keyComponent ? joi.invalid(cnst.SYMBOL_UNIQUE_KEY_COMPONENT) : joi;
 
 export const joiRequired = (joi: Joi.Schema, required: boolean) =>
   required ? joi : joi; // need to eval .required() here... think it's breaking the framework
@@ -169,14 +169,19 @@ export const joiBase = (type: string) => {
     // ignore. default will be string
     // 8.8. Geometric Types":
     case "point":
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
     case "line":
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
     case "lseg":
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
     case "box":
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
     case "path":
-    case "path":
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
     case "polygon":
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
     case "circle":
-      return Joi.string(); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
     // 8.9. Network Address Types":
     case "cidr":
     case "inet":
@@ -241,7 +246,7 @@ export const joiBase = (type: string) => {
     case "pg_lsn":
       return Joi.string();
     default:
-      const match = type.match(REGEX_CHAR);
+      const match = type.match(cnst.REGEX_CHAR);
       if (match) {
         return Joi.string().length(Number(match.groups.len));
       }

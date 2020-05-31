@@ -62,15 +62,6 @@ export const ignite = async ({ db, metadata }) => {
 
   const apolloServer = new ApolloServer({ schema, context }); // ,debug
 
-  console.log('**********');
-  console.log('oooo.Resources');
-  console.log(Resources);
-  console.log('**********');
-
-
-
-
-
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
     st,
