@@ -8,6 +8,10 @@ import * as database from "./database";
 import * as ts from "./interfaces";
 import * as util from "./utils";
 
+const PAGINATION_LIMIT = process.env.PAGINATION_LIMIT
+  ? Number(process.env.PAGINATION_LIMIT)
+  : cnst.DEFAULT_PAGINATION_LIMIT;
+
 export const genericResourceCall = (
   operation: string,
   schema: Joi.Schema,
@@ -214,6 +218,7 @@ export class Resource implements ts.IClassResource {
     const { context, ...parsed } = this.contextParser(input);
 
     context.fields = context.fields || Object.keys(this.report.search);
+    context.limit = context.limit && context.limit <= PAGINATION_LIMIT ? context.limit : PAGINATION_LIMIT;
 
     if (parsed.error) {
       this.logger.error(

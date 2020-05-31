@@ -18,7 +18,7 @@ export const toSearchQuery = ({
   db
     .from(sqlSchemaResource(schemaResource))
     .orderBy(context.orderBy || [])
-    .limit(context.limit || undefined) // pagination needs to get injected into context. that way it wont break the search count
+    .limit(context.limit)
     .offset(((context.page || 1) - 1) * (context.limit || 100))
     // notWhere where/notWhere
     // statementContext and/or

@@ -161,3 +161,5 @@ export const HEADER_GET_COUNT = "x-get-count";
 export const HEADER_COUNT = "x-count";
 
 export const REGEX_CHAR = /character\((?<len>\d)\)/;
+
+export const DEFAULT_PAGINATION_LIMIT = 250;
