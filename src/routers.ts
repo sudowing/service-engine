@@ -1,11 +1,9 @@
 import * as Router from "@koa/router";
 import * as HTTP_STATUS from "http-status";
 
-import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
-import { Resource } from "./class";
 import * as cnst from "./const";
-import { prepRequestForService } from "./middleware";
+import { gqlModule } from "./graphql";
 
 import { parse as parseURL } from "url";
 
@@ -19,7 +17,7 @@ const seperateQueryAndContext = (input) =>
       info[key.replace("|", "")] = value;
       return query;
     },
-    { payload: {}, context: {} }
+    { payload: {}, context: {}, apiType: "REST" } // apiType -- needed for corrent queryContext parsing
   );
 
 const j = JSON.stringify; // convience
@@ -30,22 +28,34 @@ operations.set(j({ method: "PUT", record: true }), "update");
 operations.set(j({ method: "DELETE", record: true }), "delete");
 operations.set(j({ method: "GET", record: true }), "read");
 
-export const serviceRouters = async ({ db, st, logger, metadata }) => {
-  const router = new Router();
-
-  router.use(prepRequestForService);
-
-  const { validators, dbResources } = await genDatabaseResourceValidators({
-    db,
+export const serviceRouters = async ({
+  db,
+  st,
+  logger,
+  metadata,
+  validators,
+  dbResources,
+  dbResourceRawRows,
+  Resources,
+}) => {
+  const appRouter = new Router();
+  const serviceRouter = new Router({
+    prefix: metadata.routerPrefix,
   });
-  const { rows: dbResourceRawRows } = await db.raw(
-    getDatabaseResources({ db })
-  );
+
+  const ResourceReports = Resources.map(([name, resource]) => [
+    name,
+    resource.report,
+  ]);
+
   const apiDocs = await genDatabaseResourceOpenApiDocs({
     db,
     st,
     logger,
     metadata,
+    validators,
+    dbResources,
+    ResourceReports,
     debugMode: false,
   });
   const apiDocsDebug = await genDatabaseResourceOpenApiDocs({
@@ -53,32 +63,49 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
     st,
     logger,
     metadata,
+    validators,
+    dbResources,
+    ResourceReports,
     debugMode: true,
   });
 
-  router.get("/ping", (ctx) => {
-    ctx.response.body = { hello: "world", now: Date.now() };
+  appRouter.get("/schema", async (ctx) => {
+    const { typeDefsString } = await gqlModule({
+      validators,
+      dbResources,
+      dbResourceRawRows,
+      Resources,
+    });
+    ctx.response.body = typeDefsString;
   });
 
-  router.get("/openapi", async (ctx) => {
+  appRouter.get("/ping", (ctx) => {
+    ctx.response.body = {
+      message: "hello world",
+      timestamp: Date.now(),
+      metadata,
+    };
+  });
+
+  appRouter.get("/openapi", async (ctx) => {
     const { debug } = ctx.request.query;
     const docs = debug ? apiDocsDebug : apiDocs;
     ctx.response.body = docs;
   });
 
-  router.get("/db_resources", async (ctx) => {
+  appRouter.get("/db_resources", async (ctx) => {
     ctx.response.body = dbResources;
   });
 
-  router.get("/db_resources/raw", async (ctx) => {
+  appRouter.get("/db_resources/raw", async (ctx) => {
     ctx.response.body = dbResourceRawRows;
   });
 
-  router.get("/resources", async (ctx) => {
-    const resources = Object.entries(validators).reduce(
-      (batch, [name, validator]: any) => ({
+  appRouter.get("/resources", async (ctx) => {
+    const resources = Resources.reduce(
+      (batch, [name, _Resource]: any) => ({
         ...batch,
-        [name]: new Resource({ db, st, logger, name, validator }).report,
+        [name]: _Resource.report,
       }),
       {}
     );
@@ -101,10 +128,10 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
       return;
     }
 
-    const resources = Object.entries(validators).reduce(
-      (batch, [name, validator]: any) => ({
+    const resources = Resources.reduce(
+      (batch, [name, _Resource]: any) => ({
         ...batch,
-        [name]: new Resource({ db, st, logger, name, validator }),
+        [name]: _Resource,
       }),
       {}
     );
@@ -208,13 +235,13 @@ export const serviceRouters = async ({ db, st, logger, metadata }) => {
     ctx.response.body = output;
   };
 
-  router.get("/:category/:resource", serviceView);
-  router.post("/:category/:resource", serviceView);
+  serviceRouter.get("/:category/:resource", serviceView);
+  serviceRouter.post("/:category/:resource", serviceView);
 
-  router.get("/:category/:resource/record", serviceView);
-  router.post("/:category/:resource/record", serviceView);
-  router.put("/:category/:resource/record", serviceView);
-  router.delete("/:category/:resource/record", serviceView);
+  serviceRouter.get("/:category/:resource/record", serviceView);
+  serviceRouter.post("/:category/:resource/record", serviceView);
+  serviceRouter.put("/:category/:resource/record", serviceView);
+  serviceRouter.delete("/:category/:resource/record", serviceView);
 
-  return { router };
+  return { appRouter, serviceRouter };
 };

@@ -99,6 +99,7 @@ export interface IParamsQueryCore {
   st: knexPostgis.KnexPostgis;
   resource: string;
   context: ISearchQueryContext;
+  schemaResource: ISchemaResource;
 }
 
 export interface IParamsToQueryBase extends IParamsQueryCore {
@@ -121,6 +122,7 @@ export interface IParamsProcessBase {
   payload: any;
   context?: any;
   requestId: string;
+  apiType: string;
 }
 
 export interface IParamsProcessWithSearch extends IParamsProcessBase {
@@ -228,6 +230,7 @@ export interface IClassResourceConstructor {
   logger: bunyan;
   name: string;
   validator: Joi.Schema;
+  schemaResource: ISchemaResource;
 }
 
 export interface IClassResource {
@@ -236,6 +239,7 @@ export interface IClassResource {
   logger: bunyan;
   name: string;
   validator: Joi.Schema;
+  schemaResource: ISchemaResource;
   schema: IValidationExpanderSchema;
   report: IValidationExpanderReport;
   meta: IValidationExpanderMeta;
@@ -291,4 +295,29 @@ export interface IDatabaseBootstrap {
   db: knex;
 }
 
+export interface IDatabaseBootstrapRaw extends IDatabaseBootstrap {
+  dbResourceRawRows: any;
+}
+
 export type TDatabaseResources = [string, Joi.Schema];
+
+export interface IServiceResolverResponse {
+  data: any | any[] | null;
+  sql: string;
+  count?: number;
+  debug: {
+    now: number;
+    reqId: any;
+    input: {
+      payload: any;
+      context: any;
+      options: any;
+    };
+    serviceResponse: any;
+  };
+}
+
+export interface ISchemaResource {
+  resource_schema: string;
+  resource_name: string;
+}

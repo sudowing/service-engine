@@ -1,0 +1,75 @@
+
+https://medium.com/the-andela-way/scaling-out-with-node-clusters-1dca4a39a2a
+
+
+npm bundleDependencies
+
+
+```
+geoqueries were only ever done on the `center`. Anything marked as a geo field in the validator was published as geoJson
+```
+Guidance I got was to use QGIS to import shapefiles and export as WKT (well known text) as that's how we stored data.
+
+https://qgis.org/en/site/forusers/alldownloads.html#fedora
+https://postgis.net/workshops/postgis-intro/loading_data.html
+
+
+```
+2
+
+What worked for me was to:
+
+    Delete the node_modules in both the dependency and the consumer module.
+    Run npm unlink --no-save [dependency-module]
+    re-link with the 2-link commands as per npm-link
+
+Now I am able to fully test my unpublished module locally.
+
+Additionally, there is an npm pack command which can help you test your unpublished modules, although not quite as robust.
+```
+
+
+
+https://medium.com/@brygrill/creating-a-geojson-featurecollection-type-for-graphql-352591451b4a
+
+
+
+
+knex
+hapi/joi
+
+koa
+apollo-graphql
+
+
+
+
+# Write your query or mutation here
+query someQuery($payload: inAccount, $context: inputContext, $options: serviceInputOptions){
+  SearchAccount(payload: $payload, context:$context, options: $options){
+    count
+    sql
+    # debug
+    data{
+      id,
+      uuid
+    }
+  }
+}
+
+
+  // can set other flags based on options arg
+
+  // alpha: Joi.string().invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT),
+  // bravo: Joi.string().invalid(engine.SYMBOL_CREATE_REQUIRED),
+  // charlie: Joi.number().invalid(engine.SYMBOL_UPDATE_DISABLED),
+  // delta: Joi.number().invalid(engine.SYMBOL_CREATE_DISABLED),
+  // echo: Joi.boolean(),
+  // foxtrot: Joi.number(),
+  // golf: Joi.string(),
+  // hotel: Joi.string().invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT),
+  // mike: Joi.number().invalid(...engine.SYMBOLS_GEO_POINT),
+  // november: Joi.number().invalid(...engine.SYMBOLS_GEO_POLYGON),
+  // oscar: Joi.number().invalid(...engine.SYMBOLS_GEO_POINT),
+  // papa: Joi.number().invalid(...engine.SYMBOLS_GEO_POLYGON),
+  // zulu: Joi.boolean().invalid(engine.SYMBOL_SOFT_DELETE),

@@ -5,6 +5,8 @@ update logger with file and trace
 make every http call get logged to debug
 
 CRUD OPTIONS in service-config
+relationships in service-config (for when fk is not a constraint)
+unique vs primary key (if table has no PK -- fallback to unique key if exists and provide READ, UPDATE & DELETE)
 
 ALL VALIDATION needs to be async
 
@@ -19,7 +21,8 @@ ALL VALIDATION needs to be async
 
 
 
-add graphql schemas
+`typecastFn`
+
 add support for mysql (count object will look different)
 add support for sqlite
 add support for oracle

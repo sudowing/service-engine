@@ -8,6 +8,10 @@ import * as database from "./database";
 import * as ts from "./interfaces";
 import * as util from "./utils";
 
+const PAGINATION_LIMIT = process.env.PAGINATION_LIMIT
+  ? Number(process.env.PAGINATION_LIMIT)
+  : cnst.DEFAULT_PAGINATION_LIMIT;
+
 export const genericResourceCall = (
   operation: string,
   schema: Joi.Schema,
@@ -88,6 +92,7 @@ export class Resource implements ts.IClassResource {
   public logger: bunyan;
   public name: string;
   public validator: Joi.Schema;
+  public schemaResource: ts.ISchemaResource;
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
   public meta: ts.IValidationExpanderMeta;
@@ -100,12 +105,14 @@ export class Resource implements ts.IClassResource {
     logger,
     name,
     validator,
+    schemaResource,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
     this.logger = logger;
     this.name = name;
     this.validator = validator;
+    this.schemaResource = schemaResource;
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
     this.report = report;
@@ -154,6 +161,7 @@ export class Resource implements ts.IClassResource {
       db: this.db,
       st: this.st,
       resource: this.name,
+      schemaResource: this.schemaResource,
     };
   }
 
@@ -164,7 +172,11 @@ export class Resource implements ts.IClassResource {
       error: undefined,
     };
     if (input.context) {
-      const result = util.queryContextParser(this.validator, input.context);
+      const result = util.queryContextParser(
+        this.validator,
+        input.context,
+        input.apiType
+      );
       if (result.errors.length) {
         rejection = util.rejectResource(cnst.CONTEXT_ERRORS, result.errors);
       }
@@ -193,6 +205,7 @@ export class Resource implements ts.IClassResource {
 
   search(input: ts.IParamsProcessBase) {
     const { requestId } = input;
+
     this.logger.debug(
       {
         ...input,
@@ -202,6 +215,13 @@ export class Resource implements ts.IClassResource {
       cnst.RESOURCE_CALL
     );
     const { context, ...parsed } = this.contextParser(input);
+
+    context.fields = context.fields || Object.keys(this.report.search);
+    context.limit =
+      context.limit && context.limit <= PAGINATION_LIMIT
+        ? context.limit
+        : PAGINATION_LIMIT;
+
     if (parsed.error) {
       this.logger.error(
         {
