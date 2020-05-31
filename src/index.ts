@@ -37,12 +37,18 @@ export const ignite = async ({ db, metadata }) => {
     dbResourceRawRows,
   });
 
+  const mapSchemaResources = dbResourceRawRows.reduce((resourceMap, {resource_schema, resource_name}) =>
+    ({
+      ...resourceMap,
+      [`${resource_schema}_${resource_name}`]: { resource_schema, resource_name }
+    }), {});
+
   // this has other uses -- needs to be isolated
   const Resources = Object.entries(
     validators
   ).map(([name, validator]: TDatabaseResources) => [
     name,
-    new Resource({ db, st, logger, name, validator }),
+    new Resource({ db, st, logger, name, validator, schemaResource: mapSchemaResources[name] }),
   ]);
 
   const { AppModule } = await gqlModule({
@@ -55,6 +61,15 @@ export const ignite = async ({ db, metadata }) => {
   const { schema, context } = AppModule;
 
   const apolloServer = new ApolloServer({ schema, context }); // ,debug
+
+  console.log('**********');
+  console.log('oooo.Resources');
+  console.log(Resources);
+  console.log('**********');
+
+
+
+
 
   const { appRouter, serviceRouter } = await serviceRouters({
     db,

@@ -2,7 +2,6 @@ import * as Router from "@koa/router";
 import * as HTTP_STATUS from "http-status";
 
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
-import { Resource } from "./class";
 import * as cnst from "./const";
 import { gqlModule } from "./graphql";
 
@@ -103,10 +102,10 @@ export const serviceRouters = async ({
   });
 
   appRouter.get("/resources", async (ctx) => {
-    const resources = Object.entries(validators).reduce(
-      (batch, [name, validator]: any) => ({
+    const resources = Resources.reduce(
+      (batch, [name, _Resource]: any) => ({
         ...batch,
-        [name]: new Resource({ db, st, logger, name, validator }).report,
+        [name]: _Resource.report,
       }),
       {}
     );
@@ -123,16 +122,21 @@ export const serviceRouters = async ({
     const url = ctx.request.url;
     const record = uniqueResource(url);
 
+    console.log('**********');
+    console.log('oooo.{category, resource}');
+    console.log(JSON.stringify({category, resource}));
+    console.log('**********');
+
     // only process for /service & /debug
     if (category !== "service" && category !== "debug") {
       ctx.response.status = HTTP_STATUS.NOT_FOUND;
       return;
     }
 
-    const resources = Object.entries(validators).reduce(
-      (batch, [name, validator]: any) => ({
+    const resources = Resources.reduce(
+      (batch, [name, _Resource]: any) => ({
         ...batch,
-        [name]: new Resource({ db, st, logger, name, validator }),
+        [name]: _Resource,
       }),
       {}
     );

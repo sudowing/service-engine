@@ -4,15 +4,19 @@ import { convertMetersToDecimalDegrees } from "./utils";
 
 /* tslint:disable */
 
+export const sqlSchemaResource = ({resource_schema, resource_name}) =>
+  `${resource_schema}.${resource_name}`
+
 export const toSearchQuery = ({
   db,
   st,
   resource,
   components,
   context,
+  schemaResource,
 }: ts.IParamsToSearchQuery) =>
   db
-    .from(resource)
+    .from(sqlSchemaResource(schemaResource))
     .orderBy(context.orderBy || [])
     .limit(context.limit || undefined) // pagination needs to get injected into context. that way it wont break the search count
     .offset(((context.page || 1) - 1) * (context.limit || 100))
@@ -68,7 +72,8 @@ export const toCreateQuery = ({
   resource,
   query,
   context,
-}: ts.IParamsToQueryBase) => db.insert(query, context.fields).into(resource); // fields exists. was set in generic
+  schemaResource,
+}: ts.IParamsToQueryBase) => db.insert(query, context.fields).into(sqlSchemaResource(schemaResource)); // fields exists. was set in generic
 
 export const toReadQuery = ({
   db,
@@ -76,6 +81,7 @@ export const toReadQuery = ({
   resource,
   query,
   context,
+  schemaResource,
 }: ts.IParamsToQueryBase) =>
   db.from(resource).select(context.fields).where(query); // fields exists. was set in generic
 
@@ -86,6 +92,7 @@ export const toUpdateQuery = (keys: string[]) => ({
   query,
   context,
   searchQuery,
+  schemaResource,
 }: ts.IParamsToQueryWithSearch) => {
   const { pk, values } = Object.entries(query).reduce(
     (bundle, [key, value]) => {
@@ -96,7 +103,7 @@ export const toUpdateQuery = (keys: string[]) => ({
     { pk: {}, values: {} }
   );
 
-  return db(resource)
+  return db(sqlSchemaResource(schemaResource))
     .where(pk) // pull only keys from query || ensure it's being done upstream
     .update(values, context.fields); // remove keys & cannot update fields from query && fields exists. was set in generic
 };
@@ -108,6 +115,7 @@ export const toDeleteQuery = (keys: string[]) => ({
   query,
   searchQuery,
   hardDelete,
+  schemaResource,
 }: ts.IParamsToDeleteQueryWithSearch) => {
   const { pk }: any = Object.entries(query).reduce(
     (bundle, [key, value]) => {
@@ -120,14 +128,14 @@ export const toDeleteQuery = (keys: string[]) => ({
 
   if (hardDelete) {
     // hard delete
-    return db(resource).where(pk).delete();
+    return db(sqlSchemaResource(schemaResource)).where(pk).delete();
   }
 
   // if soft delete
   pk.active = true;
 
-  const sqlcount = db(resource).count().where(pk);
-  const sqlUpdate = db(resource).where(pk).update({ active: false });
+  const sqlcount = db(sqlSchemaResource(schemaResource)).count().where(pk);
+  const sqlUpdate = db(sqlSchemaResource(schemaResource)).where(pk).update({ active: false });
 
   const softDelete = new Promise(async (resolve, reject) => {
     try {

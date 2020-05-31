@@ -116,30 +116,30 @@ export const joiKeyComponent = (joi: Joi.Schema, keyComponent: boolean) =>
 export const joiRequired = (joi: Joi.Schema, required: boolean) =>
   required ? joi : joi; // need to eval .required() here... think it's breaking the framework
 
-  // this is for postgres. Need one for each engine || each engine version
+// this is for postgres. Need one for each engine || each engine version
 export const joiBase = (type: string) => {
   switch (type) {
     // 8.1. Numeric Types":
     case "smallint":
     case "integer":
     case "bigint":
-        return Joi.number().integer();
+      return Joi.number().integer();
     case "decimal":
     case "numeric":
     case "real":
     case "double precision":
-        return Joi.string(); // string because of arbitrary presision that cannot be jsonified -- have special values (Infinity, -Infinity, NaN)
+      return Joi.string(); // string because of arbitrary presision that cannot be jsonified -- have special values (Infinity, -Infinity, NaN)
     case "smallserial":
     case "serial":
     case "bigserial":
-        return Joi.number().integer();
+      return Joi.number().integer();
     case "int2":
     case "int4":
     case "int8":
-        return Joi.number().integer();
+      return Joi.number().integer();
     // 8.2. Monetary Types":
     case "money || bigint in js":
-        return Joi.string(); // string as it is arbitrary length
+      return Joi.string(); // string as it is arbitrary length
     // 8.3. Character Types":
     // case "character varying(n)": // ignore. default will be string
     // case "varchar(n)": // ignore. default will be string
@@ -149,10 +149,10 @@ export const joiBase = (type: string) => {
     case "text":
     case '"char"':
     case "name":
-        return Joi.string();
+      return Joi.string();
     // 8.4. Binary Data Types":
     case "bytea":
-        return Joi.string();
+      return Joi.string();
     // 8.5. Date/Time Types":
     // case "timestamp": tz optional // ignore. default will be string
     // case "timestamp": wtz // ignore. default will be string
@@ -161,12 +161,12 @@ export const joiBase = (type: string) => {
     // case "time": tz optional // ignore. default will be string
     // case "time": wtz // ignore. default will be string
     case "interval":
-        return Joi.string();
+      return Joi.string();
     // 8.6. Boolean Type":
     case "boolean":
-        return Joi.boolean();
+      return Joi.boolean();
     // 8.7. Enumerated Types":
-      // ignore. default will be string
+    // ignore. default will be string
     // 8.8. Geometric Types":
     case "point":
     case "line":
@@ -176,12 +176,12 @@ export const joiBase = (type: string) => {
     case "path":
     case "polygon":
     case "circle":
-        return Joi.string(); // will want geoJson on output
+      return Joi.string(); // will want geoJson on output
     // 8.9. Network Address Types":
     case "cidr":
     case "inet":
     case "macaddr":
-        return Joi.string();
+      return Joi.string();
     // 8.10. Bit String Types":
     // case "bit(n)": // ignore. default will be string
     // case "bit varying(n)": // ignore. default will be string
@@ -194,38 +194,38 @@ export const joiBase = (type: string) => {
     // 8.12. UUID Type":
     case "uuid":
     case "string":
-        return Joi.string();
+      return Joi.string();
     // 8.13. XML Type":
     case "xml":
-        return Joi.string();
+      return Joi.string();
     // 8.14. JSON Types":
     case "json":
     case "jsonb":
     case "jsonpath":
-        return Joi.string(); // will want to use JSONB on output
+      return Joi.string(); // will want to use JSONB on output
 
     // 8.15. Arrays":
-      // ignore. default will be string
-      // in the future -- breaking change will type
+    // ignore. default will be string
+    // in the future -- breaking change will type
 
     // 8.16. Composite Types":
-      // ignore. default will be string
+    // ignore. default will be string
 
     // 8.17. Range Types":
     case "int4range":
     case "int8range":
-        return Joi.number().integer();
+      return Joi.number().integer();
     case "numrange":
     case "* float":
-        return Joi.number();
+      return Joi.number();
     case "tsrange":
     case "tstzrange":
     case "daterange":
-        return Joi.string();
+      return Joi.string();
     // 8.18. Domain Types": // ignore. let default catch it
     // 8.19. Object Identifier Types":
     case "oid":
-        return Joi.number().integer();
+      return Joi.number().integer();
     case "regproc":
     case "regprocedure":
     case "regoper":
@@ -236,10 +236,10 @@ export const joiBase = (type: string) => {
     case "regnamespace":
     case "regconfig":
     case "regdictionary":
-        return Joi.string();
+      return Joi.string();
     // 8.20. pg_lsn Type":
     case "pg_lsn":
-        return Joi.string();
+      return Joi.string();
     default:
       const match = type.match(REGEX_CHAR);
       if (match) {
@@ -271,7 +271,8 @@ export const genDatabaseResourceValidators = async ({
         foreignkey_connnum,
       }
     ) => {
-      const resourceName = `${resource_schema}_${resource_name}`
+      // this needs to be a fn as the upstream map generates the same string `mapSchemaResources`
+      const resourceName = `${resource_schema}_${resource_name}`;
       if (!catalog[resourceName]) catalog[resourceName] = {};
       catalog[resourceName][resource_column_name] = joiKeyComponent(
         joiBase(type),
@@ -283,10 +284,9 @@ export const genDatabaseResourceValidators = async ({
   );
 
   const dbResources = dbResourceRawRows.reduce((collection, record) => {
-    const resourceName = `${record.resource_schema}_${record.resource_name}`
+    const resourceName = `${record.resource_schema}_${record.resource_name}`;
 
-    if (!collection[resourceName])
-      collection[resourceName] = {};
+    if (!collection[resourceName]) collection[resourceName] = {};
     collection[resourceName][record.resource_column_name] = record;
     return collection;
   }, {});
@@ -300,5 +300,4 @@ export const genDatabaseResourceValidators = async ({
   );
 
   return { validators, dbResources };
-
 };

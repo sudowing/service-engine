@@ -10,8 +10,6 @@ import { v4 as uuidv4 } from "uuid";
 import { HEADER_REQUEST_ID } from "./const";
 import { IServiceResolverResponse } from "./interfaces";
 
-import * as fs from 'fs';
-
 // currently POSTGRES 12 only. need to support mysql, sqlite, oracle, etc
 export const toSchemaScalar = (type: string) => {
   switch (type) {
@@ -19,23 +17,23 @@ export const toSchemaScalar = (type: string) => {
     case "smallint":
     case "integer":
     case "bigint":
-        return 'Float';
+      return "Float";
     case "decimal":
     case "numeric":
     case "real":
     case "double precision":
-        return 'String'; // String because of arbitrary precision that cannot be jsonifieds
+      return "String"; // String because of arbitrary precision that cannot be jsonifieds
     case "smallserial":
     case "serial":
     case "bigserial":
-        return 'Float';
+      return "Float";
     case "int2":
     case "int4":
     case "int8":
-        return 'Float';
+      return "Float";
     // 8.2. Monetary Types":
     case "money || bigint in js":
-        return 'String'; // string as it is arbitrary length
+      return "String"; // string as it is arbitrary length
     // 8.3. Character Types":
     // case "character varying(n)": // ignore. default will be string
     // case "varchar(n)": // ignore. default will be string
@@ -45,10 +43,10 @@ export const toSchemaScalar = (type: string) => {
     case "text":
     case '"char"':
     case "name":
-        return 'String';
+      return "String";
     // 8.4. Binary Data Types":
     case "bytea":
-        return 'String';
+      return "String";
     // 8.5. Date/Time Types":
     // case "timestamp": tz optional // ignore. default will be string
     // case "timestamp": wtz // ignore. default will be string
@@ -57,12 +55,12 @@ export const toSchemaScalar = (type: string) => {
     // case "time": tz optional // ignore. default will be string
     // case "time": wtz // ignore. default will be string
     case "interval":
-        return 'String';
+      return "String";
     // 8.6. Boolean Type":
     case "boolean":
-        return 'Boolean';
+      return "Boolean";
     // 8.7. Enumerated Types":
-      // ignore. default will be string
+    // ignore. default will be string
     // 8.8. Geometric Types":
     case "point":
     case "line":
@@ -72,12 +70,12 @@ export const toSchemaScalar = (type: string) => {
     case "path":
     case "polygon":
     case "circle":
-        return 'String'; // will want geoJson on output
+      return "String"; // will want geoJson on output
     // 8.9. Network Address Types":
     case "cidr":
     case "inet":
     case "macaddr":
-        return 'String';
+      return "String";
     // 8.10. Bit String Types":
     // case "bit(n)": // ignore. default will be string
     // case "bit varying(n)": // ignore. default will be string
@@ -90,38 +88,38 @@ export const toSchemaScalar = (type: string) => {
     // 8.12. UUID Type":
     case "uuid":
     case "string":
-        return 'String';
+      return "String";
     // 8.13. XML Type":
     case "xml":
-        return 'String';
+      return "String";
     // 8.14. JSON Types":
     case "json":
     case "jsonb":
     case "jsonpath":
-        return 'String'; // will want to use JSONB on output
+      return "String"; // will want to use JSONB on output
 
     // 8.15. Arrays":
-      // ignore. default will be string
-      // in the future -- breaking change will type
+    // ignore. default will be string
+    // in the future -- breaking change will type
 
     // 8.16. Composite Types":
-      // ignore. default will be string
+    // ignore. default will be string
 
     // 8.17. Range Types":
     case "int4range":
     case "int8range":
-        return 'Float';
+      return "Float";
     case "numrange":
     case "* float":
-        return 'Float';
+      return "Float";
     case "tsrange":
     case "tstzrange":
     case "daterange":
-        return 'String';
+      return "String";
     // 8.18. Domain Types": // ignore. let default catch it
     // 8.19. Object Identifier Types":
     case "oid":
-        return 'Float';
+      return "Float";
     case "regproc":
     case "regprocedure":
     case "regoper":
@@ -132,12 +130,12 @@ export const toSchemaScalar = (type: string) => {
     case "regnamespace":
     case "regconfig":
     case "regdictionary":
-        return 'String';
+      return "String";
     // 8.20. pg_lsn Type":
     case "pg_lsn":
-        return 'String';
+      return "String";
     default:
-      return 'String';
+      return "String";
   }
 };
 
@@ -176,21 +174,11 @@ export const gqlTypes = (dbResources) => {
             context: inputContext
             options: serviceInputOptions
         ): resSearch${ResourceName}
-        Read${ResourceName}(
-            payload: keys${ResourceName}!
-        ): resRead${ResourceName}
     `);
     schema.mutation.push(`
         Create${ResourceName}(
             payload: [input${ResourceName}!]!
         ): resCreate${ResourceName}
-        Update${ResourceName}(
-            keys: keys${ResourceName}!,
-            payload: in${ResourceName}!
-        ): resUpdate${ResourceName}
-        Delete${ResourceName}(
-            payload: keys${ResourceName}!
-        ): resDelete${ResourceName}
     `);
 
     schema[`type resCreate${ResourceName}`] = `
@@ -223,6 +211,33 @@ export const gqlTypes = (dbResources) => {
           count: Float
           data: [${ResourceName}]
       `;
+
+    const keys = Object.values(dbResources[name]).filter(
+      (item: any) => item.primarykey
+    );
+
+    // these types if resource is keyed. else delete related defined types
+    if (keys.length) {
+      schema.query.push(`
+          Read${ResourceName}(
+              payload: keys${ResourceName}!
+          ): resRead${ResourceName}
+      `);
+      schema.mutation.push(`
+          Update${ResourceName}(
+              keys: keys${ResourceName}!,
+              payload: in${ResourceName}!
+          ): resUpdate${ResourceName}
+          Delete${ResourceName}(
+              payload: keys${ResourceName}!
+          ): resDelete${ResourceName}
+      `);
+    } else {
+      delete schema[`input keys${ResourceName}`];
+      delete schema[`type resRead${ResourceName}`];
+      delete schema[`type resUpdate${ResourceName}`];
+      delete schema[`type resDelete${ResourceName}`];
+    }
   }
   return schema;
 };
@@ -289,22 +304,15 @@ export const gqlSchema = async ({
         # these are for jsonb cases where you do not care to fully type
         scalar JSONB
 
-        
+
         ${items.join(ln)}
 
     `;
 
-
   let typeDefs = null;
-  fs.writeFileSync('gql_schema.txt', typeDefsString);
-  try{
+  try {
     typeDefs = gql(typeDefsString);
-  }
-  catch(err){
-    console.log('**********');
-    console.log('oooo gql.err');
-    console.log(err);
-    console.log('**********');
+  } catch (err) {
     throw err;
   }
 
@@ -312,7 +320,6 @@ export const gqlSchema = async ({
     typeDefsString,
     typeDefs,
   };
-  
 };
 
 const apiType = "GRAPHQL";
@@ -421,7 +428,8 @@ export const gqlModule = async ({
     ({ Query, Mutation }, [name, resource]) => {
       const ResourceName = pascalCase(name);
       const resolver = makeServiceResolver(resource);
-      return {
+
+      const output = {
         Query: {
           ...Query,
           [`Read${ResourceName}`]: resolver("read"),
@@ -434,6 +442,19 @@ export const gqlModule = async ({
           [`Delete${ResourceName}`]: resolver("delete"),
         },
       };
+
+      const keys = Object.values(dbResources[name]).filter(
+        (item: any) => item.primarykey
+      );
+
+      // if resource lacks keys -- delete resolvers for unique records
+      if (!keys.length) {
+        delete output.Query[`Read${ResourceName}`];
+        delete output.Mutation[`Update${ResourceName}`];
+        delete output.Mutation[`Delete${ResourceName}`];
+      }
+
+      return output;
     },
     { Query: {}, Mutation: {} }
   );

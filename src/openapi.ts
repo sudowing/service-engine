@@ -151,9 +151,9 @@ export const genDatabaseResourceOpenApiDocs = async ({
   const dbDataTypetoOA3DataType = (dbDataType) => {
     switch (dbDataType) {
       case "integer":
-      // ignore numeric and double precision here as they are now strings due to arbitrary precision
-      // case "numeric":
-      // case "double precision":
+        // ignore numeric and double precision here as they are now strings due to arbitrary precision
+        // case "numeric":
+        // case "double precision":
         const type = dbDataType === "integer" ? "integer" : "number";
         const format = dbDataType === "double precision" ? "double" : undefined;
         return { type, format };
@@ -366,6 +366,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
       const nonTableResource = nonTableResources.includes(
         dbResources[resource][searchEntries[0][0]].resource_type
       );
+      // seems open-api was configured to not publish routes for keyed URLS if no keys already. must confirm
       if (nonTableResource) {
         delete record[pathResource].post;
         const uniqueRecord = record[pathResourceRecord];

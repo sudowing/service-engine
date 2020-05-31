@@ -88,6 +88,7 @@ export class Resource implements ts.IClassResource {
   public logger: bunyan;
   public name: string;
   public validator: Joi.Schema;
+  public schemaResource: ts.ISchemaResource;
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
   public meta: ts.IValidationExpanderMeta;
@@ -100,12 +101,14 @@ export class Resource implements ts.IClassResource {
     logger,
     name,
     validator,
+    schemaResource
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
     this.logger = logger;
     this.name = name;
     this.validator = validator;
+    this.schemaResource = schemaResource;
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
     this.report = report;
@@ -154,6 +157,8 @@ export class Resource implements ts.IClassResource {
       db: this.db,
       st: this.st,
       resource: this.name,
+      schemaResource: this.schemaResource,
+
     };
   }
 
