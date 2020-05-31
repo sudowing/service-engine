@@ -4,8 +4,8 @@ import { convertMetersToDecimalDegrees } from "./utils";
 
 /* tslint:disable */
 
-export const sqlSchemaResource = ({resource_schema, resource_name}) =>
-  `${resource_schema}.${resource_name}`
+export const sqlSchemaResource = ({ resource_schema, resource_name }) =>
+  `${resource_schema}.${resource_name}`;
 
 export const toSearchQuery = ({
   db,
@@ -73,7 +73,8 @@ export const toCreateQuery = ({
   query,
   context,
   schemaResource,
-}: ts.IParamsToQueryBase) => db.insert(query, context.fields).into(sqlSchemaResource(schemaResource)); // fields exists. was set in generic
+}: ts.IParamsToQueryBase) =>
+  db.insert(query, context.fields).into(sqlSchemaResource(schemaResource)); // fields exists. was set in generic
 
 export const toReadQuery = ({
   db,
@@ -83,7 +84,10 @@ export const toReadQuery = ({
   context,
   schemaResource,
 }: ts.IParamsToQueryBase) =>
-  db.from(sqlSchemaResource(schemaResource)).select(context.fields).where(query); // fields exists. was set in generic
+  db
+    .from(sqlSchemaResource(schemaResource))
+    .select(context.fields)
+    .where(query); // fields exists. was set in generic
 
 export const toUpdateQuery = (keys: string[]) => ({
   db,
@@ -135,7 +139,9 @@ export const toDeleteQuery = (keys: string[]) => ({
   pk.active = true;
 
   const sqlcount = db(sqlSchemaResource(schemaResource)).count().where(pk);
-  const sqlUpdate = db(sqlSchemaResource(schemaResource)).where(pk).update({ active: false });
+  const sqlUpdate = db(sqlSchemaResource(schemaResource))
+    .where(pk)
+    .update({ active: false });
 
   const softDelete = new Promise(async (resolve, reject) => {
     try {

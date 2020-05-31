@@ -122,11 +122,6 @@ export const serviceRouters = async ({
     const url = ctx.request.url;
     const record = uniqueResource(url);
 
-    console.log('**********');
-    console.log('oooo.{category, resource}');
-    console.log(JSON.stringify({category, resource}));
-    console.log('**********');
-
     // only process for /service & /debug
     if (category !== "service" && category !== "debug") {
       ctx.response.status = HTTP_STATUS.NOT_FOUND;

@@ -37,19 +37,31 @@ export const ignite = async ({ db, metadata }) => {
     dbResourceRawRows,
   });
 
-  const mapSchemaResources = dbResourceRawRows.reduce((resourceMap, {resource_schema, resource_name}) =>
-    ({
+  const mapSchemaResources = dbResourceRawRows.reduce(
+    (resourceMap, { resource_schema, resource_name }) => ({
       ...resourceMap,
-      [`${resource_schema}_${resource_name}`]: { resource_schema, resource_name }
-    }), {});
+      [`${resource_schema}_${resource_name}`]: {
+        resource_schema,
+        resource_name,
+      },
+    }),
+    {}
+  );
 
   // this has other uses -- needs to be isolated
-  const Resources = Object.entries(
-    validators
-  ).map(([name, validator]: TDatabaseResources) => [
-    name,
-    new Resource({ db, st, logger, name, validator, schemaResource: mapSchemaResources[name] }),
-  ]);
+  const Resources = Object.entries(validators).map(
+    ([name, validator]: TDatabaseResources) => [
+      name,
+      new Resource({
+        db,
+        st,
+        logger,
+        name,
+        validator,
+        schemaResource: mapSchemaResources[name],
+      }),
+    ]
+  );
 
   const { AppModule } = await gqlModule({
     validators,

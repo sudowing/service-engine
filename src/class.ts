@@ -105,7 +105,7 @@ export class Resource implements ts.IClassResource {
     logger,
     name,
     validator,
-    schemaResource
+    schemaResource,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -162,7 +162,6 @@ export class Resource implements ts.IClassResource {
       st: this.st,
       resource: this.name,
       schemaResource: this.schemaResource,
-
     };
   }
 
@@ -218,7 +217,10 @@ export class Resource implements ts.IClassResource {
     const { context, ...parsed } = this.contextParser(input);
 
     context.fields = context.fields || Object.keys(this.report.search);
-    context.limit = context.limit && context.limit <= PAGINATION_LIMIT ? context.limit : PAGINATION_LIMIT;
+    context.limit =
+      context.limit && context.limit <= PAGINATION_LIMIT
+        ? context.limit
+        : PAGINATION_LIMIT;
 
     if (parsed.error) {
       this.logger.error(

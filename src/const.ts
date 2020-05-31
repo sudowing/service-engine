@@ -75,7 +75,6 @@ export const DEFINED_ARG_LENGTHS = {
 
 export const SYMBOL_GEOQUERY = Symbol("geoquery");
 
-
 export const SYMBOL_GEOQUERY_POINT = Symbol("geoquery-point");
 export const SYMBOL_GEOQUERY_LINE = Symbol("geoquery-line");
 export const SYMBOL_GEOQUERY_LSEG = Symbol("geoquery-lseg");
@@ -91,8 +90,6 @@ export const SYMBOLS_GEO_BOX = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_BOX];
 export const SYMBOLS_GEO_PATH = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_PATH];
 export const SYMBOLS_GEO_POLYGON = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_POLYGON];
 export const SYMBOLS_GEO_CIRCLE = [SYMBOL_GEOQUERY, SYMBOL_GEOQUERY_CIRCLE];
-
-
 
 export const SYMBOL_SOFT_DELETE = Symbol("soft_delete");
 export const SYMBOL_UNIQUE_KEY_COMPONENT = Symbol(
