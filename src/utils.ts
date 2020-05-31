@@ -344,7 +344,8 @@ export const searchQueryParser = (
 
 export const queryContextParser = (
   validator: Joi.Schema,
-  query: ts.IParamsSearchQueryParser
+  query: ts.IParamsSearchQueryParser,
+  apiType: string
 ): ts.IQueryContextResponse => {
   const errors = [];
   const context: ts.ISearchQueryContext = {
@@ -354,7 +355,12 @@ export const queryContextParser = (
 
   Object.entries(query).forEach(([key, rawValue]) => {
     if (context.hasOwnProperty(key)) {
-      const value = contextTransformer(key, rawValue);
+      let value: any = rawValue;
+      if (apiType === "REST") {
+        // NEED TO SKIP THIS FOR GRAPHQL CALLS -- they'll send the arrays & types
+        value = contextTransformer(key, rawValue);
+      }
+
       // add order by and fields values to set to ensure they're all part of the validator
       if (["fields", "orderBy"].includes(key)) {
         // orderBy value is an array of obects. need to map to get the field names
