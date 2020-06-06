@@ -31,7 +31,9 @@ export const ignite = async ({ db, metadata }) => {
   });
 
   // these are specific to the db engine version
-  const { dbSurveyQuery, joiBase } = getDatabaseResources({ db });
+  const { dbSurveyQuery, joiBase, toSchemaScalar } = getDatabaseResources({
+    db,
+  });
 
   const { rows: dbResourceRawRows } = await db.raw(dbSurveyQuery);
 
@@ -72,6 +74,7 @@ export const ignite = async ({ db, metadata }) => {
     dbResources,
     dbResourceRawRows,
     Resources,
+    toSchemaScalar,
   });
 
   const { schema, context } = AppModule;
@@ -87,6 +90,7 @@ export const ignite = async ({ db, metadata }) => {
     dbResources,
     dbResourceRawRows,
     Resources,
+    toSchemaScalar,
   });
 
   const App = new Koa()

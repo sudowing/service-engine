@@ -37,6 +37,7 @@ export const serviceRouters = async ({
   dbResources,
   dbResourceRawRows,
   Resources,
+  toSchemaScalar,
 }) => {
   const appRouter = new Router();
   const serviceRouter = new Router({
@@ -75,6 +76,7 @@ export const serviceRouters = async ({
       dbResources,
       dbResourceRawRows,
       Resources,
+      toSchemaScalar,
     });
     ctx.response.body = typeDefsString;
   });

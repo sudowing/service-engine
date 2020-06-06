@@ -235,7 +235,135 @@ export const postgres = ({ migrationTable }) => {
     }
   };
 
-  return { dbSurveyQuery, joiBase };
+  const toSchemaScalar = (type: string) => {
+    switch (type) {
+      // 8.1. Numeric Types":
+      case "smallint":
+      case "integer":
+      case "bigint":
+        return "Float";
+      case "decimal":
+      case "numeric":
+      case "real":
+      case "double precision":
+        return "String"; // String because of arbitrary precision that cannot be jsonifieds
+      case "smallserial":
+      case "serial":
+      case "bigserial":
+        return "Float";
+      case "int2":
+      case "int4":
+      case "int8":
+        return "Float";
+      // 8.2. Monetary Types":
+      case "money || bigint in js":
+        return "String"; // string as it is arbitrary length
+      // 8.3. Character Types":
+      // case "character varying(n)": // ignore. default will be string
+      // case "varchar(n)": // ignore. default will be string
+      // case "character(n)": // ignore. default will be string
+      // case "char(n)": // ignore. default will be string
+      case "character varying":
+      case "text":
+      case '"char"':
+      case "name":
+        return "String";
+      // 8.4. Binary Data Types":
+      case "bytea":
+        return "String";
+      // 8.5. Date/Time Types":
+      // case "timestamp": tz optional // ignore. default will be string
+      // case "timestamp": wtz // ignore. default will be string
+      case "timestamp without time zone":
+      case "date":
+      // case "time": tz optional // ignore. default will be string
+      // case "time": wtz // ignore. default will be string
+      case "interval":
+        return "String";
+      // 8.6. Boolean Type":
+      case "boolean":
+        return "Boolean";
+      // 8.7. Enumerated Types":
+      // ignore. default will be string
+      // 8.8. Geometric Types":
+      case "point":
+      case "line":
+      case "lseg":
+      case "box":
+      case "path":
+      case "path":
+      case "polygon":
+      case "circle":
+        return "String"; // will want geoJson on output
+      // 8.9. Network Address Types":
+      case "cidr":
+      case "inet":
+      case "macaddr":
+        return "String";
+      // 8.10. Bit String Types":
+      // case "bit(n)": // ignore. default will be string
+      // case "bit varying(n)": // ignore. default will be string
+      //    return 'String';
+
+      // 8.11. Text Search Types":
+      // 8.11.1. tsvector":
+      // 8.11.2. tsquery":
+
+      // 8.12. UUID Type":
+      case "uuid":
+      case "string":
+        return "String";
+      // 8.13. XML Type":
+      case "xml":
+        return "String";
+      // 8.14. JSON Types":
+      case "json":
+      case "jsonb":
+      case "jsonpath":
+        return "String"; // will want to use JSONB on output
+
+      // 8.15. Arrays":
+      // ignore. default will be string
+      // in the future -- breaking change will type
+
+      // 8.16. Composite Types":
+      // ignore. default will be string
+
+      // 8.17. Range Types":
+      case "int4range":
+      case "int8range":
+        return "Float";
+      case "numrange":
+      case "* float":
+        return "Float";
+      case "tsrange":
+      case "tstzrange":
+      case "daterange":
+        return "String";
+      // 8.18. Domain Types": // ignore. let default catch it
+      // 8.19. Object Identifier Types":
+      case "oid":
+        return "Float";
+      case "regproc":
+      case "regprocedure":
+      case "regoper":
+      case "regoperator":
+      case "regclass":
+      case "regtype":
+      case "regrole":
+      case "regnamespace":
+      case "regconfig":
+      case "regdictionary":
+        return "String";
+      // 8.20. pg_lsn Type":
+      case "pg_lsn":
+        return "String";
+      default:
+        return "String";
+    }
+  };
+
+  return { dbSurveyQuery, joiBase, toSchemaScalar };
 };
 
 export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
