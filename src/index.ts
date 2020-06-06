@@ -11,7 +11,8 @@ import { createLogger } from "bunyan";
 
 import { prepRequestForService } from "./middleware";
 import { serviceRouters } from "./routers";
-import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
+import { getDatabaseResources } from "./integration";
+import { genDatabaseResourceValidators } from "./utils";
 import { Resource } from "./class";
 import { TDatabaseResources } from "./interfaces";
 import { gqlModule } from "./graphql";
@@ -29,12 +30,15 @@ export const ignite = async ({ db, metadata }) => {
     level: 0,
   });
 
-  const { rows: dbResourceRawRows } = await db.raw(
-    getDatabaseResources({ db })
-  );
+  // these are specific to the db engine version
+  const { dbSurveyQuery, joiBase } = getDatabaseResources({ db });
+
+  const { rows: dbResourceRawRows } = await db.raw(dbSurveyQuery);
+
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
     dbResourceRawRows,
+    joiBase,
   });
 
   const mapSchemaResources = dbResourceRawRows.reduce(
