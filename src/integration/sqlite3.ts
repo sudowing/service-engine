@@ -111,7 +111,7 @@ export const sqlite3 = ({ migrationTable }) => {
         p.name resource_column_name,
         p."notnull" "notnull",
         lower(p.type) type,
-        p.pk primary_key,
+        p.pk primarykey,
         CASE unique_idx.origin
             WHEN 'u'
                 THEN 1
