@@ -35,7 +35,9 @@ export const ignite = async ({ db, metadata }) => {
     db,
   });
 
-  const { rows: dbResourceRawRows } = await db.raw(dbSurveyQuery);
+  const payload = await db.raw(dbSurveyQuery);
+  // const { rows: dbResourceRawRows } = payload;
+  const dbResourceRawRows = payload.hasOwnProperty('rows') ? payload.rows : payload;
 
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
