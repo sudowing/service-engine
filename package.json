@@ -1,6 +1,6 @@
 {
   "name": "service-engine",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Microservice Framework for Database Resources publishing resources (tables, views, materialized views) with REST & GraphQL interfaces",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
