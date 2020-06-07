@@ -73,3 +73,18 @@ query someQuery($payload: inAccount, $context: inputContext, $options: serviceIn
   // oscar: Joi.number().invalid(...engine.SYMBOLS_GEO_POINT),
   // papa: Joi.number().invalid(...engine.SYMBOLS_GEO_POLYGON),
   // zulu: Joi.boolean().invalid(engine.SYMBOL_SOFT_DELETE),
+
+
+
+
+
+
+$ npm install knex --save
+
+# Then add one of the following (adding a --save) flag:
+$ npm install pg
+$ npm install sqlite3
+$ npm install mysql
+$ npm install mysql2
+$ npm install oracledb
+$ npm install mssql

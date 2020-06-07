@@ -3,6 +3,7 @@ import * as HTTP_STATUS from "http-status";
 
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import * as cnst from "./const";
+import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
 
 import { parse as parseURL } from "url";
@@ -37,6 +38,8 @@ export const serviceRouters = async ({
   dbResources,
   dbResourceRawRows,
   Resources,
+  toSchemaScalar,
+  hardDelete,
 }) => {
   const appRouter = new Router();
   const serviceRouter = new Router({
@@ -75,6 +78,8 @@ export const serviceRouters = async ({
       dbResources,
       dbResourceRawRows,
       Resources,
+      toSchemaScalar,
+      hardDelete,
     });
     ctx.response.body = typeDefsString;
   });
@@ -165,10 +170,22 @@ export const serviceRouters = async ({
           }); // keys must come from querystring
 
     let sqlSearchCount = null; // placeholder for unpagination count
-    const serviceResponse = resources[resource][operation]({
+
+    const payload:
+      | ts.IParamsProcessBase
+      | ts.IParamsProcessWithSearch
+      | ts.IParamsProcessDelete = {
       ...input,
-      reqId,
-    });
+      requestId: reqId,
+    };
+
+    if (operation === cnst.DELETE.toLowerCase()) {
+      // fighting typescript a little here. a bit tired to work out the details
+      // tslint:disable-next-line: no-string-literal
+      payload["hardDelete"] = !!hardDelete;
+    }
+
+    const serviceResponse = resources[resource][operation]({ ...payload });
 
     // insert db, components
     if (serviceResponse.result) {

@@ -269,7 +269,7 @@ export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
   };
 };
 
-const contextTransformer = (attribute, input) => {
+export const contextTransformer = (attribute, input) => {
   switch (attribute) {
     case cnst.FIELDS:
       return input.split(cnst.COMMA);
@@ -481,3 +481,69 @@ export const nameRestEndpointGetRecords = (
   resourceEndpoint: `/${prefix}/${resource}`,
   uniqueEndpoint: `/${prefix}/${resource}/record`,
 });
+
+export const joiKeyComponentText = (keyComponent: boolean) =>
+  keyComponent ? `.invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT)` : ``;
+
+export const joiRequiredText = (required: boolean) =>
+  required ? `.required()` : ``;
+
+export const joiKeyComponent = (joi: Joi.Schema, keyComponent: boolean) =>
+  keyComponent ? joi.invalid(cnst.SYMBOL_UNIQUE_KEY_COMPONENT) : joi;
+
+export const joiRequired = (joi: Joi.Schema, required: boolean) =>
+  required ? joi : joi; // need to eval .required() here... think it's breaking the framework
+
+export const genDatabaseResourceValidators = async ({
+  db,
+  dbResourceRawRows,
+  joiBase,
+}: ts.IDatabaseBootstrapRaw) => {
+  const resources = dbResourceRawRows.reduce(
+    (
+      catalog,
+      {
+        resource_schema,
+        resource_type,
+        resource_name,
+        resource_column_id,
+        resource_column_name,
+        notnull,
+        type,
+        primarykey,
+        uniquekey,
+        foreignkey_fieldnum,
+        foreignkey,
+        foreignkey_connnum,
+      }
+    ) => {
+      // this needs to be a fn as the upstream map generates the same string `mapSchemaResources`
+      const resourceName = `${resource_schema}_${resource_name}`;
+      if (!catalog[resourceName]) catalog[resourceName] = {};
+      catalog[resourceName][resource_column_name] = joiKeyComponent(
+        joiBase(type),
+        primarykey
+      );
+      return catalog;
+    },
+    {}
+  );
+
+  const dbResources = dbResourceRawRows.reduce((collection, record) => {
+    const resourceName = `${record.resource_schema}_${record.resource_name}`;
+
+    if (!collection[resourceName]) collection[resourceName] = {};
+    collection[resourceName][record.resource_column_name] = record;
+    return collection;
+  }, {});
+
+  const validators = Object.entries(resources).reduce(
+    (jois, [key, value]: [string, object]) => ({
+      ...jois,
+      [key]: Joi.object(value),
+    }),
+    {}
+  );
+
+  return { validators, dbResources };
+};

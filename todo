@@ -26,3 +26,30 @@ ALL VALIDATION needs to be async
 add support for mysql (count object will look different)
 add support for sqlite
 add support for oracle
+
+
+
+
+config based flag for custom types (which will need to all be strings)
+if yes,
+    strings
+if no...
+    throw error || graceful shutdown with verbose messages
+
+
+standardize connection for db config
+
+connect to mysql and sqlite
+
+
+a
+
+
+hard delete vs soft delete.
+Currently only soft delete is enabled
+
+create and update do not return for sqlite3
+
+create many doesnt seem to work. QA against REST
+
+read with zero matches doesn't 404

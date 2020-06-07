@@ -11,10 +11,16 @@ import { createLogger } from "bunyan";
 
 import { prepRequestForService } from "./middleware";
 import { serviceRouters } from "./routers";
-import { getDatabaseResources, genDatabaseResourceValidators } from "./queries";
+import { getDatabaseResources } from "./integration";
+import { genDatabaseResourceValidators, castBoolean } from "./utils";
 import { Resource } from "./class";
 import { TDatabaseResources } from "./interfaces";
 import { gqlModule } from "./graphql";
+
+// currently this is server wide setting. future will be per resource
+const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
+  ? castBoolean(process.env.ENABLE_HARD_DELETE)
+  : true;
 
 export const ignite = async ({ db, metadata }) => {
   // only if db is postgres. will have to alter for mysql etc
@@ -29,12 +35,21 @@ export const ignite = async ({ db, metadata }) => {
     level: 0,
   });
 
-  const { rows: dbResourceRawRows } = await db.raw(
-    getDatabaseResources({ db })
-  );
+  // these are specific to the db engine version
+  const { dbSurveyQuery, joiBase, toSchemaScalar } = getDatabaseResources({
+    db,
+  });
+
+  const payload = await db.raw(dbSurveyQuery);
+  // const { rows: dbResourceRawRows } = payload;
+  const dbResourceRawRows = payload.hasOwnProperty("rows")
+    ? payload.rows
+    : payload;
+
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
     dbResourceRawRows,
+    joiBase,
   });
 
   const mapSchemaResources = dbResourceRawRows.reduce(
@@ -68,6 +83,8 @@ export const ignite = async ({ db, metadata }) => {
     dbResources,
     dbResourceRawRows,
     Resources,
+    toSchemaScalar,
+    hardDelete: ENABLE_HARD_DELETE,
   });
 
   const { schema, context } = AppModule;
@@ -83,6 +100,8 @@ export const ignite = async ({ db, metadata }) => {
     dbResources,
     dbResourceRawRows,
     Resources,
+    toSchemaScalar,
+    hardDelete: ENABLE_HARD_DELETE,
   });
 
   const App = new Koa()
@@ -99,6 +118,18 @@ export const ignite = async ({ db, metadata }) => {
     app: App,
     path: `/${metadata.appName}/graphql/`,
   });
+
+  // little self promotion for all my effort :+1:
+  logger.info(
+    {
+      author: "Joe Wingard",
+      linkedin: "https://www.linkedin.com/in/joewingard/",
+      github: "https://github.com/sudowing",
+      docker: "https://hub.docker.com/_/sudowing",
+      keybase: "https://keybase.io/sudowing",
+    },
+    `🤝 Let's do some work together!`
+  );
 
   return { App, logger, apolloServer };
 };

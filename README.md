@@ -11,12 +11,12 @@ npm i knex pg service-engine
 
 ### example app
 ```
-import * as knex from "knex";
-import { ignite } from "service-engine";
+const knex = require('knex');
+const ignite = require('service-engine').ignite;
 
-const port = process.env.PORT || 8080;
+const knexConfig = require('../knexfile');
+const metadata = require("./metadata.json");
 
-// connection string to postgres DB (other dbs coming soon)
 const knexConfig = {
     client: 'pg',
     connection: 'postgres://postgres:password@localhost:5432/postgres',
@@ -24,20 +24,22 @@ const knexConfig = {
 
 // consider all these keys required for now
 const metadata = {
-    appShortName: 'sample-app-name',
-    title: "Sample App Name",
-    description: "Basic description of service resources.",
-    termsOfService: "http://website/terms/",
+    appShortName: "some-app-service",
+    title: "Some App Service",
+    description: "Basic description of core resources.",
+    termsOfService: "http://website.io/terms/",
     name: "Joe Wingard",
     email: "open-source@joewingard.com",
     url: "https://github.com/sudowing/service-engine",
     servers: [
-        `http://localhost:${port}`,
+        "http://localhost:8080",
         "https://alpha.com",
         "https://bravo.com",
         "https://charlie.com"
     ]
 };
+
+const port = 8080;
 
 const db = knex(knexConfig);
 
@@ -46,14 +48,12 @@ const main = async () => {
 
   const { App, apolloServer, logger } = await ignite({ db, metadata });
 
-  logger.info("DB Migrations Run 🔧");
+  logger.info("🔧 DB Migrations Run");
 
   App.listen({ port }, () => {
     logger.info({ port 
     }, `🔥 REST Server ready at http://localhost:${port}/openapi`);
-
     logger.info(`🚀 GraphQL Server ready at http://localhost:${port}${apolloServer.graphqlPath}`);
-
   });
 };
 

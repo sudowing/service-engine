@@ -297,6 +297,7 @@ export interface IDatabaseBootstrap {
 
 export interface IDatabaseBootstrapRaw extends IDatabaseBootstrap {
   dbResourceRawRows: any;
+  joiBase: any;
 }
 
 export type TDatabaseResources = [string, Joi.Schema];

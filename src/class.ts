@@ -71,6 +71,8 @@ export const genericResourceCall = (
     ...caller.queryBase(),
     query,
     context,
+    // tslint:disable-next-line: no-string-literal
+    hardDelete: !!input["hardDelete"],
   });
 
   caller.logger.info(
@@ -199,6 +201,7 @@ export class Resource implements ts.IClassResource {
   update(input: ts.IParamsProcessWithSearch) {
     return this.generics.update(input);
   }
+
   delete(input: ts.IParamsProcessDelete) {
     return this.generics.delete(input);
   }
