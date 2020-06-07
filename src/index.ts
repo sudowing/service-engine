@@ -108,5 +108,14 @@ export const ignite = async ({ db, metadata }) => {
     path: `/${metadata.appName}/graphql/`,
   });
 
+  // little self promotion for all my effort :+1:
+  logger.info({
+    author: 'Joe Wingard',
+    linkedin: 'https://www.linkedin.com/in/joewingard/',
+    github: 'https://github.com/sudowing',
+    docker: 'https://hub.docker.com/_/sudowing',
+    keybase: 'https://keybase.io/sudowing',
+  }, `🤝 Let's do some work together!`);
+
   return { App, logger, apolloServer };
 };
