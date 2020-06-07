@@ -1,8 +1,8 @@
 import * as Joi from "@hapi/joi";
 import * as cnst from ".././const";
 
-// defintions based on psql 12 datatypes
-// https://www.postgresql.org/docs/12/datatype.html
+// defintions based on sqlite 3 datatypes
+// https://www.sqlite.org/datatype3.html
 
 export const joiBase = (type: string) => {
   switch (type) {
@@ -77,11 +77,15 @@ export const joiBase = (type: string) => {
     // 8.10. Bit String Types":
     // case "bit(n)": // ignore. default will be string
     // case "bit varying(n)": // ignore. default will be string
+    //    return Joi.string();
+
     // 8.11. Text Search Types":
     // 8.11.1. tsvector":
     // 8.11.2. tsquery":
+
     // 8.12. UUID Type":
     case "uuid":
+    case "string":
       return Joi.string();
     // 8.13. XML Type":
     case "xml":
@@ -134,7 +138,9 @@ export const joiBase = (type: string) => {
         return Joi.string().length(Number(match.groups.len));
       }
 
-      return Joi.string(); // string to support custom data types in the db & ignored char/text fields
+      // need to catch other types ignored above via REGEX
+
+      return Joi.string(); // string to support custom data types in the db
   }
 };
 
@@ -266,7 +272,7 @@ export const toSchemaScalar = (type: string) => {
   }
 };
 
-export const postgres = ({ migrationTable }) => {
+export const sqlite3 = ({ migrationTable }) => {
   const dbSurveyQuery = `
       select distinct
         resource_schema,
