@@ -47,3 +47,5 @@ a
 
 hard delete vs soft delete.
 Currently only soft delete is enabled
+
+create and update do not return for sqlite3
