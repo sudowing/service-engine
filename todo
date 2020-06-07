@@ -43,3 +43,7 @@ connect to mysql and sqlite
 
 
 a
+
+
+hard delete vs soft delete.
+Currently only soft delete is enabled

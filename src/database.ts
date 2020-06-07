@@ -4,8 +4,9 @@ import { convertMetersToDecimalDegrees } from "./utils";
 
 /* tslint:disable */
 
+// sqlite doesnt have schemas and as such this will break the knex querybuilder
 export const sqlSchemaResource = ({ resource_schema, resource_name }) =>
-  `${resource_schema}.${resource_name}`;
+  resource_schema === '' ? resource_name : `${resource_schema}.${resource_name}`;
 
 export const toSearchQuery = ({
   db,
@@ -131,11 +132,10 @@ export const toDeleteQuery = (keys: string[]) => ({
   );
 
   if (hardDelete) {
-    // hard delete
     return db(sqlSchemaResource(schemaResource)).where(pk).delete();
   }
 
-  // if soft delete
+  // if soft delete [this will need to support custom `active` columns as dbs likely have these flags with different names]
   pk.active = true;
 
   const sqlcount = db(sqlSchemaResource(schemaResource)).count().where(pk);

@@ -269,7 +269,7 @@ export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
   };
 };
 
-const contextTransformer = (attribute, input) => {
+export const contextTransformer = (attribute, input) => {
   switch (attribute) {
     case cnst.FIELDS:
       return input.split(cnst.COMMA);

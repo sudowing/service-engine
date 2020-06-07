@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { HEADER_REQUEST_ID } from "./const";
 import { IServiceResolverResponse } from "./interfaces";
+import { contextTransformer } from './utils'
 
 export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
   const schema = {
@@ -154,7 +155,7 @@ export const gqlSchema = async ({
           seperator: String
           notWhere: Boolean
           statementContext: String
-          orderBy: [String!]
+          orderBy: String
           page: Float
           limit: Float
         }
@@ -198,7 +199,7 @@ export const gqlSchema = async ({
 };
 
 const apiType = "GRAPHQL";
-export const makeServiceResolver = (resource) => (operation: string) => async (
+export const makeServiceResolver = (resource, hardDelete) => (operation: string) => async (
   obj,
   args,
   ctx,
@@ -214,12 +215,22 @@ export const makeServiceResolver = (resource) => (operation: string) => async (
   // cant use this
   // const fields = Object.keys(graphqlFields(info));
   // context.fields = fields;
+  console.log('**********');
+  console.log('oooo.{context}');
+  console.log(JSON.stringify({context}));
+  console.log('**********');
+  if (context.orderBy) {
+    context.orderBy = contextTransformer('orderBy', context.orderBy)
+  }
+
+
 
   const serviceResponse = resource[operation]({
     payload: operation !== "update" ? payload : { ...payload, ...keys },
     context,
-    reqId,
+    requestId: reqId,
     apiType,
+    hardDelete
   });
 
   if (serviceResponse.result) {
@@ -292,6 +303,7 @@ export const gqlModule = async ({
   dbResourceRawRows,
   Resources,
   toSchemaScalar,
+  hardDelete
 }) => {
   const { typeDefsString, typeDefs } = await gqlSchema({
     validators,
@@ -304,7 +316,7 @@ export const gqlModule = async ({
   const serviceResolvers = Resources.reduce(
     ({ Query, Mutation }, [name, resource]) => {
       const ResourceName = pascalCase(name);
-      const resolver = makeServiceResolver(resource);
+      const resolver = makeServiceResolver(resource, hardDelete);
 
       const output = {
         Query: {

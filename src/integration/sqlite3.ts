@@ -42,7 +42,7 @@ export const joiBase = (type: string) => {
     default:
       const match = type.match(cnst.REGEX_CHAR);
       if (match) {
-        return Joi.string().length(Number(match.groups.len));
+        return Joi.string().max(Number(match.groups.len));
       }
       if (type.startsWith('decimal')){
         return Joi.number();
