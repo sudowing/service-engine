@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { HEADER_REQUEST_ID } from "./const";
 import { IServiceResolverResponse } from "./interfaces";
-import { contextTransformer } from './utils'
+import { contextTransformer } from "./utils";
 
 export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
   const schema = {
@@ -199,12 +199,9 @@ export const gqlSchema = async ({
 };
 
 const apiType = "GRAPHQL";
-export const makeServiceResolver = (resource, hardDelete) => (operation: string) => async (
-  obj,
-  args,
-  ctx,
-  info
-) => {
+export const makeServiceResolver = (resource, hardDelete) => (
+  operation: string
+) => async (obj, args, ctx, info) => {
   const reqId = ctx.reqId || "reqId no issued";
   const defaultInput = { payload: {}, context: {}, options: {} };
 
@@ -215,22 +212,16 @@ export const makeServiceResolver = (resource, hardDelete) => (operation: string)
   // cant use this
   // const fields = Object.keys(graphqlFields(info));
   // context.fields = fields;
-  console.log('**********');
-  console.log('oooo.{context}');
-  console.log(JSON.stringify({context}));
-  console.log('**********');
   if (context.orderBy) {
-    context.orderBy = contextTransformer('orderBy', context.orderBy)
+    context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
-
-
 
   const serviceResponse = resource[operation]({
     payload: operation !== "update" ? payload : { ...payload, ...keys },
     context,
     requestId: reqId,
     apiType,
-    hardDelete
+    hardDelete,
   });
 
   if (serviceResponse.result) {
@@ -303,7 +294,7 @@ export const gqlModule = async ({
   dbResourceRawRows,
   Resources,
   toSchemaScalar,
-  hardDelete
+  hardDelete,
 }) => {
   const { typeDefsString, typeDefs } = await gqlSchema({
     validators,

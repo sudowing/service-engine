@@ -42,7 +42,9 @@ export const ignite = async ({ db, metadata }) => {
 
   const payload = await db.raw(dbSurveyQuery);
   // const { rows: dbResourceRawRows } = payload;
-  const dbResourceRawRows = payload.hasOwnProperty('rows') ? payload.rows : payload;
+  const dbResourceRawRows = payload.hasOwnProperty("rows")
+    ? payload.rows
+    : payload;
 
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
@@ -118,13 +120,16 @@ export const ignite = async ({ db, metadata }) => {
   });
 
   // little self promotion for all my effort :+1:
-  logger.info({
-    author: 'Joe Wingard',
-    linkedin: 'https://www.linkedin.com/in/joewingard/',
-    github: 'https://github.com/sudowing',
-    docker: 'https://hub.docker.com/_/sudowing',
-    keybase: 'https://keybase.io/sudowing',
-  }, `🤝 Let's do some work together!`);
+  logger.info(
+    {
+      author: "Joe Wingard",
+      linkedin: "https://www.linkedin.com/in/joewingard/",
+      github: "https://github.com/sudowing",
+      docker: "https://hub.docker.com/_/sudowing",
+      keybase: "https://keybase.io/sudowing",
+    },
+    `🤝 Let's do some work together!`
+  );
 
   return { App, logger, apolloServer };
 };

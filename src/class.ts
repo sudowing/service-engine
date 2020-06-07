@@ -72,7 +72,7 @@ export const genericResourceCall = (
     query,
     context,
     // tslint:disable-next-line: no-string-literal
-    hardDelete: !!input['hardDelete'],
+    hardDelete: !!input["hardDelete"],
   });
 
   caller.logger.info(
@@ -203,14 +203,6 @@ export class Resource implements ts.IClassResource {
   }
 
   delete(input: ts.IParamsProcessDelete) {
-
-    console.log('**********');
-    console.log('oooo.delete payload{input}');
-    console.log(JSON.stringify({input}));
-    console.log('**********');
-
-
-
     return this.generics.delete(input);
   }
 

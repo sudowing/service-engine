@@ -6,15 +6,15 @@ import * as cnst from ".././const";
 
 export const joiBase = (type: string) => {
   switch (type) {
-    case 'int':
-    case 'integer':
-    case 'tinyint':
-    case 'smallint':
-    case 'mediumint':
-    case 'bigint':
-    case 'unsigned big int':
-    case 'int2':
-    case 'int8':
+    case "int":
+    case "integer":
+    case "tinyint":
+    case "smallint":
+    case "mediumint":
+    case "bigint":
+    case "unsigned big int":
+    case "int2":
+    case "int8":
       return Joi.number().integer();
     // character(n) -- ignore. use default
     // varchar(n) -- ignore. use default
@@ -22,29 +22,29 @@ export const joiBase = (type: string) => {
     // nchar(n) -- ignore. use default
     // native character(n) -- ignore. use default
     // nvarchar(n) -- ignore. use default
-    case 'text':
-    case 'clob':
+    case "text":
+    case "clob":
       return Joi.string();
-    case 'blob':
-    case '':
+    case "blob":
+    case "":
       return Joi.string();
-    case 'real':
-    case 'double':
-    case 'double precision':
-    case 'float':
+    case "real":
+    case "double":
+    case "double precision":
+    case "float":
       return Joi.number();
-    case 'numeric':
+    case "numeric":
     // decimal(n1, n2) -- check for starts with
-    case 'boolean':
-    case 'date':
-    case 'datetime':
+    case "boolean":
+    case "date":
+    case "datetime":
       return Joi.number();
     default:
       const match = type.match(cnst.REGEX_CHAR);
       if (match) {
         return Joi.string().max(Number(match.groups.len));
       }
-      if (type.startsWith('decimal')){
+      if (type.startsWith("decimal")) {
         return Joi.number();
       }
 
@@ -54,50 +54,50 @@ export const joiBase = (type: string) => {
 
 export const toSchemaScalar = (type: string) => {
   switch (type) {
-    case 'int':
-    case 'integer':
-    case 'tinyint':
-    case 'smallint':
-    case 'mediumint':
-    case 'bigint':
-    case 'unsigned big int':
-    case 'int2':
-    case 'int8':
-      return 'Float';
+    case "int":
+    case "integer":
+    case "tinyint":
+    case "smallint":
+    case "mediumint":
+    case "bigint":
+    case "unsigned big int":
+    case "int2":
+    case "int8":
+      return "Float";
     // character(n) -- ignore. use default
     // varchar(n) -- ignore. use default
     // varying character(n) -- ignore. use default
     // nchar(n) -- ignore. use default
     // native character(n) -- ignore. use default
     // nvarchar(n) -- ignore. use default
-    case 'text':
-    case 'clob':
-      return 'String';
-    case 'blob':
-    case '':
-      return 'String';
-    case 'real':
-    case 'double':
-    case 'double precision':
-    case 'float':
-      return 'Float';
-    case 'numeric':
+    case "text":
+    case "clob":
+      return "String";
+    case "blob":
+    case "":
+      return "String";
+    case "real":
+    case "double":
+    case "double precision":
+    case "float":
+      return "Float";
+    case "numeric":
     // decimal(n1, n2) -- check for starts with
-    case 'boolean':
-    case 'date':
-    case 'datetime':
-      return 'Float';
+    case "boolean":
+    case "date":
+    case "datetime":
+      return "Float";
     default:
       // this doesn't matter here as the schema cannot enforce
       // const match = type.match(cnst.REGEX_CHAR);
       // if (match) {
       //   return Joi.string().length(Number(match.groups.len));
       // }
-      if (type.startsWith('decimal')){
-        return 'Float';
+      if (type.startsWith("decimal")) {
+        return "Float";
       }
 
-      return 'String';
+      return "String";
   }
 };
 
@@ -136,7 +136,7 @@ export const sqlite3 = ({ migrationTable }) => {
         and il.origin = 'u'
         and il."unique" = 1
     ) unique_idx
-      on 
+      on
           m.name = unique_idx.resource_name
           and
           p.name =unique_idx.resource_column_name

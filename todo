@@ -49,3 +49,7 @@ hard delete vs soft delete.
 Currently only soft delete is enabled
 
 create and update do not return for sqlite3
+
+create many doesnt seem to work. QA against REST
+
+read with zero matches doesn't 404

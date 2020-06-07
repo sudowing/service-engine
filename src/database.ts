@@ -6,7 +6,9 @@ import { convertMetersToDecimalDegrees } from "./utils";
 
 // sqlite doesnt have schemas and as such this will break the knex querybuilder
 export const sqlSchemaResource = ({ resource_schema, resource_name }) =>
-  resource_schema === '' ? resource_name : `${resource_schema}.${resource_name}`;
+  resource_schema === ""
+    ? resource_name
+    : `${resource_schema}.${resource_name}`;
 
 export const toSearchQuery = ({
   db,

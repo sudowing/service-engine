@@ -171,17 +171,21 @@ export const serviceRouters = async ({
 
     let sqlSearchCount = null; // placeholder for unpagination count
 
-    const payload: ts.IParamsProcessBase|ts.IParamsProcessWithSearch|ts.IParamsProcessDelete = {
+    const payload:
+      | ts.IParamsProcessBase
+      | ts.IParamsProcessWithSearch
+      | ts.IParamsProcessDelete = {
       ...input,
       requestId: reqId,
     };
 
     if (operation === cnst.DELETE.toLowerCase()) {
       // fighting typescript a little here. a bit tired to work out the details
-      payload['hardDelete'] = !!hardDelete;
+      // tslint:disable-next-line: no-string-literal
+      payload["hardDelete"] = !!hardDelete;
     }
 
-    const serviceResponse = resources[resource][operation]({...payload});
+    const serviceResponse = resources[resource][operation]({ ...payload });
 
     // insert db, components
     if (serviceResponse.result) {
