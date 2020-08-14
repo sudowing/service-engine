@@ -172,7 +172,7 @@ export class Resource implements ts.IClassResource {
   }
 
   contextParser(input: ts.IParamsProcessBase) {
-    let context: ts.ISearchQueryContext = cnst.SEARCH_QUERY_CONTEXT;
+    let context: ts.ISearchQueryContext = { ...cnst.SEARCH_QUERY_CONTEXT };
     let rejection: ts.IRejectResource = {
       errorType: undefined,
       error: undefined,
@@ -221,7 +221,6 @@ export class Resource implements ts.IClassResource {
       cnst.RESOURCE_CALL
     );
     const { context, ...parsed } = this.contextParser(input);
-
     context.fields = context.fields || Object.keys(this.report.search);
     context.limit =
       context.limit && context.limit <= PAGINATION_LIMIT
