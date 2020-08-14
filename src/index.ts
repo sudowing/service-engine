@@ -63,6 +63,10 @@ export const ignite = async ({ db, metadata }) => {
     {}
   );
 
+  const middlewarz = {
+    public_account: item => ({...item, email: 'clark.kent@dailybugle.net'}),
+  }
+
   // this has other uses -- needs to be isolated
   const Resources = Object.entries(validators).map(
     ([name, validator]: TDatabaseResources) => [
@@ -74,6 +78,7 @@ export const ignite = async ({ db, metadata }) => {
         name,
         validator,
         schemaResource: mapSchemaResources[name],
+        middlewareFn: middlewarz[name] || undefined,
       }),
     ]
   );
