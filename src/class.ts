@@ -95,6 +95,8 @@ export class Resource implements ts.IClassResource {
   public name: string;
   public validator: Joi.Schema;
   public schemaResource: ts.ISchemaResource;
+  public middlewareFn: ts.IObjectTransformer;
+
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
   public meta: ts.IValidationExpanderMeta;
@@ -108,6 +110,7 @@ export class Resource implements ts.IClassResource {
     name,
     validator,
     schemaResource,
+    middlewareFn,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -115,6 +118,7 @@ export class Resource implements ts.IClassResource {
     this.name = name;
     this.validator = validator;
     this.schemaResource = schemaResource;
+    this.middlewareFn = middlewareFn;
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
     this.report = report;
@@ -238,7 +242,7 @@ export class Resource implements ts.IClassResource {
     }
 
     const { errors, components } = this.meta.searchQueryParser(
-      input.payload,
+      this.middlewareFn ? this.middlewareFn(input.payload) : input.payload,
       context
     );
     if (errors.length) {

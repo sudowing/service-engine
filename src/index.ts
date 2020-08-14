@@ -14,7 +14,7 @@ import { serviceRouters } from "./routers";
 import { getDatabaseResources } from "./integration";
 import { genDatabaseResourceValidators, castBoolean } from "./utils";
 import { Resource } from "./class";
-import { TDatabaseResources } from "./interfaces";
+import { IObjectTransformerMap, TDatabaseResources } from "./interfaces";
 import { gqlModule } from "./graphql";
 
 // currently this is server wide setting. future will be per resource
@@ -22,7 +22,15 @@ const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
   ? castBoolean(process.env.ENABLE_HARD_DELETE)
   : true;
 
-export const ignite = async ({ db, metadata }) => {
+export const ignite = async ({
+  db,
+  metadata,
+  resourceSearchMiddleware: middlewarz,
+}: {
+  db: any;
+  metadata: any;
+  resourceSearchMiddleware?: IObjectTransformerMap;
+}) => {
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
 
@@ -74,6 +82,8 @@ export const ignite = async ({ db, metadata }) => {
         name,
         validator,
         schemaResource: mapSchemaResources[name],
+        middlewareFn:
+          middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
       }),
     ]
   );
