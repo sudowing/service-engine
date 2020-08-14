@@ -153,3 +153,17 @@ http://localhost:8080/sample-app-name/service/${schema}_${table}/?|orderBy=uuid:
 http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=t
 ```
 
+### resource search middleware
+Middleware can be defined that is applied to any search resources. This middleware takes as `input` an object comprised of qs args and returns a new object (that will still pass the validation). This can be useful for deriving additional search criteria from submitted queries. Think adding a partition key to a query by taking the first `n` chars from a handle -- or by appending a max bbox for a query using a point.
+
+example:
+```
+// object keys are resource endpoints `${schema}_${table/view/materialized-view}`
+const resourceSearchMiddleware = {
+  public_accounts: item => ({...item, email: 'clark.kent@dailyplanet.com'}),
+}
+
+// ...
+
+const { App, apolloServer, logger } = await ignite({ db, metadata, resourceSearchMiddleware });
+```
