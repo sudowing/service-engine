@@ -226,6 +226,10 @@ export interface IValidationExpander {
 
 export type IObjectTransformer = (obj: object) => object;
 
+export interface IObjectTransformerMap {
+  [index: string]: IObjectTransformer;
+}
+
 export interface IClassResourceConstructor {
   db: knex;
   st: knexPostgis.KnexPostgis;
@@ -256,7 +260,10 @@ export interface IClassResource {
   read(payload: IParamsProcessBase): IRejectResource | IResolveResource;
   update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
   delete(payload: IParamsProcessDelete): IRejectResource | IResolveResource;
-  search(payload: any, middlewareFn?: IObjectTransformer): IRejectResource | IResolveResource;
+  search(
+    payload: any,
+    middlewareFn?: IObjectTransformer
+  ): IRejectResource | IResolveResource;
 }
 
 export interface IRejectResource {
