@@ -260,10 +260,7 @@ export interface IClassResource {
   read(payload: IParamsProcessBase): IRejectResource | IResolveResource;
   update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
   delete(payload: IParamsProcessDelete): IRejectResource | IResolveResource;
-  search(
-    payload: any,
-    middlewareFn?: IObjectTransformer
-  ): IRejectResource | IResolveResource;
+  search(payload: any): IRejectResource | IResolveResource;
 }
 
 export interface IRejectResource {
