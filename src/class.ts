@@ -210,18 +210,20 @@ export class Resource implements ts.IClassResource {
     return this.generics.delete(input);
   }
 
-  search(input: ts.IParamsProcessBase) {
+  search(input: ts.IParamsProcessBase, { subqueryContext }: ts.ISubqueryOptions = {}) {
     const { requestId } = input;
+    const operation = !!subqueryContext ? cnst.SUBQUERY : cnst.SEARCH;
+
     this.logger.debug(
       {
         ...input,
         resource: this.name,
-        operation: cnst.SEARCH,
+        operation,
       },
       cnst.RESOURCE_CALL
     );
     const { context, ...parsed } = this.contextParser(input);
-    context.fields = context.fields || Object.keys(this.report.search);
+    context.fields = !!subqueryContext && context.fields ? context.fields : Object.keys(this.report.search);
     context.limit =
       context.limit && context.limit <= PAGINATION_LIMIT
         ? context.limit
@@ -232,12 +234,20 @@ export class Resource implements ts.IClassResource {
         {
           requestId,
           resource: this.name,
-          operation: cnst.SEARCH,
+          operation,
           errors: parsed.error,
         },
         cnst.CONTEXT_ERRORS
       );
       return util.rejectResource(parsed.errorType, parsed.error);
+    }
+
+    // if subqueryContext -- delete most the context keys
+    if(subqueryContext){
+      delete context.seperator;
+      delete context.orderBy;
+      delete context.page;
+      delete context.limit;
     }
 
     const { errors, components } = this.meta.searchQueryParser(
@@ -267,7 +277,7 @@ export class Resource implements ts.IClassResource {
       {
         requestId,
         resource: this.name,
-        operation: cnst.SEARCH,
+        operation,
         sql: sql.toString(),
       },
       cnst.RESOURCE_RESPONSE

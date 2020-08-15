@@ -260,7 +260,11 @@ export interface IClassResource {
   read(payload: IParamsProcessBase): IRejectResource | IResolveResource;
   update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
   delete(payload: IParamsProcessDelete): IRejectResource | IResolveResource;
-  search(payload: any): IRejectResource | IResolveResource;
+  search(payload: IParamsProcessBase, subqueryOptions?: ISubqueryOptions): IRejectResource | IResolveResource;
+}
+
+export interface ISubqueryOptions {
+  subqueryContext?: boolean;
 }
 
 export interface IRejectResource {
