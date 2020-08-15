@@ -3,6 +3,7 @@ export const READ = "read";
 export const UPDATE = "update";
 export const DELETE = "delete";
 export const SEARCH = "search";
+export const SUBQUERY = "subquery";
 
 export const GET = "GET";
 export const POST = "POST";
