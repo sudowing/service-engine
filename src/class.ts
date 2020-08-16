@@ -210,7 +210,7 @@ export class Resource implements ts.IClassResource {
     return this.generics.delete(input);
   }
 
-  search(input: ts.IParamsProcessBase, { subqueryContext }: ts.ISubqueryOptions = {}) {
+  search(input: ts.IParamsProcessBase, { subqueryContext, ...subqueryOptions }: ts.ISubqueryOptions = {}) {
     const { requestId } = input;
     const operation = !!subqueryContext ? cnst.SUBQUERY : cnst.SEARCH;
 
@@ -271,6 +271,7 @@ export class Resource implements ts.IClassResource {
       ...this.queryBase(),
       context,
       components,
+      subqueryOptions
     });
 
     this.logger.info(

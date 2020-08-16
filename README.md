@@ -188,5 +188,28 @@ const ppp = (topResource, subResource, aggregationFn) => ({topResource, subResou
 const ooo = {
   'some_custom_name': ppp(topResource, subResource, aggregationFn)
 }
+need to build custom route for topResource.search
+need to also modify each Resource.reports
 
 Resource.complex
+
+
+
+    const baseQuery: any = knex.raw(`(${subQuery.toString()}) as baseQuery`);
+
+    const newQuery: any = query
+        .select(
+            knex.raw(
+                `left(${cnst.GEOHASH}, ${prefix_length}) as geohash_prefix`
+            )
+        )
+        .avg({ avg_lon: spatial.x(cnst.CENTER) })
+        .avg({ avg_lat: spatial.y(cnst.CENTER) })
+        .count({ count: "*" })
+        .from(baseQuery)
+        .where(
+            knex.raw(`left(${cnst.GEOHASH}, ${prefix_length}) in (${values})`)
+        )
+        .groupBy(cnst.GEOHASH_PREFIX);
+
+    return newQuery as Knex;

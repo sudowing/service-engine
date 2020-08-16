@@ -116,6 +116,7 @@ export interface IParamsToDeleteQueryWithSearch
 
 export interface IParamsToSearchQuery extends IParamsQueryCore {
   components: ISearchQueryComponent[];
+  subqueryOptions?: ISubqueryOptions
 }
 
 export interface IParamsProcessBase {
@@ -265,7 +266,11 @@ export interface IClassResource {
 
 export interface ISubqueryOptions {
   subqueryContext?: boolean;
+  subquery?: knex.QueryBuilder;
+  aggregationFn?: TKnexSubQuery;
 }
+
+export type TKnexSubQuery = (query: knex.QueryBuilder) => knex.QueryBuilder
 
 export interface IRejectResource {
   errorType: string;

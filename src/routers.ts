@@ -11,6 +11,7 @@ import { parse as parseURL } from "url";
 const uniqueResource = (url: string) =>
   parseURL(url, true).pathname.endsWith("/record");
 
+// can maybe add prefix to fn signature and use to parse out subquery payload
 const seperateQueryAndContext = (input) =>
   Object.entries(input).reduce(
     (query, [key, value]) => {
@@ -50,6 +51,16 @@ export const serviceRouters = async ({
     name,
     resource.report,
   ]);
+
+    // THIS NEEDS TO BE MOVED HIGHER! DOESN'T NEED TO BE DONE PER REQUEST
+
+    const resourcesMap = Resources.reduce(
+      (batch, [name, _Resource]: any) => ({
+        ...batch,
+        [name]: _Resource,
+      }),
+      {}
+    );
 
   const apiDocs = await genDatabaseResourceOpenApiDocs({
     db,
@@ -133,19 +144,13 @@ export const serviceRouters = async ({
       return;
     }
 
-    const resources = Resources.reduce(
-      (batch, [name, _Resource]: any) => ({
-        ...batch,
-        [name]: _Resource,
-      }),
-      {}
-    );
+
 
     // only process for /service & /debug && only if resource exists and operation on resource exists
     if (
       (category !== "service" && category !== "debug") ||
       !operations.has(j({ method, record })) ||
-      !resources.hasOwnProperty(resource)
+      !resourcesMap.hasOwnProperty(resource)
     ) {
       ctx.response.status = HTTP_STATUS.NOT_FOUND;
       return;
@@ -160,10 +165,10 @@ export const serviceRouters = async ({
 
     const input =
       method === "GET"
-        ? seperateQueryAndContext(ctx.request.query)
+        ? seperateQueryAndContext(ctx.request.query) // this needs to parse out subquery input from main input
         : seperateQueryAndContext({
             ...stripKeys(
-              resources[resource].meta.uniqueKeyComponents,
+              resourcesMap[resource].meta.uniqueKeyComponents,
               ctx.request.body
             ),
             ...ctx.request.query,
@@ -185,7 +190,8 @@ export const serviceRouters = async ({
       payload["hardDelete"] = !!hardDelete;
     }
 
-    const serviceResponse = resources[resource][operation]({ ...payload });
+    // this is where I'll select the complex resource and submit the payload. `operation` === '.search'
+    const serviceResponse = resourcesMap[resource][operation]({ ...payload });
 
     // insert db, components
     if (serviceResponse.result) {
@@ -200,7 +206,7 @@ export const serviceRouters = async ({
         records = await serviceResponse.result.sql;
 
         if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
-          const { result: searchCountResult } = resources[resource][operation]({
+          const { result: searchCountResult } = resourcesMap[resource][operation]({
             payload: input.payload,
             reqId,
           });
