@@ -96,6 +96,9 @@ export class Resource implements ts.IClassResource {
   public validator: Joi.Schema;
   public schemaResource: ts.ISchemaResource;
   public middlewareFn: ts.IObjectTransformer;
+  public hasSubquery: boolean;
+  public subqueryTarget?: string;
+  public aggregationFn?: ts.TKnexSubQuery;
 
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
@@ -111,6 +114,9 @@ export class Resource implements ts.IClassResource {
     validator,
     schemaResource,
     middlewareFn,
+    hasSubquery,
+    subqueryTarget,
+    aggregationFn
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -119,6 +125,10 @@ export class Resource implements ts.IClassResource {
     this.validator = validator;
     this.schemaResource = schemaResource;
     this.middlewareFn = middlewareFn;
+    this.hasSubquery = !!hasSubquery;
+    this.subqueryTarget = subqueryTarget;
+    this.aggregationFn = aggregationFn;
+
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
     this.report = report;

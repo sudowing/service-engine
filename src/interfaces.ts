@@ -231,6 +231,10 @@ export interface IObjectTransformerMap {
   [index: string]: IObjectTransformer;
 }
 
+export interface IClassResourceMap {
+  [index: string]: IClassResource;
+}
+
 export interface IClassResourceConstructor {
   db: knex;
   st: knexPostgis.KnexPostgis;
@@ -239,6 +243,9 @@ export interface IClassResourceConstructor {
   validator: Joi.Schema;
   schemaResource: ISchemaResource;
   middlewareFn?: IObjectTransformer;
+  hasSubquery?: boolean;
+  subqueryTarget?: string;
+  aggregationFn?: TKnexSubQuery;
 }
 
 export interface IClassResource {
@@ -253,6 +260,9 @@ export interface IClassResource {
   report: IValidationExpanderReport;
   meta: IValidationExpanderMeta;
   generics: TResponseGenerics;
+  hasSubquery: boolean;
+  subqueryTarget?: string;
+  aggregationFn?: TKnexSubQuery;
 
   queryBase(): IResourceQueryBase;
   contextParser(input: IParamsProcessBase): IResourceContextParserResponse;

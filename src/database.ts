@@ -17,15 +17,14 @@ export const toSearchQuery = ({
   components,
   context,
   schemaResource,
-}: ts.IParamsToSearchQuery) =>
-  db
-    .from(sqlSchemaResource(schemaResource))
-    .orderBy(context.orderBy || [])
-    .limit(context.limit)
-    .offset(((context.page || 1) - 1) * (context.limit || 100))
+  subqueryOptions: {subquery, aggregationFn}
+}: ts.IParamsToSearchQuery) => {
+  const main: any = !!subquery ? db.raw(`(${subquery.toString()}) as main`) : sqlSchemaResource(schemaResource);
+  const base = db.select(context.fields).from(main);
+  const query = aggregationFn ? aggregationFn(base) : base;
+  return query
     // notWhere where/notWhere
     // statementContext and/or
-    .select(context.fields)
     .where((sql) => {
       for (const { field, operation, value } of components) {
         if (cnst.BASIC_QUERY_OPERATIONS.get(operation)) {
@@ -67,7 +66,12 @@ export const toSearchQuery = ({
       }
 
       return sql;
-    });
+    })
+    .orderBy(context.orderBy || [])
+    .limit(context.limit)
+    .offset(((context.page || 1) - 1) * (context.limit || 100));
+
+}
 
 export const toCreateQuery = ({
   db,

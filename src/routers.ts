@@ -1,3 +1,5 @@
+import { parse as parseURL } from "url";
+
 import * as Router from "@koa/router";
 import * as HTTP_STATUS from "http-status";
 
@@ -5,8 +7,8 @@ import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
+import { callComplexResource } from "./utils";
 
-import { parse as parseURL } from "url";
 
 const uniqueResource = (url: string) =>
   parseURL(url, true).pathname.endsWith("/record");
@@ -190,8 +192,9 @@ export const serviceRouters = async ({
       payload["hardDelete"] = !!hardDelete;
     }
 
-    // this is where I'll select the complex resource and submit the payload. `operation` === '.search'
-    const serviceResponse = resourcesMap[resource][operation]({ ...payload });
+    const serviceResponse = resourcesMap[resource].hasSubquery
+      ? callComplexResource(resourcesMap, resource, operation, payload)
+      : resourcesMap[resource][operation]({...payload});
 
     // insert db, components
     if (serviceResponse.result) {
