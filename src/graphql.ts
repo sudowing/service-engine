@@ -216,6 +216,7 @@ export const makeServiceResolver = (resource, hardDelete) => (
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
 
+  // TODO: use `callComplexResource` like in routers.ts to implement the complex resources (subqueries)
   const serviceResponse = resource[operation]({
     payload: operation !== "update" ? payload : { ...payload, ...keys },
     context,
