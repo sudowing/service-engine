@@ -97,7 +97,7 @@ export class Resource implements ts.IClassResource {
   public schemaResource: ts.ISchemaResource;
   public middlewareFn: ts.IObjectTransformer;
   public hasSubquery: boolean;
-  public subqueryTarget?: string;
+  public subResourceName?: string;
   public aggregationFn?: ts.TKnexSubQuery;
 
   public schema: ts.IValidationExpanderSchema;
@@ -114,8 +114,7 @@ export class Resource implements ts.IClassResource {
     validator,
     schemaResource,
     middlewareFn,
-    hasSubquery,
-    subqueryTarget,
+    subResourceName,
     aggregationFn
   }: ts.IClassResourceConstructor) {
     this.db = db;
@@ -125,8 +124,8 @@ export class Resource implements ts.IClassResource {
     this.validator = validator;
     this.schemaResource = schemaResource;
     this.middlewareFn = middlewareFn;
-    this.hasSubquery = !!hasSubquery;
-    this.subqueryTarget = subqueryTarget;
+    this.hasSubquery = !!subResourceName;
+    this.subResourceName = subResourceName;
     this.aggregationFn = aggregationFn;
 
     const { schema, report, meta } = util.validationExpander(validator);
@@ -276,6 +275,15 @@ export class Resource implements ts.IClassResource {
       );
       return util.rejectResource(cnst.CONTEXT_ERRORS, errors);
     }
+
+
+
+
+
+
+
+
+
 
     const sql = database.toSearchQuery({
       ...this.queryBase(),

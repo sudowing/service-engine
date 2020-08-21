@@ -550,11 +550,19 @@ export const genDatabaseResourceValidators = async ({
 
 
 
-export const callComplexResource = (resourcesMap: ts.IClassResourceMap, resourceName: string, operation: string, payload: object) => {
+export const callComplexResource = (
+  resourcesMap: ts.IClassResourceMap,
+  resourceName: string,
+  operation: string,
+  payload: object
+) => {
+
+  // TODO: parse the payload to seperate top payload from sub payload
   const subPayload = {};
   const topPayload = {...payload}
+
   const resource = resourcesMap[resourceName];
-  const subquery = resourcesMap[resource.subqueryTarget][operation](subPayload, {subqueryContext: true});
+  const subquery = resourcesMap[resource.subResourceName][operation](subPayload, {subqueryContext: true});
   const aggregationFn = resource.aggregationFn;
   return resource[operation](topPayload, {subquery, aggregationFn})
 }

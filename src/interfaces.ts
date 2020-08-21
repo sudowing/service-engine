@@ -243,8 +243,7 @@ export interface IClassResourceConstructor {
   validator: Joi.Schema;
   schemaResource: ISchemaResource;
   middlewareFn?: IObjectTransformer;
-  hasSubquery?: boolean;
-  subqueryTarget?: string;
+  subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
 }
 
@@ -261,7 +260,7 @@ export interface IClassResource {
   meta: IValidationExpanderMeta;
   generics: TResponseGenerics;
   hasSubquery: boolean;
-  subqueryTarget?: string;
+  subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
 
   queryBase(): IResourceQueryBase;
@@ -281,6 +280,12 @@ export interface ISubqueryOptions {
 }
 
 export type TKnexSubQuery = (query: knex.QueryBuilder) => knex.QueryBuilder
+
+export interface IComplexResourceConfig {
+  topResourceName: string;
+  subResourceName: string;
+  aggregationFn: TKnexSubQuery;
+}
 
 export interface IRejectResource {
   errorType: string;

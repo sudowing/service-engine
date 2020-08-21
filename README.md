@@ -182,7 +182,8 @@ search can be passed the subqueruy object and an aggFn to apply
 Top resource (I001_view, pass a subquery with SEARCH, search only), Sub resource, aggFn,
 
 => redefines topResource.search as using subResource.subquery(), aggregationFn
-const ppp = (topResource, subResource, aggregationFn) => ({topResource, subResource, aggregationFn})
+const ppp = (topResourceName, subResourceName, aggregationFn) =>
+  ({name: `${topResourceName}:${subResourceName}`, topResourceName, subResourceName, aggregationFn})
 
 
 const ooo = {
