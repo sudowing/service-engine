@@ -8,6 +8,9 @@ import {
   DEBUG,
 } from "./const";
 
+// TODO: eval these usages. complexqueries wont be implemented into GraphQL and OpenAPI until this is done
+const parseComplexResources = str => str.includes(':') ? str.split(':')[0] : str;
+
 export const standardHeaders = {
   "x-request-id": {
     schema: {
@@ -132,7 +135,9 @@ export const genDatabaseResourceOpenApiDocs = async ({
   const genPath = pathGenerator(metadata.routerPrefix);
 
   // takes input from validators and extends info with dbResources to build details oa3DataSchema
-  const oa3DataSchema = ({ resource, name, type }) => {
+  const oa3DataSchema = ({ resource: _resource, name, type }) => {
+    const resource = parseComplexResources(_resource)
+
     // need to handled cases like UUID, dates and other things that are populated in the DBs
     const nullable = dbResources[resource][name].notnull ? undefined : true;
 
@@ -169,8 +174,10 @@ export const genDatabaseResourceOpenApiDocs = async ({
   const paths = ResourceReports.reduce(
     (
       record,
-      [resource, { create, read, update, delete: del, search }]: [string, any]
+      [_resource, { create, read, update, delete: del, search }]: [string, any]
     ) => {
+      const resource = parseComplexResources(_resource)
+
       const searchEntries = Object.entries(search);
 
       const keys = searchEntries.reduce(

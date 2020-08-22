@@ -305,7 +305,11 @@ export const gqlModule = async ({
     toSchemaScalar,
   });
 
-  const serviceResolvers = Resources.reduce(
+  const serviceResolvers = Resources
+  .filter(
+    (item: any) => ![...item[1].name].includes(':')
+  ) // temp -- will remove when integrating complex into GraphQL
+  .reduce(
     ({ Query, Mutation }, [name, resource]) => {
       const ResourceName = pascalCase(name);
       const resolver = makeServiceResolver(resource, hardDelete);

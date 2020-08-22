@@ -276,15 +276,6 @@ export class Resource implements ts.IClassResource {
       return util.rejectResource(cnst.CONTEXT_ERRORS, errors);
     }
 
-
-
-
-
-
-
-
-
-
     const sql = database.toSearchQuery({
       ...this.queryBase(),
       context,
