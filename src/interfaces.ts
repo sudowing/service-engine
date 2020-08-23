@@ -354,3 +354,7 @@ export interface ISchemaResource {
   resource_schema: string;
   resource_name: string;
 }
+
+export interface IObjectStringByString {
+  [index: string]: string;
+}

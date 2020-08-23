@@ -62,6 +62,11 @@ export const ignite = async ({
     joiBase,
   });
 
+  console.log('---------')
+  console.log('modifyValidator.validators')
+  console.log(Object.keys(validators))
+  console.log('---------')
+  
   const mapSchemaResources = dbResourceRawRows.reduce(
     (resourceMap, { resource_schema, resource_name }) => ({
       ...resourceMap,
@@ -94,8 +99,8 @@ export const ignite = async ({
       new Resource({
         db,st,logger,name,
         validator: validators[topResourceName],
-        schemaResource: mapSchemaResources[name],
-        middlewareFn: middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
+        schemaResource: mapSchemaResources[topResourceName],
+        middlewareFn: middlewarz && middlewarz[topResourceName] ? middlewarz[topResourceName] : undefined,
         subResourceName,
         aggregationFn,
       })

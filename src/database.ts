@@ -5,10 +5,8 @@ import { convertMetersToDecimalDegrees } from "./utils";
 /* tslint:disable */
 
 // sqlite doesnt have schemas and as such this will break the knex querybuilder
-export const sqlSchemaResource = ({ resource_schema, resource_name }) =>
-  resource_schema === ""
-    ? resource_name
-    : `${resource_schema}.${resource_name}`;
+export const sqlSchemaResource = ({ resource_schema, resource_name }): string =>
+  resource_schema === "" ? resource_name : `${resource_schema}.${resource_name}`;
 
 export const toSearchQuery = ({
   db,
@@ -19,7 +17,22 @@ export const toSearchQuery = ({
   schemaResource,
   subqueryOptions: {subquery, aggregationFn}
 }: ts.IParamsToSearchQuery) => {
+
+  // console.log('=========')
+  // console.log('')
+  // console.log('---------')
+  // console.log('toSearchQuery.schemaResource')
+  // console.log(schemaResource)
+  // console.log('---------')
+  // console.log('toSearchQuery.subquery')
+  // console.log(subquery)
+  // console.log('---------')
+  // console.log('toSearchQuery.aggregationFn')
+  // console.log(aggregationFn)
+  // console.log('---------')
+
   const main: any = !!subquery ? db.raw(`(${subquery.toString()}) as main`) : sqlSchemaResource(schemaResource);
+
   const base = db.select(context.fields).from(main);
   const query = aggregationFn ? aggregationFn(base) : base;
   return query

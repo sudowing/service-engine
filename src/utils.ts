@@ -308,7 +308,7 @@ export const searchQueryParser = (
   const sep = seperator || cnst.SEARCH_QUERY_CONTEXT.seperator;
 
   // removing context
-  Object.entries(query).forEach(([key, rawValue]) => {
+  Object.entries((query || {})).forEach(([key, rawValue]) => {
     const { field, operation } = parseFieldAndOperation(key);
     const { schema } =
       validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field) || {};
@@ -564,6 +564,9 @@ export const callComplexResource = (
 
   const resource = resourcesMap[resourceName];
   const subquery = resourcesMap[resource.subResourceName][operation](subPayload, {subqueryContext: true});
+  // need to return the 400 already
+  if (!subquery.result) return subquery;
+
   const aggregationFn = resource.aggregationFn;
-  return resource[operation](topPayload, {subquery, aggregationFn})
+  return resource[operation](topPayload, {subquery: subquery.result.sql, aggregationFn})
 }

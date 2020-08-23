@@ -232,7 +232,14 @@ export class Resource implements ts.IClassResource {
       cnst.RESOURCE_CALL
     );
     const { context, ...parsed } = this.contextParser(input);
-    context.fields = !!subqueryContext && context.fields ? context.fields : Object.keys(this.report.search);
+
+    // context.fields = !!subqueryContext && context.fields ? context.fields : Object.keys(this.report.search);
+    context.fields = context.fields || Object.keys(this.report.search);
+
+
+
+
+
     context.limit =
       context.limit && context.limit <= PAGINATION_LIMIT
         ? context.limit

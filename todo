@@ -53,3 +53,6 @@ create and update do not return for sqlite3
 create many doesnt seem to work. QA against REST
 
 read with zero matches doesn't 404
+
+
+throw verbose error if any resource in the complex resources config doesnt exist and exit
