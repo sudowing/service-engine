@@ -14,6 +14,7 @@ import { serviceRouters } from "./routers";
 import { getDatabaseResources } from "./integration";
 import { genDatabaseResourceValidators, castBoolean } from "./utils";
 import { Resource } from "./class";
+import { aggregationFnBuilder } from "./database";
 import { IObjectTransformerMap, TDatabaseResources, IComplexResourceConfig } from "./interfaces";
 import { gqlModule } from "./graphql";
 
@@ -62,11 +63,6 @@ export const ignite = async ({
     joiBase,
   });
 
-  console.log('---------')
-  console.log('modifyValidator.validators')
-  console.log(Object.keys(validators))
-  console.log('---------')
-  
   const mapSchemaResources = dbResourceRawRows.reduce(
     (resourceMap, { resource_schema, resource_name }) => ({
       ...resourceMap,
@@ -91,8 +87,28 @@ export const ignite = async ({
     ]
   );
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // console.log('---------')
+  // console.log('modifyValidator.validators')
+  // console.log(Object.keys(validators))
+  // console.log('---------')
+
   // build the complex resources based on the provided configs
-  (complexResources||[]).forEach(({topResourceName, subResourceName, aggregationFn}) => {
+  (complexResources||[]).forEach(({
+    topResourceName, subResourceName, calculated_fields, group_by
+  }) => {
     const name = `${topResourceName}:${subResourceName}`;
     Resources.push([
       name,
@@ -102,10 +118,22 @@ export const ignite = async ({
         schemaResource: mapSchemaResources[topResourceName],
         middlewareFn: middlewarz && middlewarz[topResourceName] ? middlewarz[topResourceName] : undefined,
         subResourceName,
-        aggregationFn,
+        aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
       })
     ])
   });
+
+
+
+
+
+
+
+
+
+
+
+
 
   const { AppModule } = await gqlModule({
     validators,

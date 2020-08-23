@@ -284,7 +284,8 @@ export type TKnexSubQuery = (query: knex.QueryBuilder) => knex.QueryBuilder
 export interface IComplexResourceConfig {
   topResourceName: string;
   subResourceName: string;
-  aggregationFn: TKnexSubQuery;
+  calculated_fields: IObjectStringByString;
+  group_by: string[];
 }
 
 export interface IRejectResource {

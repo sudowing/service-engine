@@ -1,3 +1,5 @@
+import * as Knex from "knex";
+
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 import { convertMetersToDecimalDegrees } from "./utils";
@@ -181,3 +183,19 @@ export const toDeleteQuery = (keys: string[]) => ({
   softDelete.toString = () => sqlUpdate.toString();
   return softDelete;
 };
+
+export const aggregationFnBuilder = (db: Knex) => (calculated_fields: any, group_by) =>
+(knex_query: Knex.QueryBuilder): Knex.QueryBuilder => {
+  const defineCalculatedFields = (arr: string[]): (string|Knex.Raw)[] =>
+    arr.map(item => calculated_fields[item]
+      ? db.raw(`${calculated_fields[item]} as ${item}`)
+      : item)
+
+  // @ts-ignore // replace field name with calculation def before executing
+  knex_query._statements = knex_query._statements
+    .map(({grouping, value}) => ({
+      grouping,
+      value: grouping !== 'columns' ? value : defineCalculatedFields(value)
+    }));
+  return knex_query.groupBy(group_by);
+}
