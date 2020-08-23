@@ -116,7 +116,7 @@ export const ignite = async ({
         db,st,logger,name,
         validator: validators[topResourceName],
         schemaResource: mapSchemaResources[topResourceName],
-        middlewareFn: middlewarz && middlewarz[topResourceName] ? middlewarz[topResourceName] : undefined,
+        middlewareFn: middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
         subResourceName,
         aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
       })
