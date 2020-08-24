@@ -20,19 +20,6 @@ export const toSearchQuery = ({
   subqueryOptions: {subquery, aggregationFn}
 }: ts.IParamsToSearchQuery) => {
 
-  // console.log('=========')
-  // console.log('')
-  // console.log('---------')
-  // console.log('toSearchQuery.schemaResource')
-  // console.log(schemaResource)
-  // console.log('---------')
-  // console.log('toSearchQuery.subquery')
-  // console.log(subquery)
-  // console.log('---------')
-  // console.log('toSearchQuery.aggregationFn')
-  // console.log(aggregationFn)
-  // console.log('---------')
-
   const main: any = !!subquery ? db.raw(`(${subquery.toString()}) as main`) : sqlSchemaResource(schemaResource);
 
   const base = db.select(context.fields).from(main);
@@ -184,7 +171,7 @@ export const toDeleteQuery = (keys: string[]) => ({
   return softDelete;
 };
 
-export const aggregationFnBuilder = (db: Knex) => (calculated_fields: any, group_by) =>
+export const aggregationFnBuilder = (db: Knex) => (calculated_fields: any, group_by?: string[]) =>
 (knex_query: Knex.QueryBuilder): Knex.QueryBuilder => {
   const defineCalculatedFields = (arr: string[]): (string|Knex.Raw)[] =>
     arr.map(item => calculated_fields[item]
@@ -197,5 +184,5 @@ export const aggregationFnBuilder = (db: Knex) => (calculated_fields: any, group
       grouping,
       value: grouping !== 'columns' ? value : defineCalculatedFields(value)
     }));
-  return knex_query.groupBy(group_by);
+  return group_by ? knex_query.groupBy(group_by) : knex_query;
 }

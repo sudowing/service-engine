@@ -285,7 +285,7 @@ export interface IComplexResourceConfig {
   topResourceName: string;
   subResourceName: string;
   calculated_fields: IObjectStringByString;
-  group_by: string[];
+  group_by?: string[];
 }
 
 export interface IRejectResource {

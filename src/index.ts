@@ -87,24 +87,6 @@ export const ignite = async ({
     ]
   );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // console.log('---------')
-  // console.log('modifyValidator.validators')
-  // console.log(Object.keys(validators))
-  // console.log('---------')
-
   // build the complex resources based on the provided configs
   (complexResources||[]).forEach(({
     topResourceName, subResourceName, calculated_fields, group_by
