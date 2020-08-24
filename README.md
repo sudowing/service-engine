@@ -169,48 +169,38 @@ const { App, apolloServer, logger } = await ignite({ db, metadata, resourceSearc
 ```
 
 
+### complexResources (subqueries & aggregation)
+blah blah blah
+
+example:
+```
+const complexResources = [
+  {
+    topResourceName: 'public_i001_city_state_entity_provider_n',
+    subResourceName: 'cms_providers',
+    group_by: ['address_city','address_state','entity_type','provider_type'],
+    calculated_fields: {
+      n: 'count(npi)'
+    },
+  },
+  {
+    topResourceName: 'cms_providers',
+    subResourceName: 'cms_providers',
+    calculated_fields: {
+      address_city: 'LOWER(address_city)'
+    },
+  }
+]
 
 
+// ...
+
+const { App, logger } = await ignite({
+  db,
+  metadata,
+  resourceSearchMiddleware,
+  complexResources
+});
 
 
-
-resource.subquery NOT search -- OMIT CONTEXT AND RETURN KNEX QUERY OBJECT
-
-search can be passed the subqueruy object and an aggFn to apply
-
-
-Top resource (I001_view, pass a subquery with SEARCH, search only), Sub resource, aggFn,
-
-=> redefines topResource.search as using subResource.subquery(), aggregationFn
-const ppp = (topResourceName, subResourceName, aggregationFn) =>
-  ({name: `${topResourceName}:${subResourceName}`, topResourceName, subResourceName, aggregationFn})
-
-
-const ooo = {
-  'some_custom_name': ppp(topResource, subResource, aggregationFn)
-}
-need to build custom route for topResource.search
-need to also modify each Resource.reports
-
-Resource.complex
-
-
-
-    const baseQuery: any = knex.raw(`(${subQuery.toString()}) as baseQuery`);
-
-    const newQuery: any = query
-        .select(
-            knex.raw(
-                `left(${cnst.GEOHASH}, ${prefix_length}) as geohash_prefix`
-            )
-        )
-        .avg({ avg_lon: spatial.x(cnst.CENTER) })
-        .avg({ avg_lat: spatial.y(cnst.CENTER) })
-        .count({ count: "*" })
-        .from(baseQuery)
-        .where(
-            knex.raw(`left(${cnst.GEOHASH}, ${prefix_length}) in (${values})`)
-        )
-        .groupBy(cnst.GEOHASH_PREFIX);
-
-    return newQuery as Knex;
+```
