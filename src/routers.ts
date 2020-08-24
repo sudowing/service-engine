@@ -209,13 +209,22 @@ export const serviceRouters = async ({
         records = await serviceResponse.result.sql;
 
         if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
-          const { result: searchCountResult } = resourcesMap[resource][operation]({
+
+          const args = {
             payload: input.payload,
             reqId,
-          });
+          };
+          const { result: searchCountResult } = resourcesMap[resource].hasSubquery
+            ? callComplexResource(resourcesMap, resource, operation, args)
+            : resourcesMap[resource][operation](args);
+
+          // explictely remove sql limit
+          // https://github.com/knex/knex/blob/e37aeaa31c8ef9c1b07d2e4d3ec6607e557d800d/lib/query/compiler.js#L522
+          // https://github.com/knex/knex/blob/master/lib/query/builder.js#L872
+          searchCountResult.sql._single.limit = undefined;
 
           sqlSearchCount = db.from(
-            db.raw(`(${searchCountResult.sql.toString()}) as main`)
+            db.raw(`(${searchCountResult.sql.toString()}) as main2`)
           );
           // this is needed to make the db result mysql/postgres agnostic
           sqlSearchCount.count("* as count");
