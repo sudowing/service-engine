@@ -305,44 +305,43 @@ export const gqlModule = async ({
     toSchemaScalar,
   });
 
-  const serviceResolvers = Resources
-  .filter(
-    (item: any) => ![...item[1].name].includes(':')
+  const serviceResolvers = Resources.filter(
+    (item: any) => ![...item[1].name].includes(":")
   ) // temp -- will remove when integrating complex into GraphQL
-  .reduce(
-    ({ Query, Mutation }, [name, resource]) => {
-      const ResourceName = pascalCase(name);
-      const resolver = makeServiceResolver(resource, hardDelete);
+    .reduce(
+      ({ Query, Mutation }, [name, resource]) => {
+        const ResourceName = pascalCase(name);
+        const resolver = makeServiceResolver(resource, hardDelete);
 
-      const output = {
-        Query: {
-          ...Query,
-          [`Read${ResourceName}`]: resolver("read"),
-          [`Search${ResourceName}`]: resolver("search"),
-        },
-        Mutation: {
-          ...Mutation,
-          [`Create${ResourceName}`]: resolver("create"),
-          [`Update${ResourceName}`]: resolver("update"),
-          [`Delete${ResourceName}`]: resolver("delete"),
-        },
-      };
+        const output = {
+          Query: {
+            ...Query,
+            [`Read${ResourceName}`]: resolver("read"),
+            [`Search${ResourceName}`]: resolver("search"),
+          },
+          Mutation: {
+            ...Mutation,
+            [`Create${ResourceName}`]: resolver("create"),
+            [`Update${ResourceName}`]: resolver("update"),
+            [`Delete${ResourceName}`]: resolver("delete"),
+          },
+        };
 
-      const keys = Object.values(dbResources[name]).filter(
-        (item: any) => item.primarykey
-      );
+        const keys = Object.values(dbResources[name]).filter(
+          (item: any) => item.primarykey
+        );
 
-      // if resource lacks keys -- delete resolvers for unique records
-      if (!keys.length) {
-        delete output.Query[`Read${ResourceName}`];
-        delete output.Mutation[`Update${ResourceName}`];
-        delete output.Mutation[`Delete${ResourceName}`];
-      }
+        // if resource lacks keys -- delete resolvers for unique records
+        if (!keys.length) {
+          delete output.Query[`Read${ResourceName}`];
+          delete output.Mutation[`Update${ResourceName}`];
+          delete output.Mutation[`Delete${ResourceName}`];
+        }
 
-      return output;
-    },
-    { Query: {}, Mutation: {} }
-  );
+        return output;
+      },
+      { Query: {}, Mutation: {} }
+    );
 
   const appResolvers = {
     JSONB: GraphQLJSON,

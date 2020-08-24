@@ -308,7 +308,7 @@ export const searchQueryParser = (
   const sep = seperator || cnst.SEARCH_QUERY_CONTEXT.seperator;
 
   // removing context
-  Object.entries((query || {})).forEach(([key, rawValue]) => {
+  Object.entries(query || {}).forEach(([key, rawValue]) => {
     const { field, operation } = parseFieldAndOperation(key);
     const { schema } =
       validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field) || {};
@@ -549,22 +549,22 @@ export const genDatabaseResourceValidators = async ({
   return { validators, dbResources };
 };
 
-export const seperateByKeyPrefix = (payload: any, prefix: string): [
-  ts.IObjectStringByString, ts.IObjectStringByString
-] => {
+export const seperateByKeyPrefix = (
+  payload: any,
+  prefix: string
+): [ts.IObjectStringByString, ts.IObjectStringByString] => {
   const payloadWithoutPrefix = {};
   const payloadWithPrefix = {};
-  Object.keys(payload || {}).forEach(key => {
-    if(key.startsWith(prefix)){
+  Object.keys(payload || {}).forEach((key) => {
+    if (key.startsWith(prefix)) {
       // remove the lead char from the key -- as its utility ends here
       payloadWithPrefix[key.substring(1)] = payload[key];
-    }
-    else{
+    } else {
       payloadWithoutPrefix[key] = payload[key];
     }
   });
-  return [payloadWithPrefix, payloadWithoutPrefix]
-}
+  return [payloadWithPrefix, payloadWithoutPrefix];
+};
 
 export const callComplexResource = (
   resourcesMap: ts.IClassResourceMap,
@@ -572,24 +572,29 @@ export const callComplexResource = (
   operation: string,
   payload: any
 ) => {
-
-  const [_subPayload, _restPayload] = seperateByKeyPrefix(payload.payload, '>')
-  const [_subContext, topPayload] = seperateByKeyPrefix(_restPayload, ']')
+  const [_subPayload, _restPayload] = seperateByKeyPrefix(payload.payload, ">");
+  const [_subContext, topPayload] = seperateByKeyPrefix(_restPayload, "]");
 
   const subPayload = {
     ...payload,
     payload: _subPayload,
     context: _subContext,
   };
-  
+
   payload.payload = topPayload;
 
   const resource = resourcesMap[resourceName];
-  const subquery = resourcesMap[resource.subResourceName][operation](subPayload, {subqueryContext: true});
+  const subquery = resourcesMap[resource.subResourceName][operation](
+    subPayload,
+    { subqueryContext: true }
+  );
 
   // need to return the 400 already
   if (!subquery.result) return subquery;
 
   const aggregationFn = resource.aggregationFn;
-  return resource[operation](payload, {subquery: subquery.result.sql, aggregationFn})
-}
+  return resource[operation](payload, {
+    subquery: subquery.result.sql,
+    aggregationFn,
+  });
+};

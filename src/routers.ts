@@ -9,7 +9,6 @@ import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
 import { callComplexResource } from "./utils";
 
-
 const uniqueResource = (url: string) =>
   parseURL(url, true).pathname.endsWith("/record");
 
@@ -54,15 +53,15 @@ export const serviceRouters = async ({
     resource.report,
   ]);
 
-    // THIS NEEDS TO BE MOVED HIGHER! DOESN'T NEED TO BE DONE PER REQUEST
+  // THIS NEEDS TO BE MOVED HIGHER! DOESN'T NEED TO BE DONE PER REQUEST
 
-    const resourcesMap = Resources.reduce(
-      (batch, [name, _Resource]: any) => ({
-        ...batch,
-        [name]: _Resource,
-      }),
-      {}
-    );
+  const resourcesMap = Resources.reduce(
+    (batch, [name, _Resource]: any) => ({
+      ...batch,
+      [name]: _Resource,
+    }),
+    {}
+  );
 
   const apiDocs = await genDatabaseResourceOpenApiDocs({
     db,
@@ -146,8 +145,6 @@ export const serviceRouters = async ({
       return;
     }
 
-
-
     // only process for /service & /debug && only if resource exists and operation on resource exists
     if (
       (category !== "service" && category !== "debug") ||
@@ -194,7 +191,7 @@ export const serviceRouters = async ({
 
     const serviceResponse = resourcesMap[resource].hasSubquery
       ? callComplexResource(resourcesMap, resource, operation, payload)
-      : resourcesMap[resource][operation]({...payload});
+      : resourcesMap[resource][operation]({ ...payload });
 
     // insert db, components
     if (serviceResponse.result) {
@@ -209,12 +206,12 @@ export const serviceRouters = async ({
         records = await serviceResponse.result.sql;
 
         if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
-
           const args = {
             payload: input.payload,
             reqId,
           };
-          const { result: searchCountResult } = resourcesMap[resource].hasSubquery
+          const { result: searchCountResult } = resourcesMap[resource]
+            .hasSubquery
             ? callComplexResource(resourcesMap, resource, operation, args)
             : resourcesMap[resource][operation](args);
 

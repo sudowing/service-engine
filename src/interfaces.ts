@@ -116,7 +116,7 @@ export interface IParamsToDeleteQueryWithSearch
 
 export interface IParamsToSearchQuery extends IParamsQueryCore {
   components: ISearchQueryComponent[];
-  subqueryOptions?: ISubqueryOptions
+  subqueryOptions?: ISubqueryOptions;
 }
 
 export interface IParamsProcessBase {
@@ -270,7 +270,10 @@ export interface IClassResource {
   read(payload: IParamsProcessBase): IRejectResource | IResolveResource;
   update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
   delete(payload: IParamsProcessDelete): IRejectResource | IResolveResource;
-  search(payload: IParamsProcessBase, subqueryOptions?: ISubqueryOptions): IRejectResource | IResolveResource;
+  search(
+    payload: IParamsProcessBase,
+    subqueryOptions?: ISubqueryOptions
+  ): IRejectResource | IResolveResource;
 }
 
 export interface ISubqueryOptions {
@@ -279,7 +282,7 @@ export interface ISubqueryOptions {
   aggregationFn?: TKnexSubQuery;
 }
 
-export type TKnexSubQuery = (query: knex.QueryBuilder) => knex.QueryBuilder
+export type TKnexSubQuery = (query: knex.QueryBuilder) => knex.QueryBuilder;
 
 export interface IComplexResourceConfig {
   topResourceName: string;

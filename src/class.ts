@@ -115,7 +115,7 @@ export class Resource implements ts.IClassResource {
     schemaResource,
     middlewareFn,
     subResourceName,
-    aggregationFn
+    aggregationFn,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -219,7 +219,10 @@ export class Resource implements ts.IClassResource {
     return this.generics.delete(input);
   }
 
-  search(input: ts.IParamsProcessBase, { subqueryContext, ...subqueryOptions }: ts.ISubqueryOptions = {}) {
+  search(
+    input: ts.IParamsProcessBase,
+    { subqueryContext, ...subqueryOptions }: ts.ISubqueryOptions = {}
+  ) {
     const { requestId } = input;
     const operation = !!subqueryContext ? cnst.SUBQUERY : cnst.SEARCH;
 
@@ -235,10 +238,6 @@ export class Resource implements ts.IClassResource {
 
     // context.fields = !!subqueryContext && context.fields ? context.fields : Object.keys(this.report.search);
     context.fields = context.fields || Object.keys(this.report.search);
-
-
-
-
 
     context.limit =
       context.limit && context.limit <= PAGINATION_LIMIT
@@ -259,7 +258,7 @@ export class Resource implements ts.IClassResource {
     }
 
     // if subqueryContext -- delete most the context keys
-    if(subqueryContext){
+    if (subqueryContext) {
       delete context.seperator;
       delete context.orderBy;
       delete context.page;
@@ -287,7 +286,7 @@ export class Resource implements ts.IClassResource {
       ...this.queryBase(),
       context,
       components,
-      subqueryOptions
+      subqueryOptions,
     });
 
     this.logger.info(

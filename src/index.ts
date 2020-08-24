@@ -15,7 +15,11 @@ import { getDatabaseResources } from "./integration";
 import { genDatabaseResourceValidators, castBoolean } from "./utils";
 import { Resource } from "./class";
 import { aggregationFnBuilder } from "./database";
-import { IObjectTransformerMap, TDatabaseResources, IComplexResourceConfig } from "./interfaces";
+import {
+  IObjectTransformerMap,
+  TDatabaseResources,
+  IComplexResourceConfig,
+} from "./interfaces";
 import { gqlModule } from "./graphql";
 
 // currently this is server wide setting. future will be per resource
@@ -27,12 +31,12 @@ export const ignite = async ({
   db,
   metadata,
   resourceSearchMiddleware: middlewarz,
-  complexResources
+  complexResources,
 }: {
   db: any;
   metadata: any;
   resourceSearchMiddleware?: IObjectTransformerMap;
-  complexResources?: IComplexResourceConfig[]
+  complexResources?: IComplexResourceConfig[];
 }) => {
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
@@ -79,43 +83,39 @@ export const ignite = async ({
     ([name, validator]: TDatabaseResources) => [
       name,
       new Resource({
-        db,st,logger,name,
+        db,
+        st,
+        logger,
+        name,
         validator,
         schemaResource: mapSchemaResources[name],
-        middlewareFn: middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
+        middlewareFn:
+          middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
       }),
     ]
   );
 
   // build the complex resources based on the provided configs
-  (complexResources||[]).forEach(({
-    topResourceName, subResourceName, calculated_fields, group_by
-  }) => {
-    const name = `${topResourceName}:${subResourceName}`;
-    Resources.push([
-      name,
-      new Resource({
-        db,st,logger,name,
-        validator: validators[topResourceName],
-        schemaResource: mapSchemaResources[topResourceName],
-        middlewareFn: middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
-        subResourceName,
-        aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
-      })
-    ])
-  });
-
-
-
-
-
-
-
-
-
-
-
-
+  (complexResources || []).forEach(
+    ({ topResourceName, subResourceName, calculated_fields, group_by }) => {
+      const name = `${topResourceName}:${subResourceName}`;
+      Resources.push([
+        name,
+        new Resource({
+          db,
+          st,
+          logger,
+          name,
+          validator: validators[topResourceName],
+          schemaResource: mapSchemaResources[topResourceName],
+          middlewareFn:
+            middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
+          subResourceName,
+          aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
+        }),
+      ]);
+    }
+  );
 
   const { AppModule } = await gqlModule({
     validators,
