@@ -570,18 +570,21 @@ export const callComplexResource = (
   resourcesMap: ts.IClassResourceMap,
   resourceName: string,
   operation: string,
-  payload: any
+  payload: any,
+  subPayload?: any // subpayloads are passed from GraphQL. else they are parsed from REST `payload`
 ) => {
-  const [_subPayload, _restPayload] = seperateByKeyPrefix(payload.payload, ">");
-  const [_subContext, topPayload] = seperateByKeyPrefix(_restPayload, "]");
+  if(!subPayload){
+    console.log('HELLO THERE.')
+    const [_subPayload, _restPayload] = seperateByKeyPrefix(payload.payload, ">");
+    const [_subContext, topPayload] = seperateByKeyPrefix(_restPayload, "]");
+    subPayload = {
+      ...payload,
+      payload: _subPayload,
+      context: _subContext,
+    };
+    payload.payload = topPayload;
+  }
 
-  const subPayload = {
-    ...payload,
-    payload: _subPayload,
-    context: _subContext,
-  };
-
-  payload.payload = topPayload;
 
   const resource = resourcesMap[resourceName];
   const subquery = resourcesMap[resource.subResourceName][operation](
@@ -598,3 +601,15 @@ export const callComplexResource = (
     aggregationFn,
   });
 };
+
+export const getFirstIfSeperated = (str: string, seperator = ':') =>
+  str.includes(seperator) ? str.split(seperator)[0] : str;
+
+export const genResourcesMap = (Resources): ts.IClassResourceMap =>
+  Resources.reduce(
+    (batch, [name, _Resource]: any) => ({
+      ...batch,
+      [name]: _Resource,
+    }),
+    {}
+  );

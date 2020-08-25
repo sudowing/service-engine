@@ -5,9 +5,10 @@ import * as HTTP_STATUS from "http-status";
 
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import * as cnst from "./const";
+import { genCountQuery } from "./database";
 import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
-import { callComplexResource } from "./utils";
+import { callComplexResource, genResourcesMap } from "./utils";
 
 const uniqueResource = (url: string) =>
   parseURL(url, true).pathname.endsWith("/record");
@@ -55,13 +56,15 @@ export const serviceRouters = async ({
 
   // THIS NEEDS TO BE MOVED HIGHER! DOESN'T NEED TO BE DONE PER REQUEST
 
-  const resourcesMap = Resources.reduce(
-    (batch, [name, _Resource]: any) => ({
-      ...batch,
-      [name]: _Resource,
-    }),
-    {}
-  );
+  // const resourcesMap = Resources.reduce(
+  //   (batch, [name, _Resource]: any) => ({
+  //     ...batch,
+  //     [name]: _Resource,
+  //   }),
+  //   {}
+  // );
+
+  const resourcesMap = genResourcesMap(Resources)
 
   const apiDocs = await genDatabaseResourceOpenApiDocs({
     db,
@@ -173,8 +176,6 @@ export const serviceRouters = async ({
             ...ctx.request.query,
           }); // keys must come from querystring
 
-    let sqlSearchCount = null; // placeholder for unpagination count
-
     const payload:
       | ts.IParamsProcessBase
       | ts.IParamsProcessWithSearch
@@ -206,6 +207,7 @@ export const serviceRouters = async ({
         records = await serviceResponse.result.sql;
 
         if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
+          // TODO: instead of building new object `args` -- can prob just delete keys from `payload`
           const args = {
             payload: input.payload,
             reqId,
@@ -215,17 +217,7 @@ export const serviceRouters = async ({
             ? callComplexResource(resourcesMap, resource, operation, args)
             : resourcesMap[resource][operation](args);
 
-          // explictely remove sql limit
-          // https://github.com/knex/knex/blob/e37aeaa31c8ef9c1b07d2e4d3ec6607e557d800d/lib/query/compiler.js#L522
-          // https://github.com/knex/knex/blob/master/lib/query/builder.js#L872
-          searchCountResult.sql._single.limit = undefined;
-
-          sqlSearchCount = db.from(
-            db.raw(`(${searchCountResult.sql.toString()}) as main2`)
-          );
-          // this is needed to make the db result mysql/postgres agnostic
-          sqlSearchCount.count("* as count");
-
+          const sqlSearchCount = genCountQuery(db, searchCountResult.sql)
           const [{ count }] = await sqlSearchCount; // can/should maybe log this
           ctx.set(cnst.HEADER_COUNT, count);
         }

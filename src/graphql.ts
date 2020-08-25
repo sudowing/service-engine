@@ -8,8 +8,9 @@ import { UserInputError } from "apollo-server-koa";
 import { v4 as uuidv4 } from "uuid";
 
 import { HEADER_REQUEST_ID } from "./const";
-import { IServiceResolverResponse } from "./interfaces";
-import { contextTransformer } from "./utils";
+import { genCountQuery } from "./database";
+import { IServiceResolverResponse, IClassResourceMap } from "./interfaces";
+import { contextTransformer, getFirstIfSeperated, callComplexResource, genResourcesMap } from "./utils";
 
 export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
   const schema = {
@@ -198,15 +199,29 @@ export const gqlSchema = async ({
   };
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const apiType = "GRAPHQL";
-export const makeServiceResolver = (resource, hardDelete) => (
+export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resource, hardDelete) => (
   operation: string
 ) => async (obj, args, ctx, info) => {
   const reqId = ctx.reqId || "reqId no issued";
-  const defaultInput = { payload: {}, context: {}, options: {} };
+  const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
 
   const input = { ...defaultInput, ...args };
-  const { payload, context, options, keys } = input;
+  const { payload, context, options, keys, subquery } = input;
 
   // because I'm now publishing request metadata (debug, sql, count) with records the value of record/records key
   // cant use this
@@ -216,14 +231,36 @@ export const makeServiceResolver = (resource, hardDelete) => (
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
 
-  // TODO: use `callComplexResource` like in routers.ts to implement the complex resources (subqueries)
-  const serviceResponse = resource[operation]({
+
+
+
+
+
+
+
+
+
+
+
+
+  const query = {
     payload: operation !== "update" ? payload : { ...payload, ...keys },
     context,
     requestId: reqId,
     apiType,
     hardDelete,
-  });
+  }
+
+  const subPayload = {
+    ...subquery, // subquery has `payload` & `context` keys. needs to be typed
+    requestId: reqId,
+    apiType
+  };
+
+  const serviceResponse = resource.hasSubquery
+    ? callComplexResource(resourcesMap, resource, operation, query, subPayload)
+    : resource[operation](query);
+
 
   if (serviceResponse.result) {
     try {
@@ -245,12 +282,20 @@ export const makeServiceResolver = (resource, hardDelete) => (
         serviceResponse,
       };
 
+      if(subquery){
+        // @ts-ignore
+        debug.input.subPayload = subPayload;
+      }
+
       // send count as additional field
       const response: IServiceResolverResponse = {
         data: singleRecord ? (data.length ? data[0] : null) : data,
         sql,
         debug,
       };
+
+
+
 
       if (operation === "search" && options.count) {
         // later could apply to update & delete
@@ -260,15 +305,19 @@ export const makeServiceResolver = (resource, hardDelete) => (
           apiType,
         });
 
-        const sqlSearchCount = resource.db.from(
-          resource.db.raw(`(${searchCountResult.sql.toString()}) as main`)
-        );
-        // this is needed to make the db result mysql/postgres agnostic
-        sqlSearchCount.count("* as count");
-
+        const sqlSearchCount = genCountQuery(resource.db, searchCountResult.sql)
         const [{ count }] = await sqlSearchCount; // can/should maybe log this
+
+        console.log('IM BATMAN', options)
+
         response.count = count;
       }
+
+
+
+
+
+
 
       return response;
 
@@ -289,6 +338,24 @@ export const makeServiceResolver = (resource, hardDelete) => (
   }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const gqlModule = async ({
   validators,
   dbResources,
@@ -305,13 +372,17 @@ export const gqlModule = async ({
     toSchemaScalar,
   });
 
-  const serviceResolvers = Resources.filter(
-    (item: any) => ![...item[1].name].includes(":")
-  ) // temp -- will remove when integrating complex into GraphQL
+  const serviceResolvers = Resources
+    // .filter(
+    //   (item: any) => ![...item[1].name].includes(":")
+    // ) // temp -- will remove when integrating complex into GraphQL
     .reduce(
       ({ Query, Mutation }, [name, resource]) => {
         const ResourceName = pascalCase(name);
-        const resolver = makeServiceResolver(resource, hardDelete);
+
+        const resourcesMap = genResourcesMap(Resources)
+
+        const resolver = makeServiceResolver(resourcesMap)(resource, hardDelete);
 
         const output = {
           Query: {
@@ -327,7 +398,7 @@ export const gqlModule = async ({
           },
         };
 
-        const keys = Object.values(dbResources[name]).filter(
+        const keys = Object.values(dbResources[getFirstIfSeperated(name)]).filter(
           (item: any) => item.primarykey
         );
 

@@ -201,3 +201,16 @@ export const aggregationFnBuilder = (db: Knex) => (
   );
   return group_by ? knex_query.groupBy(group_by) : knex_query;
 };
+
+
+export const genCountQuery = (db, knex_query: Knex.QueryBuilder): Knex.QueryBuilder => {
+  // explictely remove sql limit
+  // https://github.com/knex/knex/blob/e37aeaa31c8ef9c1b07d2e4d3ec6607e557d800d/lib/query/compiler.js#L522
+  // https://github.com/knex/knex/blob/master/lib/query/builder.js#L872
+  // @ts-ignore -- accessing private property
+  knex_query._single.limit = undefined;
+
+  const count_query = db.from(db.raw(`(${knex_query.toString()}) as main2`));
+  // this is needed to make the db result mysql/postgres agnostic
+  return count_query.count("* as count");
+}

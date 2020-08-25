@@ -1,6 +1,7 @@
 
 
-subquery
+subquery -> implement `DEBUG` route, graphql and openapi. Then ship.
+
 update logger with file and trace
 make every http call get logged to debug
 
