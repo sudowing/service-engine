@@ -64,7 +64,7 @@ export const serviceRouters = async ({
   //   {}
   // );
 
-  const resourcesMap = genResourcesMap(Resources)
+  const resourcesMap = genResourcesMap(Resources);
 
   const apiDocs = await genDatabaseResourceOpenApiDocs({
     db,
@@ -217,7 +217,7 @@ export const serviceRouters = async ({
             ? callComplexResource(resourcesMap, resource, operation, args)
             : resourcesMap[resource][operation](args);
 
-          const sqlSearchCount = genCountQuery(db, searchCountResult.sql)
+          const sqlSearchCount = genCountQuery(db, searchCountResult.sql);
           const [{ count }] = await sqlSearchCount; // can/should maybe log this
           ctx.set(cnst.HEADER_COUNT, count);
         }

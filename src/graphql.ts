@@ -9,8 +9,17 @@ import { v4 as uuidv4 } from "uuid";
 
 import { HEADER_REQUEST_ID } from "./const";
 import { genCountQuery } from "./database";
-import { IServiceResolverResponse, IClassResourceMap, IClassResource } from "./interfaces";
-import { contextTransformer, getFirstIfSeperated, callComplexResource, genResourcesMap } from "./utils";
+import {
+  IServiceResolverResponse,
+  IClassResourceMap,
+  IClassResource,
+} from "./interfaces";
+import {
+  contextTransformer,
+  getFirstIfSeperated,
+  callComplexResource,
+  genResourcesMap,
+} from "./utils";
 
 export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
   const schema = {
@@ -41,15 +50,13 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
       }
     }
 
-    const subResourceName = name.includes(':') ? name.split(':')[1] : undefined;
-    if(subResourceName){
+    const subResourceName = name.includes(":") ? name.split(":")[1] : undefined;
+    if (subResourceName) {
       schema[`input in${ResourceName}_subquery`] = [
         `payload: in${pascalCase(subResourceName)}`,
-        `context: inputContext`
+        `context: inputContext`,
       ];
-
     }
-
 
     const simpleQuery = `
         Search${ResourceName}(
@@ -57,7 +64,7 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
             context: inputContext
             options: serviceInputOptions
         ): resSearch${ResourceName}
-    `
+    `;
     const complexQuery = `
         Search${ResourceName}(
             payload: in${ResourceName}
@@ -65,7 +72,7 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
             options: serviceInputOptions
             subquery: in${ResourceName}_subquery
         ): resSearch${ResourceName}
-    `
+    `;
 
     schema.query.push(subResourceName ? complexQuery : simpleQuery);
     schema.mutation.push(`
@@ -137,37 +144,6 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
 const ln = `
 `;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const gqlSchema = async ({
   validators,
   dbResources,
@@ -175,14 +151,13 @@ export const gqlSchema = async ({
   Resources,
   toSchemaScalar,
 }) => {
-
-            // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
-            Resources.forEach(([name, Resource]: [string, IClassResource]) => {
-              if(Resource.hasSubquery){
-                // append a record to `dbResources`
-                dbResources[name] = dbResources[getFirstIfSeperated(name)]
-              }
-            });
+  // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
+  Resources.forEach(([name, Resource]: [string, IClassResource]) => {
+    if (Resource.hasSubquery) {
+      // append a record to `dbResources`
+      dbResources[name] = dbResources[getFirstIfSeperated(name)];
+    }
+  });
 
   const { query, mutation, ...other } = gqlTypes({
     dbResources,
@@ -260,48 +235,11 @@ export const gqlSchema = async ({
   };
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const apiType = "GRAPHQL";
-export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resource, hardDelete) => (
-  operation: string
-) => async (obj, args, ctx, info) => {
+export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
+  resource,
+  hardDelete
+) => (operation: string) => async (obj, args, ctx, info) => {
   const reqId = ctx.reqId || "reqId no issued";
   const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
 
@@ -322,16 +260,22 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resourc
     requestId: reqId,
     apiType,
     hardDelete,
-  }
+  };
 
   const subPayload = {
     ...subquery, // subquery has `payload` & `context` keys. needs to be typed
     requestId: reqId,
-    apiType
+    apiType,
   };
 
   const serviceResponse = resource.hasSubquery
-    ? callComplexResource(resourcesMap, resource.name, operation, query, subPayload)
+    ? callComplexResource(
+        resourcesMap,
+        resource.name,
+        operation,
+        query,
+        subPayload
+      )
     : resource[operation](query);
 
   if (serviceResponse.result) {
@@ -354,7 +298,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resourc
         serviceResponse,
       };
 
-      if(subquery){
+      if (subquery) {
         // @ts-ignore
         debug.input.subPayload = subPayload;
       }
@@ -374,7 +318,10 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resourc
           apiType,
         });
 
-        const sqlSearchCount = genCountQuery(resource.db, searchCountResult.sql)
+        const sqlSearchCount = genCountQuery(
+          resource.db,
+          searchCountResult.sql
+        );
         const [{ count }] = await sqlSearchCount; // can/should maybe log this
 
         response.count = count;
@@ -399,24 +346,6 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resourc
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const gqlModule = async ({
   validators,
   dbResources,
@@ -425,10 +354,6 @@ export const gqlModule = async ({
   toSchemaScalar,
   hardDelete,
 }) => {
-
-
-
-
   // resolvers are built. now just need to add gqlschema for complexResources
   const { typeDefsString, typeDefs } = await gqlSchema({
     validators,
@@ -446,11 +371,12 @@ export const gqlModule = async ({
       ({ Query, Mutation }, [name, resource]) => {
         const ResourceName = pascalCase(name);
 
-        console.log('ResourceName', ResourceName);
+        const resourcesMap = genResourcesMap(Resources);
 
-        const resourcesMap = genResourcesMap(Resources)
-
-        const resolver = makeServiceResolver(resourcesMap)(resource, hardDelete);
+        const resolver = makeServiceResolver(resourcesMap)(
+          resource,
+          hardDelete
+        );
 
         const output = {
           Query: {
@@ -466,9 +392,9 @@ export const gqlModule = async ({
           },
         };
 
-        const keys = Object.values(dbResources[getFirstIfSeperated(name)]).filter(
-          (item: any) => item.primarykey
-        );
+        const keys = Object.values(
+          dbResources[getFirstIfSeperated(name)]
+        ).filter((item: any) => item.primarykey);
 
         // if resource lacks keys -- delete resolvers for unique records
         if (!keys.length) {

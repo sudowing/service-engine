@@ -573,8 +573,11 @@ export const callComplexResource = (
   payload: any,
   subPayload?: any // subpayloads are passed from GraphQL. else they are parsed from REST `payload`
 ) => {
-  if(!subPayload){
-    const [_subPayload, _restPayload] = seperateByKeyPrefix(payload.payload, ">");
+  if (!subPayload) {
+    const [_subPayload, _restPayload] = seperateByKeyPrefix(
+      payload.payload,
+      ">"
+    );
     const [_subContext, topPayload] = seperateByKeyPrefix(_restPayload, "]");
     subPayload = {
       ...payload,
@@ -600,7 +603,7 @@ export const callComplexResource = (
   });
 };
 
-export const getFirstIfSeperated = (str: string, seperator = ':') =>
+export const getFirstIfSeperated = (str: string, seperator = ":") =>
   str.includes(seperator) ? str.split(seperator)[0] : str;
 
 export const genResourcesMap = (Resources): ts.IClassResourceMap =>
