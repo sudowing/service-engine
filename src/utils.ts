@@ -587,6 +587,9 @@ export const callComplexResource = (
 
 
   const resource = resourcesMap[resourceName];
+
+  console.log('HELLO THERE AGAIN.', resource.name, resource.hasSubquery, resource.subResourceName)
+
   const subquery = resourcesMap[resource.subResourceName][operation](
     subPayload,
     { subqueryContext: true }

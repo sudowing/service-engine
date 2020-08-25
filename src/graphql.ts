@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { HEADER_REQUEST_ID } from "./const";
 import { genCountQuery } from "./database";
-import { IServiceResolverResponse, IClassResourceMap } from "./interfaces";
+import { IServiceResolverResponse, IClassResourceMap, IClassResource } from "./interfaces";
 import { contextTransformer, getFirstIfSeperated, callComplexResource, genResourcesMap } from "./utils";
 
 export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
@@ -124,10 +124,20 @@ export const gqlSchema = async ({
   Resources,
   toSchemaScalar,
 }) => {
+
+  // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
+  Resources.forEach(([name, Resource]: [string, IClassResource]) => {
+    if(Resource.hasSubquery){
+      // append a record to `dbResources`
+      dbResources[name] = dbResources[getFirstIfSeperated(name)]
+    }
+  });
+
   const { query, mutation, ...other } = gqlTypes({
     dbResources,
     toSchemaScalar,
   });
+
   const items = Object.entries(other).map(
     ([name, definition]) => `
       ${name} {
@@ -231,18 +241,6 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resourc
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
   const query = {
     payload: operation !== "update" ? payload : { ...payload, ...keys },
     context,
@@ -258,9 +256,8 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resourc
   };
 
   const serviceResponse = resource.hasSubquery
-    ? callComplexResource(resourcesMap, resource, operation, query, subPayload)
+    ? callComplexResource(resourcesMap, resource.name, operation, query, subPayload)
     : resource[operation](query);
-
 
   if (serviceResponse.result) {
     try {
@@ -294,9 +291,6 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resourc
         debug,
       };
 
-
-
-
       if (operation === "search" && options.count) {
         // later could apply to update & delete
         const { result: searchCountResult } = resource[operation]({
@@ -308,16 +302,8 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (resourc
         const sqlSearchCount = genCountQuery(resource.db, searchCountResult.sql)
         const [{ count }] = await sqlSearchCount; // can/should maybe log this
 
-        console.log('IM BATMAN', options)
-
         response.count = count;
       }
-
-
-
-
-
-
 
       return response;
 
@@ -364,6 +350,11 @@ export const gqlModule = async ({
   toSchemaScalar,
   hardDelete,
 }) => {
+
+
+
+
+  // resolvers are built. now just need to add gqlschema for complexResources
   const { typeDefsString, typeDefs } = await gqlSchema({
     validators,
     dbResources,
@@ -379,6 +370,8 @@ export const gqlModule = async ({
     .reduce(
       ({ Query, Mutation }, [name, resource]) => {
         const ResourceName = pascalCase(name);
+
+        console.log('ResourceName', ResourceName);
 
         const resourcesMap = genResourcesMap(Resources)
 
