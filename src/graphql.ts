@@ -41,13 +41,33 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
       }
     }
 
-    schema.query.push(`
+    const subResourceName = name.includes(':') ? name.split(':')[1] : undefined;
+    if(subResourceName){
+      schema[`input in${ResourceName}_subquery`] = [
+        `payload: in${pascalCase(subResourceName)}`,
+        `context: inputContext`
+      ];
+
+    }
+
+
+    const simpleQuery = `
         Search${ResourceName}(
             payload: in${ResourceName}
             context: inputContext
             options: serviceInputOptions
         ): resSearch${ResourceName}
-    `);
+    `
+    const complexQuery = `
+        Search${ResourceName}(
+            payload: in${ResourceName}
+            context: inputContext
+            options: serviceInputOptions
+            subquery: in${ResourceName}_subquery
+        ): resSearch${ResourceName}
+    `
+
+    schema.query.push(subResourceName ? complexQuery : simpleQuery);
     schema.mutation.push(`
         Create${ResourceName}(
             payload: [input${ResourceName}!]!
@@ -117,6 +137,37 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
 const ln = `
 `;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const gqlSchema = async ({
   validators,
   dbResources,
@@ -125,13 +176,13 @@ export const gqlSchema = async ({
   toSchemaScalar,
 }) => {
 
-  // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
-  Resources.forEach(([name, Resource]: [string, IClassResource]) => {
-    if(Resource.hasSubquery){
-      // append a record to `dbResources`
-      dbResources[name] = dbResources[getFirstIfSeperated(name)]
-    }
-  });
+            // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
+            Resources.forEach(([name, Resource]: [string, IClassResource]) => {
+              if(Resource.hasSubquery){
+                // append a record to `dbResources`
+                dbResources[name] = dbResources[getFirstIfSeperated(name)]
+              }
+            });
 
   const { query, mutation, ...other } = gqlTypes({
     dbResources,
@@ -208,6 +259,30 @@ export const gqlSchema = async ({
     typeDefs,
   };
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

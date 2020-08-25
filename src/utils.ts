@@ -574,7 +574,6 @@ export const callComplexResource = (
   subPayload?: any // subpayloads are passed from GraphQL. else they are parsed from REST `payload`
 ) => {
   if(!subPayload){
-    console.log('HELLO THERE.')
     const [_subPayload, _restPayload] = seperateByKeyPrefix(payload.payload, ">");
     const [_subContext, topPayload] = seperateByKeyPrefix(_restPayload, "]");
     subPayload = {
@@ -585,11 +584,7 @@ export const callComplexResource = (
     payload.payload = topPayload;
   }
 
-
   const resource = resourcesMap[resourceName];
-
-  console.log('HELLO THERE AGAIN.', resource.name, resource.hasSubquery, resource.subResourceName)
-
   const subquery = resourcesMap[resource.subResourceName][operation](
     subPayload,
     { subqueryContext: true }
