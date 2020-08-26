@@ -57,3 +57,12 @@ read with zero matches doesn't 404
 
 
 throw verbose error if any resource in the complex resources config doesnt exist and exit
+
+
+foreign key by inspection (for relationships in graphql)
+dataloader
+
+postgis
+
+alter casing of comlex REST resources and graphql schema/resolvers to add something that will prevent conflicts (maybe an underscore or something)
+normal casing gets PascalCased. that could lead to conflicts.

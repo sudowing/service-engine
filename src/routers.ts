@@ -113,6 +113,10 @@ export const serviceRouters = async ({
     ctx.response.body = docs;
   });
 
+  appRouter.get("/wip", async (ctx) => {
+    ctx.response.body = ResourceReports;
+  });
+
   appRouter.get("/db_resources", async (ctx) => {
     ctx.response.body = dbResources;
   });

@@ -114,6 +114,12 @@ export const SEARCH_QUERY_CONTEXT = {
   limit: undefined,
 };
 
+export const SEARCH_SUBQUERY_CONTEXT = {
+  seperator: COMMA, // used
+  notWhere: undefined,
+  statementContext: "and",
+};
+
 export const SEARCH_QUERY_CONTEXT_DESCRIPTION = {
   fields: "record fields to return in results",
   seperator:
