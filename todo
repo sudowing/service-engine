@@ -66,3 +66,5 @@ postgis
 
 alter casing of comlex REST resources and graphql schema/resolvers to add something that will prevent conflicts (maybe an underscore or something)
 normal casing gets PascalCased. that could lead to conflicts.
+
+validate GraphQL counts for queries. not sure they are accurate -- they are deff not.
