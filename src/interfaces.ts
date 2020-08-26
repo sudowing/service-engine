@@ -116,6 +116,7 @@ export interface IParamsToDeleteQueryWithSearch
 
 export interface IParamsToSearchQuery extends IParamsQueryCore {
   components: ISearchQueryComponent[];
+  subqueryOptions?: ISubqueryOptions;
 }
 
 export interface IParamsProcessBase {
@@ -230,6 +231,10 @@ export interface IObjectTransformerMap {
   [index: string]: IObjectTransformer;
 }
 
+export interface IClassResourceMap {
+  [index: string]: IClassResource;
+}
+
 export interface IClassResourceConstructor {
   db: knex;
   st: knexPostgis.KnexPostgis;
@@ -238,6 +243,8 @@ export interface IClassResourceConstructor {
   validator: Joi.Schema;
   schemaResource: ISchemaResource;
   middlewareFn?: IObjectTransformer;
+  subResourceName?: string;
+  aggregationFn?: TKnexSubQuery;
 }
 
 export interface IClassResource {
@@ -252,6 +259,9 @@ export interface IClassResource {
   report: IValidationExpanderReport;
   meta: IValidationExpanderMeta;
   generics: TResponseGenerics;
+  hasSubquery: boolean;
+  subResourceName?: string;
+  aggregationFn?: TKnexSubQuery;
 
   queryBase(): IResourceQueryBase;
   contextParser(input: IParamsProcessBase): IResourceContextParserResponse;
@@ -261,9 +271,24 @@ export interface IClassResource {
   update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
   delete(payload: IParamsProcessDelete): IRejectResource | IResolveResource;
   search(
-    payload: any,
-    middlewareFn?: IObjectTransformer
+    payload: IParamsProcessBase,
+    subqueryOptions?: ISubqueryOptions
   ): IRejectResource | IResolveResource;
+}
+
+export interface ISubqueryOptions {
+  subqueryContext?: boolean;
+  subquery?: knex.QueryBuilder;
+  aggregationFn?: TKnexSubQuery;
+}
+
+export type TKnexSubQuery = (query: knex.QueryBuilder) => knex.QueryBuilder;
+
+export interface IComplexResourceConfig {
+  topResourceName: string;
+  subResourceName: string;
+  calculated_fields: IObjectStringByString;
+  group_by?: string[];
 }
 
 export interface IRejectResource {
@@ -332,4 +357,8 @@ export interface IServiceResolverResponse {
 export interface ISchemaResource {
   resource_schema: string;
   resource_name: string;
+}
+
+export interface IObjectStringByString {
+  [index: string]: string;
 }

@@ -3,10 +3,36 @@ import { pascalCase } from "change-case";
 import {
   SEARCH_QUERY_CONTEXT,
   SEARCH_QUERY_CONTEXT_DESCRIPTION,
+  SEARCH_SUBQUERY_CONTEXT,
   SUPPORTED_OPERATIONS,
   URL_ROOT_SERVICE,
   DEBUG,
 } from "./const";
+import { IValidationExpanderReport } from "./interfaces";
+
+const genSearchParams = (oa3DataSchema, resource) => ([
+  name,
+  {
+    type,
+    required,
+    keyComponent,
+    geoqueryType,
+    softDeleteFlag,
+    updateDisabled,
+    createRequired,
+    createDisabled,
+  },
+]: any) => ({
+  name,
+  description: name,
+  in: "query",
+  required,
+  schema: oa3DataSchema({ resource, name, type }),
+});
+
+// TODO: eval these usages. complexqueries wont be implemented into GraphQL and OpenAPI until this is done
+const parseComplexResources = (str) =>
+  str.includes(":") ? str.split(":")[0] : str;
 
 export const standardHeaders = {
   "x-request-id": {
@@ -59,12 +85,23 @@ export const searchHeaders = {
 
 const contextNumbers = ["page", "limit"];
 
-const searchContextParams = Object.keys(SEARCH_QUERY_CONTEXT).map((key) => ({
-  name: `|${key}`,
+const genSearchContextParam = (seperator = "|") => (key) => ({
+  name: `${seperator}${key}`,
   description: SEARCH_QUERY_CONTEXT_DESCRIPTION[key] || `query context: ${key}`,
   in: "query",
   schema: { type: contextNumbers.includes(key) ? "number" : "string" },
-}));
+});
+
+const searchContextParams = Object.keys(SEARCH_QUERY_CONTEXT).map(
+  genSearchContextParam()
+);
+const searchSubContextParams = Object.keys(SEARCH_SUBQUERY_CONTEXT).map(
+  genSearchContextParam("]")
+);
+const searchComplexContextParams = [
+  ...searchContextParams,
+  ...searchSubContextParams,
+];
 
 // almost certainly a better way to do this
 export const fieldsContext = searchContextParams.filter(
@@ -129,10 +166,15 @@ export const genDatabaseResourceOpenApiDocs = async ({
   dbResources,
   ResourceReports,
 }) => {
+  const ResourceReportsObject = Object.fromEntries(ResourceReports);
+
   const genPath = pathGenerator(metadata.routerPrefix);
 
   // takes input from validators and extends info with dbResources to build details oa3DataSchema
-  const oa3DataSchema = ({ resource, name, type }) => {
+  const oa3DataSchema = ({ resource: _resource, name: _name, type }) => {
+    const resource = parseComplexResources(_resource);
+    const name = _name.startsWith(">") ? _name.replace(">", "") : _name;
+
     // need to handled cases like UUID, dates and other things that are populated in the DBs
     const nullable = dbResources[resource][name].notnull ? undefined : true;
 
@@ -171,7 +213,22 @@ export const genDatabaseResourceOpenApiDocs = async ({
       record,
       [resource, { create, read, update, delete: del, search }]: [string, any]
     ) => {
+      const isComplexResource = resource.includes(":");
+      const subResource = isComplexResource
+        ? resource.split(":")[1]
+        : undefined;
+      const subResourceReport = isComplexResource
+        ? ResourceReportsObject[resource.split(":")[1]]
+        : undefined;
+
       const searchEntries = Object.entries(search);
+      const searchSubEntries = !isComplexResource
+        ? []
+        : Object.entries(
+            (subResourceReport as IValidationExpanderReport).search
+          ).map(([field, info]) => [`>${field}`, info]);
+      // need to append `subResource` keys with `>` prefixes here if `isComplexResource`
+      // const searchEntriesParams = isComplexResource ? [...searchEntries, ...searchSubEntries] : searchEntries
 
       const keys = searchEntries.reduce(
         (components, [field, { type, keyComponent }]: any) => [
@@ -186,36 +243,24 @@ export const genDatabaseResourceOpenApiDocs = async ({
       const pathResource = genPath(`${URL_ROOT_SERVICE}/${resource}`);
       const pathResourceRecord = `${pathResource}/record`;
 
+      const parameters = [
+        ...searchEntries.map(genSearchParams(oa3DataSchema, resource)),
+        ...(isComplexResource
+          ? searchSubEntries.map(genSearchParams(oa3DataSchema, subResource))
+          : []),
+
+        ...(isComplexResource
+          ? searchComplexContextParams
+          : searchContextParams),
+        ...requestHeaderParams,
+      ];
+
       record[pathResource] = {
         get: {
           summary: `search ${resource}`,
           operationId: `search${Resource}`,
           tags: [Resource],
-          parameters: [
-            ...searchEntries.map(
-              ([
-                name,
-                {
-                  type,
-                  required,
-                  keyComponent,
-                  geoqueryType,
-                  softDeleteFlag,
-                  updateDisabled,
-                  createRequired,
-                  createDisabled,
-                },
-              ]: any) => ({
-                name,
-                description: name,
-                in: "query",
-                required,
-                schema: oa3DataSchema({ resource, name, type }),
-              })
-            ),
-            ...searchContextParams,
-            ...requestHeaderParams,
-          ],
+          parameters,
           responses: {
             "200": {
               headers: { ...searchHeaders },

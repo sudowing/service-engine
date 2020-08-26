@@ -50,6 +50,7 @@ export const modifyValidator = (
   operation: string = "original"
 ): Joi.Schema => {
   const newValidator = cloneDeep(validator);
+
   newValidator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].forEach(
     ({ schema, id }) => {
       if (operation === cnst.CREATE) {
@@ -307,7 +308,7 @@ export const searchQueryParser = (
   const sep = seperator || cnst.SEARCH_QUERY_CONTEXT.seperator;
 
   // removing context
-  Object.entries(query).forEach(([key, rawValue]) => {
+  Object.entries(query || {}).forEach(([key, rawValue]) => {
     const { field, operation } = parseFieldAndOperation(key);
     const { schema } =
       validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field) || {};
@@ -547,3 +548,69 @@ export const genDatabaseResourceValidators = async ({
 
   return { validators, dbResources };
 };
+
+export const seperateByKeyPrefix = (
+  payload: any,
+  prefix: string
+): [ts.IObjectStringByString, ts.IObjectStringByString] => {
+  const payloadWithoutPrefix = {};
+  const payloadWithPrefix = {};
+  Object.keys(payload || {}).forEach((key) => {
+    if (key.startsWith(prefix)) {
+      // remove the lead char from the key -- as its utility ends here
+      payloadWithPrefix[key.substring(1)] = payload[key];
+    } else {
+      payloadWithoutPrefix[key] = payload[key];
+    }
+  });
+  return [payloadWithPrefix, payloadWithoutPrefix];
+};
+
+export const callComplexResource = (
+  resourcesMap: ts.IClassResourceMap,
+  resourceName: string,
+  operation: string,
+  payload: any,
+  subPayload?: any // subpayloads are passed from GraphQL. else they are parsed from REST `payload`
+) => {
+  if (!subPayload) {
+    const [_subPayload, _restPayload] = seperateByKeyPrefix(
+      payload.payload,
+      ">"
+    );
+    const [_subContext, topPayload] = seperateByKeyPrefix(_restPayload, "]");
+    subPayload = {
+      ...payload,
+      payload: _subPayload,
+      context: _subContext,
+    };
+    payload.payload = topPayload;
+  }
+
+  const resource = resourcesMap[resourceName];
+  const subquery = resourcesMap[resource.subResourceName][operation](
+    subPayload,
+    { subqueryContext: true }
+  );
+
+  // need to return the 400 already
+  if (!subquery.result) return subquery;
+
+  const aggregationFn = resource.aggregationFn;
+  return resource[operation](payload, {
+    subquery: subquery.result.sql,
+    aggregationFn,
+  });
+};
+
+export const getFirstIfSeperated = (str: string, seperator = ":") =>
+  str.includes(seperator) ? str.split(seperator)[0] : str;
+
+export const genResourcesMap = (Resources): ts.IClassResourceMap =>
+  Resources.reduce(
+    (batch, [name, _Resource]: any) => ({
+      ...batch,
+      [name]: _Resource,
+    }),
+    {}
+  );

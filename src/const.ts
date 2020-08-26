@@ -3,6 +3,7 @@ export const READ = "read";
 export const UPDATE = "update";
 export const DELETE = "delete";
 export const SEARCH = "search";
+export const SUBQUERY = "subquery";
 
 export const GET = "GET";
 export const POST = "POST";
@@ -111,6 +112,12 @@ export const SEARCH_QUERY_CONTEXT = {
   orderBy: undefined,
   page: undefined,
   limit: undefined,
+};
+
+export const SEARCH_SUBQUERY_CONTEXT = {
+  seperator: COMMA, // used
+  notWhere: undefined,
+  statementContext: "and",
 };
 
 export const SEARCH_QUERY_CONTEXT_DESCRIPTION = {

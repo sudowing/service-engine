@@ -96,6 +96,9 @@ export class Resource implements ts.IClassResource {
   public validator: Joi.Schema;
   public schemaResource: ts.ISchemaResource;
   public middlewareFn: ts.IObjectTransformer;
+  public hasSubquery: boolean;
+  public subResourceName?: string;
+  public aggregationFn?: ts.TKnexSubQuery;
 
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
@@ -111,6 +114,8 @@ export class Resource implements ts.IClassResource {
     validator,
     schemaResource,
     middlewareFn,
+    subResourceName,
+    aggregationFn,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -119,6 +124,10 @@ export class Resource implements ts.IClassResource {
     this.validator = validator;
     this.schemaResource = schemaResource;
     this.middlewareFn = middlewareFn;
+    this.hasSubquery = !!subResourceName;
+    this.subResourceName = subResourceName;
+    this.aggregationFn = aggregationFn;
+
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
     this.report = report;
@@ -210,18 +219,26 @@ export class Resource implements ts.IClassResource {
     return this.generics.delete(input);
   }
 
-  search(input: ts.IParamsProcessBase) {
+  search(
+    input: ts.IParamsProcessBase,
+    { subqueryContext, ...subqueryOptions }: ts.ISubqueryOptions = {}
+  ) {
     const { requestId } = input;
+    const operation = !!subqueryContext ? cnst.SUBQUERY : cnst.SEARCH;
+
     this.logger.debug(
       {
         ...input,
         resource: this.name,
-        operation: cnst.SEARCH,
+        operation,
       },
       cnst.RESOURCE_CALL
     );
     const { context, ...parsed } = this.contextParser(input);
+
+    // context.fields = !!subqueryContext && context.fields ? context.fields : Object.keys(this.report.search);
     context.fields = context.fields || Object.keys(this.report.search);
+
     context.limit =
       context.limit && context.limit <= PAGINATION_LIMIT
         ? context.limit
@@ -232,12 +249,20 @@ export class Resource implements ts.IClassResource {
         {
           requestId,
           resource: this.name,
-          operation: cnst.SEARCH,
+          operation,
           errors: parsed.error,
         },
         cnst.CONTEXT_ERRORS
       );
       return util.rejectResource(parsed.errorType, parsed.error);
+    }
+
+    // if subqueryContext -- delete most the context keys
+    if (subqueryContext) {
+      delete context.seperator;
+      delete context.orderBy;
+      delete context.page;
+      delete context.limit;
     }
 
     const { errors, components } = this.meta.searchQueryParser(
@@ -261,13 +286,14 @@ export class Resource implements ts.IClassResource {
       ...this.queryBase(),
       context,
       components,
+      subqueryOptions,
     });
 
     this.logger.info(
       {
         requestId,
         resource: this.name,
-        operation: cnst.SEARCH,
+        operation,
         sql: sql.toString(),
       },
       cnst.RESOURCE_RESPONSE

@@ -1,16 +1,19 @@
+import { parse as parseURL } from "url";
+
 import * as Router from "@koa/router";
 import * as HTTP_STATUS from "http-status";
 
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import * as cnst from "./const";
+import { genCountQuery } from "./database";
 import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
-
-import { parse as parseURL } from "url";
+import { callComplexResource, genResourcesMap } from "./utils";
 
 const uniqueResource = (url: string) =>
   parseURL(url, true).pathname.endsWith("/record");
 
+// can maybe add prefix to fn signature and use to parse out subquery payload
 const seperateQueryAndContext = (input) =>
   Object.entries(input).reduce(
     (query, [key, value]) => {
@@ -50,6 +53,18 @@ export const serviceRouters = async ({
     name,
     resource.report,
   ]);
+
+  // THIS NEEDS TO BE MOVED HIGHER! DOESN'T NEED TO BE DONE PER REQUEST
+
+  // const resourcesMap = Resources.reduce(
+  //   (batch, [name, _Resource]: any) => ({
+  //     ...batch,
+  //     [name]: _Resource,
+  //   }),
+  //   {}
+  // );
+
+  const resourcesMap = genResourcesMap(Resources);
 
   const apiDocs = await genDatabaseResourceOpenApiDocs({
     db,
@@ -98,6 +113,10 @@ export const serviceRouters = async ({
     ctx.response.body = docs;
   });
 
+  appRouter.get("/wip", async (ctx) => {
+    ctx.response.body = ResourceReports;
+  });
+
   appRouter.get("/db_resources", async (ctx) => {
     ctx.response.body = dbResources;
   });
@@ -133,19 +152,11 @@ export const serviceRouters = async ({
       return;
     }
 
-    const resources = Resources.reduce(
-      (batch, [name, _Resource]: any) => ({
-        ...batch,
-        [name]: _Resource,
-      }),
-      {}
-    );
-
     // only process for /service & /debug && only if resource exists and operation on resource exists
     if (
       (category !== "service" && category !== "debug") ||
       !operations.has(j({ method, record })) ||
-      !resources.hasOwnProperty(resource)
+      !resourcesMap.hasOwnProperty(resource)
     ) {
       ctx.response.status = HTTP_STATUS.NOT_FOUND;
       return;
@@ -160,16 +171,14 @@ export const serviceRouters = async ({
 
     const input =
       method === "GET"
-        ? seperateQueryAndContext(ctx.request.query)
+        ? seperateQueryAndContext(ctx.request.query) // this needs to parse out subquery input from main input
         : seperateQueryAndContext({
             ...stripKeys(
-              resources[resource].meta.uniqueKeyComponents,
+              resourcesMap[resource].meta.uniqueKeyComponents,
               ctx.request.body
             ),
             ...ctx.request.query,
           }); // keys must come from querystring
-
-    let sqlSearchCount = null; // placeholder for unpagination count
 
     const payload:
       | ts.IParamsProcessBase
@@ -185,7 +194,9 @@ export const serviceRouters = async ({
       payload["hardDelete"] = !!hardDelete;
     }
 
-    const serviceResponse = resources[resource][operation]({ ...payload });
+    const serviceResponse = resourcesMap[resource].hasSubquery
+      ? callComplexResource(resourcesMap, resource, operation, payload)
+      : resourcesMap[resource][operation]({ ...payload });
 
     // insert db, components
     if (serviceResponse.result) {
@@ -200,17 +211,17 @@ export const serviceRouters = async ({
         records = await serviceResponse.result.sql;
 
         if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
-          const { result: searchCountResult } = resources[resource][operation]({
+          // TODO: instead of building new object `args` -- can prob just delete keys from `payload`
+          const args = {
             payload: input.payload,
             reqId,
-          });
+          };
+          const { result: searchCountResult } = resourcesMap[resource]
+            .hasSubquery
+            ? callComplexResource(resourcesMap, resource, operation, args)
+            : resourcesMap[resource][operation](args);
 
-          sqlSearchCount = db.from(
-            db.raw(`(${searchCountResult.sql.toString()}) as main`)
-          );
-          // this is needed to make the db result mysql/postgres agnostic
-          sqlSearchCount.count("* as count");
-
+          const sqlSearchCount = genCountQuery(db, searchCountResult.sql);
           const [{ count }] = await sqlSearchCount; // can/should maybe log this
           ctx.set(cnst.HEADER_COUNT, count);
         }
