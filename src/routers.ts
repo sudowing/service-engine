@@ -117,7 +117,11 @@ export const serviceRouters = async ({
   });
 
   appRouter.get("/db_resources", async (ctx) => {
-    ctx.response.body = dbResources;
+    const { resource } = ctx.request.query; // little helper functionality to speed debugging
+    ctx.response.body =
+      resource && dbResources[resource]
+        ? { [resource]: dbResources[resource] }
+        : dbResources;
   });
 
   appRouter.get("/db_resources/raw", async (ctx) => {

@@ -1,7 +1,3 @@
-
-
-subquery -> implement `DEBUG` route, graphql and openapi. Then ship.
-
 update logger with file and trace
 make every http call get logged to debug
 
@@ -11,25 +7,12 @@ unique vs primary key (if table has no PK -- fallback to unique key if exists an
 
 ALL VALIDATION needs to be async
 
-
-  /resources accepts a get param for a single resource
-
   define relationships via config if fk not set
     fk defines itself (used for GraphQL)
-
-
-
-
-
-
-`typecastFn`
 
 add support for mysql (count object will look different)
 add support for sqlite
 add support for oracle
-
-
-
 
 config based flag for custom types (which will need to all be strings)
 if yes,
@@ -37,14 +20,9 @@ if yes,
 if no...
     throw error || graceful shutdown with verbose messages
 
-
 standardize connection for db config
 
 connect to mysql and sqlite
-
-
-a
-
 
 hard delete vs soft delete.
 Currently only soft delete is enabled
@@ -56,15 +34,8 @@ create many doesnt seem to work. QA against REST
 read with zero matches doesn't 404
 
 
-throw verbose error if any resource in the complex resources config doesnt exist and exit
-
-
 foreign key by inspection (for relationships in graphql)
 dataloader
 
 postgis
 
-alter casing of comlex REST resources and graphql schema/resolvers to add something that will prevent conflicts (maybe an underscore or something)
-normal casing gets PascalCased. that could lead to conflicts.
-
-validate GraphQL counts for queries. not sure they are accurate -- they are deff not.

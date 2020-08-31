@@ -1,26 +1,24 @@
 import * as cors from "@koa/cors";
 import { ApolloServer } from "apollo-server-koa";
-// import * as config from 'config';
-
+import { createLogger } from "bunyan";
 import * as knexPostgis from "knex-postgis";
 import * as Koa from "koa";
 import * as bodyParser from "koa-bodyparser";
 import * as compress from "koa-compress";
 
-import { createLogger } from "bunyan";
-
-import { prepRequestForService } from "./middleware";
-import { serviceRouters } from "./routers";
-import { getDatabaseResources } from "./integration";
-import { genDatabaseResourceValidators, castBoolean } from "./utils";
 import { Resource } from "./class";
+import { author } from "./credit";
 import { aggregationFnBuilder } from "./database";
+import { gqlModule } from "./graphql";
+import { getDatabaseResources } from "./integration";
 import {
   IObjectTransformerMap,
   TDatabaseResources,
   IComplexResourceConfig,
 } from "./interfaces";
-import { gqlModule } from "./graphql";
+import { prepRequestForService } from "./middleware";
+import { serviceRouters } from "./routers";
+import { genDatabaseResourceValidators, castBoolean } from "./utils";
 
 // currently this is server wide setting. future will be per resource
 const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
@@ -98,6 +96,18 @@ export const ignite = async ({
   // build the complex resources based on the provided configs
   (complexResources || []).forEach(
     ({ topResourceName, subResourceName, calculated_fields, group_by }) => {
+      // confirm they exist else
+      if (!dbResources[topResourceName] || !dbResources[subResourceName]) {
+        logger.fatal({
+          message: "server start failed: server improperly configured",
+          detail:
+            "one of the resources provided for a complexResource does not exist. Make sure both are reflected in the DB as tables, views or materialized views. They must exist at boot so this system can auto generate the appropriate @hapi/joi validators -- which drive all of the REST & GraphQL interfaces (and auto documentation)",
+          complex_query: { topResourceName, subResourceName },
+        });
+        process.exitCode = 1;
+        process.kill(process.pid, "SIGINT");
+      }
+
       const name = `${topResourceName}:${subResourceName}`;
       Resources.push([
         name,
@@ -147,11 +157,11 @@ export const ignite = async ({
     .use(cors())
     .use(bodyParser())
     .use(prepRequestForService)
+    .use(compress())
     .use(appRouter.routes())
     .use(appRouter.allowedMethods())
     .use(serviceRouter.routes())
-    .use(serviceRouter.allowedMethods())
-    .use(compress());
+    .use(serviceRouter.allowedMethods());
 
   apolloServer.applyMiddleware({
     app: App,
@@ -159,20 +169,7 @@ export const ignite = async ({
   });
 
   // little self promotion for all my effort :+1:
-  logger.info(
-    {
-      author: "Joe Wingard",
-      linkedin: "https://www.linkedin.com/in/joewingard/",
-      github: "https://github.com/sudowing",
-      docker: "https://hub.docker.com/_/sudowing",
-      keybase: "https://keybase.io/sudowing",
-      hat_tip: {
-        // support my effort on this project. Invested 100s of hours and looking to expand it.
-        venmo: "https://venmo.com/sudowing",
-      },
-    },
-    `🤝 Let's do some work together!`
-  );
+  logger.info(author, `🤝 Let's do some work together!`);
 
   return { App, logger, apolloServer };
 };
