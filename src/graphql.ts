@@ -1,4 +1,3 @@
-import { pascalCase } from "change-case";
 import { GraphQLModule } from "@graphql-modules/core";
 import gql from "graphql-tag";
 import * as graphqlFields from "graphql-fields";
@@ -19,6 +18,7 @@ import {
   getFirstIfSeperated,
   callComplexResource,
   genResourcesMap,
+  transformNameforResolver,
 } from "./utils";
 
 export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
@@ -28,7 +28,7 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
   };
 
   for (const name of Object.keys(dbResources)) {
-    const ResourceName = pascalCase(name);
+    const ResourceName = transformNameforResolver(name);
     schema[`type ${ResourceName}`] = [];
     schema[`input keys${ResourceName}`] = [];
     schema[`input in${ResourceName}`] = [];
@@ -50,10 +50,12 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
       }
     }
 
-    const subResourceName = name.includes(":") ? name.split(":")[1] : undefined;
+    const subResourceName = ResourceName.includes("_")
+      ? ResourceName.split("_")[1]
+      : undefined;
     if (subResourceName) {
-      schema[`input in${ResourceName}_subquery`] = [
-        `payload: in${pascalCase(subResourceName)}`,
+      schema[`input in_subquery_${subResourceName}`] = [
+        `payload: in${subResourceName}`,
         `context: inputContext`,
       ];
     }
@@ -70,7 +72,7 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
             payload: in${ResourceName}
             context: inputContext
             options: serviceInputOptions
-            subquery: in${ResourceName}_subquery
+            subquery: in_subquery_${subResourceName}
         ): resSearch${ResourceName}
     `;
 
@@ -312,11 +314,19 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
 
       if (operation === "search" && options.count) {
         // later could apply to update & delete
-        const { result: searchCountResult } = resource[operation]({
-          payload,
-          reqId,
-          apiType,
-        });
+
+        const { seperator, notWhere, statementContext } = query.context;
+        query.context = { seperator, notWhere, statementContext };
+
+        const { result: searchCountResult } = resource.hasSubquery
+          ? callComplexResource(
+              resourcesMap,
+              resource.name,
+              operation,
+              query,
+              subPayload
+            )
+          : resource[operation](query);
 
         const sqlSearchCount = genCountQuery(
           resource.db,
@@ -369,8 +379,7 @@ export const gqlModule = async ({
     // ) // temp -- will remove when integrating complex into GraphQL
     .reduce(
       ({ Query, Mutation }, [name, resource]) => {
-        const ResourceName = pascalCase(name);
-
+        const ResourceName = transformNameforResolver(name);
         const resourcesMap = genResourcesMap(Resources);
 
         const resolver = makeServiceResolver(resourcesMap)(

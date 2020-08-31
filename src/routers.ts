@@ -99,13 +99,16 @@ export const serviceRouters = async ({
     ctx.response.body = typeDefsString;
   });
 
-  appRouter.get("/ping", (ctx) => {
+  const healthcheck = (ctx) => {
     ctx.response.body = {
       message: "hello world",
       timestamp: Date.now(),
       metadata,
     };
-  });
+  };
+
+  appRouter.get("/ping", healthcheck);
+  appRouter.get("/healthz", healthcheck);
 
   appRouter.get("/openapi", async (ctx) => {
     const { debug } = ctx.request.query;
