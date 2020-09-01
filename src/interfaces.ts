@@ -40,7 +40,7 @@ export interface IValidatorInspectorReport {
 }
 
 export interface IParamsGenerateSearchQueryError {
-  error: Error;
+  error: string;
   field: string;
   type: string;
   operation: string;
@@ -209,7 +209,10 @@ export interface IValidationExpanderReport {
 export interface IValidationExpanderMeta {
   softDeleteFields: any[];
   uniqueKeyComponents: any[];
-  searchQueryParser: (query: any, context?: any) => ISearchQueryResponse;
+  searchQueryParser: (
+    query: any,
+    context?: any
+  ) => Promise<ISearchQueryResponse>;
 }
 
 export interface TResponseGenerics {
@@ -247,6 +250,10 @@ export interface IClassResourceConstructor {
   aggregationFn?: TKnexSubQuery;
 }
 
+export type TAsyncResourceResponse = Promise<
+  IRejectResource | IResolveResource
+>;
+
 export interface IClassResource {
   db: knex;
   st: knexPostgis.KnexPostgis;
@@ -266,14 +273,14 @@ export interface IClassResource {
   queryBase(): IResourceQueryBase;
   contextParser(input: IParamsProcessBase): IResourceContextParserResponse;
 
-  create(payload: IParamsProcessBase): IRejectResource | IResolveResource;
-  read(payload: IParamsProcessBase): IRejectResource | IResolveResource;
-  update(payload: IParamsProcessWithSearch): IRejectResource | IResolveResource;
-  delete(payload: IParamsProcessDelete): IRejectResource | IResolveResource;
+  create(payload: IParamsProcessBase): TAsyncResourceResponse;
+  read(payload: IParamsProcessBase): TAsyncResourceResponse;
+  update(payload: IParamsProcessWithSearch): TAsyncResourceResponse;
+  delete(payload: IParamsProcessDelete): TAsyncResourceResponse;
   search(
     payload: IParamsProcessBase,
     subqueryOptions?: ISubqueryOptions
-  ): IRejectResource | IResolveResource;
+  ): TAsyncResourceResponse;
 }
 
 export interface ISubqueryOptions {
@@ -313,19 +320,19 @@ export interface IResourceContextParserResponse extends IRejectResource {
 
 export type TResponseGenericCreate = (
   input: IParamsProcessBase
-) => IRejectResource | IResolveResource;
+) => TAsyncResourceResponse;
 
 export type TResponseGenericRead = (
   input: IParamsProcessBase
-) => IRejectResource | IResolveResource;
+) => TAsyncResourceResponse;
 
 export type TResponseGenericUpdate = (
   input: IParamsProcessWithSearch
-) => IRejectResource | IResolveResource;
+) => TAsyncResourceResponse;
 
 export type TResponseGenericDelete = (
   input: IParamsProcessDelete
-) => IRejectResource | IResolveResource;
+) => TAsyncResourceResponse;
 
 export interface IDatabaseBootstrap {
   db: knex;

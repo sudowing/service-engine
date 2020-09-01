@@ -197,9 +197,10 @@ export const serviceRouters = async ({
       payload["hardDelete"] = !!hardDelete;
     }
 
-    const serviceResponse = resourcesMap[resource].hasSubquery
+    const asyncServiceResponse = resourcesMap[resource].hasSubquery
       ? callComplexResource(resourcesMap, resource, operation, payload)
       : resourcesMap[resource][operation]({ ...payload });
+    const serviceResponse = await asyncServiceResponse; // validation is now async!
 
     // insert db, components
     if (serviceResponse.result) {
@@ -219,10 +220,12 @@ export const serviceRouters = async ({
             payload: input.payload,
             reqId,
           };
-          const { result: searchCountResult } = resourcesMap[resource]
+          const { result: _searchCountResult } = resourcesMap[resource]
             .hasSubquery
             ? callComplexResource(resourcesMap, resource, operation, args)
             : resourcesMap[resource][operation](args);
+
+          const searchCountResult = await _searchCountResult; // validation is now async!
 
           const sqlSearchCount = genCountQuery(db, searchCountResult.sql);
           const [{ count }] = await sqlSearchCount; // can/should maybe log this
@@ -259,7 +262,7 @@ export const serviceRouters = async ({
           };
 
     if ([null, undefined].includes(output)) {
-      ctx.status = HTTP_STATUS.NOT_FOUND;
+      ctx.status = HTTP_STATUS.NOT_FOUND; // TODO: QA this. Happy to see it's `done` but not sure it's functioning
       return;
     }
 

@@ -136,56 +136,70 @@ describe("utils", () => {
   describe("some validatorInspector", () => {
     const fn = utils.validatorInspector;
 
-    it("inspect original validator", () => {
+    it("inspect original validator", async () => {
       const describeOriginal = fn(
         utils.modifyValidator(mocks.testKeyedTable, "read")
       );
-      Object.entries(mocks.initDescribeOriginal).forEach(([key, value]) => {
-        const { type, required, geoqueryType, softDeleteFlag } = value;
-        expect(describeOriginal[key].type).to.equal(type);
-        expect(describeOriginal[key].required).to.equal(required);
-        expect(describeOriginal[key].geoqueryType).to.equal(geoqueryType);
-        expect(describeOriginal[key].softDeleteFlag).to.equal(softDeleteFlag);
-        expect(describeOriginal[key].typecast).to.equal(utils.typecastFn(type));
+      Object.entries(mocks.initDescribeOriginal).forEach(
+        async ([key, value]) => {
+          const { type, required, geoqueryType, softDeleteFlag } = value;
+          expect(describeOriginal[key].type).to.equal(type);
+          expect(describeOriginal[key].required).to.equal(required);
+          expect(describeOriginal[key].geoqueryType).to.equal(geoqueryType);
+          expect(describeOriginal[key].softDeleteFlag).to.equal(softDeleteFlag);
+          expect(describeOriginal[key].typecast).to.equal(
+            utils.typecastFn(type)
+          );
 
-        const validation = describeOriginal[key].validate(
-          mocks.validationInputs.input[type]
-        );
-        expect(validation.value).to.equal(mocks.validationInputs.output[type]);
-      });
+          // this is asyncValidate now
+          const validation = await describeOriginal[key].validate(
+            mocks.validationInputs.input[type]
+          );
+          expect(validation.value).to.equal(
+            mocks.validationInputs.output[type]
+          );
+        }
+      );
     });
 
-    it("inspect mutated validator", () => {
+    it("inspect mutated validator", async () => {
       const describeBizarro = fn(mocks.testKeyedTable);
-      Object.entries(mocks.initDescribeBizarro).forEach(([key, value]) => {
-        const { type, required, geoqueryType, softDeleteFlag } = value;
-        expect(describeBizarro[key].type).to.equal(type);
-        expect(describeBizarro[key].required).to.equal(required);
-        expect(describeBizarro[key].geoqueryType).to.equal(geoqueryType);
-        expect(describeBizarro[key].softDeleteFlag).to.equal(softDeleteFlag);
-        expect(describeBizarro[key].typecast).to.equal(utils.typecastFn(type));
+      Object.entries(mocks.initDescribeBizarro).forEach(
+        async ([key, value]) => {
+          const { type, required, geoqueryType, softDeleteFlag } = value;
+          expect(describeBizarro[key].type).to.equal(type);
+          expect(describeBizarro[key].required).to.equal(required);
+          expect(describeBizarro[key].geoqueryType).to.equal(geoqueryType);
+          expect(describeBizarro[key].softDeleteFlag).to.equal(softDeleteFlag);
+          expect(describeBizarro[key].typecast).to.equal(
+            utils.typecastFn(type)
+          );
 
-        const validation = describeBizarro[key].validate(
-          mocks.validationInputs.input[type]
-        );
-        expect(validation.value).to.equal(mocks.validationInputs.output[type]);
-      });
+          // this is asyncValidate now
+          const validation = await describeBizarro[key].validate(
+            mocks.validationInputs.input[type]
+          );
+          expect(validation.value).to.equal(
+            mocks.validationInputs.output[type]
+          );
+        }
+      );
     });
   });
 
   describe("errorMessageInvalidValue", () => {
     it("replaces `value` with field", () => {
-      const error = new Error('go "value"');
-      const field = "braves";
+      const field = "atlanta";
+      const message = "go braves";
 
       const fn = utils.errorMessageInvalidValue;
-      expect(fn(error, field)).to.equal("go 'braves'");
+      expect(fn(field, message)).to.equal("'atlanta': go braves");
     });
   });
 
   describe("generateSearchQueryError", () => {
     const fn = utils.generateSearchQueryError;
-    const error = new Error('go "value"');
+    const error = "play ball";
     const field = "braves";
     const type = "type";
     const operation = "operation";
@@ -193,7 +207,7 @@ describe("utils", () => {
 
     it("thrown error", () => {
       const message = fn(payload);
-      expect(message).to.equal("go 'braves'");
+      expect(message).to.equal("'braves': play ball");
     });
     it("unsupported field", () => {
       const message = fn({ ...payload, error: undefined, type: undefined });
@@ -212,24 +226,6 @@ describe("utils", () => {
       const fn = utils.badArgsLengthError;
       expect(fn("range", [1, 2, 3])).to.equal(
         "'range' operation requires 2 args. 3 were provided."
-      );
-    });
-  });
-
-  describe("concatErrorMessages", () => {
-    it("aggregates error strings with replaced substring", () => {
-      const input = [
-        { error: null },
-        { error: new Error('alpha "value"') },
-        { error: undefined },
-        { error: new Error('bravo "value"') },
-        { error: false },
-        { error: new Error('charlie "value"') },
-      ];
-      const fn = utils.concatErrorMessages("the_black_keys");
-      const product = input.reduce(fn, []);
-      expect(JSON.stringify(product)).to.equal(
-        JSON.stringify(mocks.productConcatErrorMessages)
       );
     });
   });
@@ -275,13 +271,29 @@ describe("utils", () => {
   describe("searchQueryParser", () => {
     const fn = utils.searchQueryParser;
 
-    it("produces errors and components as expected", () => {
-      const { errors, components } = fn(
+    it("produces errors and components as expected (now async!)", async () => {
+      const { errors, components } = await fn(
         mocks.testTable,
         mocks.exampleSearchQuery
       );
-      expect(JSON.stringify({ errors, components })).to.equal(
-        JSON.stringify(mocks.exampleParsedSearchQuery)
+
+      const checkForMocksinTestResults = (
+        mockedEntries: string[],
+        testResults: any[]
+      ) => {
+        const testResultsStringified = testResults.map((item) =>
+          JSON.stringify(item)
+        );
+        mockedEntries.forEach((entry) => {
+          expect(testResultsStringified.includes(entry)).to.equal(true);
+        });
+      };
+
+      // ensure all expected mocks are present in the retults
+      checkForMocksinTestResults(mocks.exampleParsedSearchQuery.errors, errors);
+      checkForMocksinTestResults(
+        mocks.exampleParsedSearchQuery.components,
+        components
       );
     });
   });

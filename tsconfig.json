@@ -8,7 +8,7 @@
       "rootDir": "src",
       "outDir": "lib",
       "skipLibCheck": true,
-      "lib": ["es2018", "es2019"],
+      "lib": ["es2018", "es2019", "es2020"],
       "sourceMap": true
   },
   "include": [

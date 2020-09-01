@@ -18,7 +18,7 @@ export const genericResourceCall = (
   fields: string[],
   toQuery: any,
   caller: ts.IClassResource
-) => (
+) => async (
   input:
     | ts.IParamsProcessBase
     | ts.IParamsProcessWithSearch
@@ -52,7 +52,10 @@ export const genericResourceCall = (
   // set fields to all available by default
   context.fields = context.fields || fields;
 
-  const { error, value: query } = util.validateOneOrMany(schema, input.payload);
+  const { error, value: query } = await util.validateOneOrMany(
+    schema,
+    input.payload
+  );
   if (error) {
     caller.logger.error(
       {
@@ -219,7 +222,7 @@ export class Resource implements ts.IClassResource {
     return this.generics.delete(input);
   }
 
-  search(
+  async search(
     input: ts.IParamsProcessBase,
     { subqueryContext, ...subqueryOptions }: ts.ISubqueryOptions = {}
   ) {
@@ -265,7 +268,7 @@ export class Resource implements ts.IClassResource {
       delete context.limit;
     }
 
-    const { errors, components } = this.meta.searchQueryParser(
+    const { errors, components } = await this.meta.searchQueryParser(
       this.middlewareFn ? this.middlewareFn(input.payload) : input.payload,
       context
     );

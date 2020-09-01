@@ -270,7 +270,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
     apiType,
   };
 
-  const serviceResponse = resource.hasSubquery
+  const _serviceResponse = resource.hasSubquery
     ? callComplexResource(
         resourcesMap,
         resource.name,
@@ -279,6 +279,8 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
         subPayload
       )
     : resource[operation](query);
+
+  const serviceResponse = await _serviceResponse; // validation is now async!
 
   if (serviceResponse.result) {
     try {
@@ -318,7 +320,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
         const { seperator, notWhere, statementContext } = query.context;
         query.context = { seperator, notWhere, statementContext };
 
-        const { result: searchCountResult } = resource.hasSubquery
+        const { result: _searchCountResult } = resource.hasSubquery
           ? callComplexResource(
               resourcesMap,
               resource.name,
@@ -327,6 +329,8 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
               subPayload
             )
           : resource[operation](query);
+
+        const searchCountResult = await _searchCountResult; // validation is now async!
 
         const sqlSearchCount = genCountQuery(
           resource.db,
