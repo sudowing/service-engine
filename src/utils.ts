@@ -1,6 +1,7 @@
 import * as Joi from "@hapi/joi";
-
+import { pascalCase } from "change-case";
 import { cloneDeep } from "lodash";
+
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
@@ -614,3 +615,9 @@ export const genResourcesMap = (Resources): ts.IClassResourceMap =>
     }),
     {}
   );
+
+export const transformNameforResolver = (str) =>
+  str
+    .split(":")
+    .map((item) => pascalCase(item)) // this is done to prevent collisions with db resources
+    .join("_");

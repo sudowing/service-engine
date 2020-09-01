@@ -99,13 +99,16 @@ export const serviceRouters = async ({
     ctx.response.body = typeDefsString;
   });
 
-  appRouter.get("/ping", (ctx) => {
+  const healthcheck = (ctx) => {
     ctx.response.body = {
       message: "hello world",
       timestamp: Date.now(),
       metadata,
     };
-  });
+  };
+
+  appRouter.get("/ping", healthcheck);
+  appRouter.get("/healthz", healthcheck);
 
   appRouter.get("/openapi", async (ctx) => {
     const { debug } = ctx.request.query;
@@ -113,12 +116,12 @@ export const serviceRouters = async ({
     ctx.response.body = docs;
   });
 
-  appRouter.get("/wip", async (ctx) => {
-    ctx.response.body = ResourceReports;
-  });
-
   appRouter.get("/db_resources", async (ctx) => {
-    ctx.response.body = dbResources;
+    const { resource } = ctx.request.query; // little helper functionality to speed debugging
+    ctx.response.body =
+      resource && dbResources[resource]
+        ? { [resource]: dbResources[resource] }
+        : dbResources;
   });
 
   appRouter.get("/db_resources/raw", async (ctx) => {

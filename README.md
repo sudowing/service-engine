@@ -103,35 +103,20 @@ A richer description will come in the future -- but review the example below to 
 
 ### example query
 
-```
+```js
 const query = {
-    zulu: "true",
-    field_gt: "field__gt",
-    field_gte: "field__gte",
-    field_lt: "field__lt",
-    field_lte: "field__lte",
-    field_not: "field__not",
-    field_range: "field__range",
-    field_in: "field__in",
-    field_not_in: "field__not_in",
-    field_like: "field__like",
-    field_or: "field__or",
-    field_geo_bbox: "field__geo_bbox",
-    field_geo_radius: "field__geo_radius",
-    field_geo_polygon: "field__geo_polygon",
-    field_geo_geojson: "field__geo_geojson",
-    "alpha.gt": "field.gt",
-    "bravo.gte": "field.gte",
-    "charlie.lt": '42',
-    "delta.lte": "111",
-    "echo.not": "field.not",
-    "echo.null": "field.not",
-    "echo.not_null": "field.not",
+    "alpha.gt": "199",
+    "bravo.gte": "200",
+    "charlie.lt": '1000',
+    "delta.lte": "999",
+    "echo.not": "some_value",
+    "echo.null": "truthy",
+    "echo.not_null": "truthy",
     "foxtrot.range": "5.1,9.7",
     "foxtrot.not_range": "5.1,9.7",
     "golf.in": "braves,marlins,nationals,mets,phillies",
     "hotel.not_in": "braves,marlins,nationals,mets,phillies",
-    "alpha.like": "field.like",
+    "alpha.like": "philadel",
     "mike.geo_bbox": "1.1,2.2,3.3,4.4",
     "november.geo_radius": "1.2,2.3,111000",
     "mike.geo_bbox": "one, two, three, four",
@@ -139,8 +124,13 @@ const query = {
     "|seperator": ",",
     "|fields": "alpha,bravo,charlie",
     "|orderBy": "one:desc,charlie:asc,three:desc,four",
-    "|delta": "delta",
-    "|echo": "echo",
+    "|page": "3",
+    "|limit": "50",
+    "|limit": "50",
+
+    // not implemented
+    // "|notWhere": "undefined",
+    // "|statementContext": "and",
 };
 ```
 
@@ -157,7 +147,7 @@ http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:de
 Middleware can be defined that is applied to any search resources. This middleware takes as `input` an object comprised of qs args and returns a new object (that will still pass the validation). This can be useful for deriving additional search criteria from submitted queries. Think adding a partition key to a query by taking the first `n` chars from a handle -- or by appending a max bbox for a query using a point.
 
 example:
-```
+```js
 // object keys are resource endpoints `${schema}_${table/view/materialized-view}`
 const resourceSearchMiddleware = {
   public_accounts: item => ({...item, email: 'clark.kent@dailyplanet.com'}),
@@ -173,7 +163,7 @@ const { App, apolloServer, logger } = await ignite({ db, metadata, resourceSearc
 blah blah blah
 
 example:
-```
+```js
 const complexResources = [
   {
     topResourceName: 'public_i001_city_state_entity_provider_n',

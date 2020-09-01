@@ -611,6 +611,18 @@ export const genDatabaseResourceOpenApiDocs = async ({
         summary: "db resources available in service (tables, views, mat views)",
         operationId: "dbResources",
         tags: ["_service"],
+        parameters: [
+          {
+            name: "resource",
+            description:
+              "name of single db resource (table/view/materialized view)",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
         responses: {
           "200": {
             headers: {
