@@ -39,3 +39,4 @@ dataloader
 
 postgis
 
+FILTER BY CALCULATED FIELD `n`. must replace the `n` with the calulation reference in the where before execution

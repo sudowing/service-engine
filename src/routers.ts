@@ -220,12 +220,14 @@ export const serviceRouters = async ({
             payload: input.payload,
             reqId,
           };
-          const { result: _searchCountResult } = resourcesMap[resource]
-            .hasSubquery
+
+          const _asyncServiceResponseCount = resourcesMap[resource].hasSubquery
             ? callComplexResource(resourcesMap, resource, operation, args)
             : resourcesMap[resource][operation](args);
 
-          const searchCountResult = await _searchCountResult; // validation is now async!
+          const {
+            result: searchCountResult,
+          } = await _asyncServiceResponseCount;
 
           const sqlSearchCount = genCountQuery(db, searchCountResult.sql);
           const [{ count }] = await sqlSearchCount; // can/should maybe log this

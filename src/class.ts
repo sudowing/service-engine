@@ -195,6 +195,7 @@ export class Resource implements ts.IClassResource {
         input.context,
         input.apiType
       );
+
       if (result.errors.length) {
         rejection = util.rejectResource(cnst.CONTEXT_ERRORS, result.errors);
       }

@@ -593,7 +593,7 @@ export const seperateByKeyPrefix = (
   return [payloadWithPrefix, payloadWithoutPrefix];
 };
 
-export const callComplexResource = (
+export const callComplexResource = async (
   resourcesMap: ts.IClassResourceMap,
   resourceName: string,
   operation: string,
@@ -615,10 +615,9 @@ export const callComplexResource = (
   }
 
   const resource = resourcesMap[resourceName];
-  const subquery = resourcesMap[resource.subResourceName][operation](
-    subPayload,
-    { subqueryContext: true }
-  );
+  const subquery = await resourcesMap[resource.subResourceName][
+    operation
+  ](subPayload, { subqueryContext: true });
 
   // need to return the 400 already
   if (!subquery.result) return subquery;
