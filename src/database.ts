@@ -30,7 +30,8 @@ export const toSearchQuery = ({
     : sqlSchemaResource(schemaResource);
 
   const base = db.select(context.fields).from(main);
-  const query = aggregationFn ? aggregationFn(base) : base;
+  const query = !aggregationFn ? base :
+    db.select().from(db.raw(`(${aggregationFn(base).toString()}) as ${prefix}complex`));
   return (
     query
       // notWhere where/notWhere
