@@ -167,3 +167,5 @@ export const HEADER_COUNT = "x-count";
 export const REGEX_CHAR = /(character|varchar|nchar|varying)\((?<len>\d+)\)/;
 
 export const DEFAULT_PAGINATION_LIMIT = 250;
+
+export const SERVICE_VERSION = process.env.npm_package_version || "99.98.976"; // get app version
