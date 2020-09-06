@@ -7,6 +7,7 @@ import {
   SUPPORTED_OPERATIONS,
   URL_ROOT_SERVICE,
   DEBUG,
+  SERVICE_VERSION,
 } from "./const";
 import { IValidationExpanderReport } from "./interfaces";
 
@@ -491,7 +492,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   const base = {
     openapi: "3.0.0",
     info: {
-      version: process.env.npm_package_version || "1.0.1", // get app version
+      version: SERVICE_VERSION,
       title: "Some Service Name",
       description:
         "Super Early (not fully functional yet) description of service resources.",
