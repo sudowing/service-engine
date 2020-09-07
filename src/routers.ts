@@ -10,10 +10,8 @@ import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
 import { callComplexResource, genResourcesMap } from "./utils";
 
-const uniqueResource = (url: string) =>
-  parseURL(url, true).pathname.endsWith("/record");
-// const _uniqueResource = (url: string, trailingSlash = false) =>
-//   parseURL(url, true).pathname.endsWith("/record" + trailingSlash ? '/' : '');
+const uniqueResource = (tail: string, url: string) =>
+  parseURL(url, true).pathname.endsWith(tail);
 
 
 // can maybe add prefix to fn signature and use to parse out subquery payload
@@ -147,21 +145,17 @@ export const serviceRouters = async ({
     const { category, resource } = ctx.params;
     const method = ctx.method;
     const url = ctx.request.url;
-    const record = uniqueResource(url);
+    const record = uniqueResource("/record", url);
 
-    // only process for /service & /debug
-    if (category !== "service" && category !== "debug") {
-      ctx.response.status = HTTP_STATUS.NOT_FOUND;
-      return;
-    }
-
-    // only process for /service & /debug && only if resource exists and operation on resource exists
+    // only process for /service & /debug, resource && CRUD operation exists, and 404 trailing slashes
     if (
       (category !== "service" && category !== "debug") ||
       !operations.has(j({ method, record })) ||
-      !resourcesMap.hasOwnProperty(resource)
+      !resourcesMap.hasOwnProperty(resource) ||
+      uniqueResource("/record/", url) // no trailing slash
     ) {
       ctx.response.status = HTTP_STATUS.NOT_FOUND;
+      ctx.response.body = cnst.SERVICE_RESOURCE_NOT_FOUND_BODY
       return;
     }
 
