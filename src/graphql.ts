@@ -1,12 +1,12 @@
 import { GraphQLModule } from "@graphql-modules/core";
 import gql from "graphql-tag";
-import * as graphqlFields from "graphql-fields";
+// import * as graphqlFields from "graphql-fields";
 import GraphQLJSON from "graphql-type-json";
 import { UserInputError } from "apollo-server-koa";
 
 import { v4 as uuidv4 } from "uuid";
 
-import { HEADER_REQUEST_ID } from "./const";
+import { HEADER_REQUEST_ID, SERVICE_VERSION } from "./const";
 import { genCountQuery } from "./database";
 import {
   IServiceResolverResponse,
@@ -176,17 +176,16 @@ export const gqlSchema = async ({
 
   const typeDefsString = `
         type Query {
-            service_ping: serviceAppPing
+            service_healthz: serviceAppHealthz
             ${query.join(ln)}
         }
         type Mutation {
             ${mutation.join(ln)}
         }
 
-        type serviceAppPing {
+        type serviceAppHealthz {
+            serviceVersion: String
             timestamp: Float
-            message: String
-            wip: JSONB
         }
 
 
@@ -270,7 +269,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
     apiType,
   };
 
-  const serviceResponse = resource.hasSubquery
+  const _serviceResponse = resource.hasSubquery
     ? callComplexResource(
         resourcesMap,
         resource.name,
@@ -279,6 +278,8 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
         subPayload
       )
     : resource[operation](query);
+
+  const serviceResponse = await _serviceResponse; // validation is now async!
 
   if (serviceResponse.result) {
     try {
@@ -318,7 +319,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
         const { seperator, notWhere, statementContext } = query.context;
         query.context = { seperator, notWhere, statementContext };
 
-        const { result: searchCountResult } = resource.hasSubquery
+        const _searchCountResult = resource.hasSubquery
           ? callComplexResource(
               resourcesMap,
               resource.name,
@@ -328,10 +329,13 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
             )
           : resource[operation](query);
 
+        const { result: searchCountResult } = await _searchCountResult; // validation is now async!
+
         const sqlSearchCount = genCountQuery(
           resource.db,
           searchCountResult.sql
         );
+
         const [{ count }] = await sqlSearchCount; // can/should maybe log this
 
         response.count = count;
@@ -420,12 +424,10 @@ export const gqlModule = async ({
   const appResolvers = {
     JSONB: GraphQLJSON,
     Query: {
-      service_ping(obj, args, context, info) {
-        const fields = Object.keys(graphqlFields(info));
+      service_healthz(obj, args, context, info) {
         return {
+          serviceVersion: SERVICE_VERSION,
           timestamp: Date.now(),
-          message: "go braves",
-          wip: { fields },
         };
       },
     },

@@ -5,8 +5,29 @@ import { cloneDeep } from "lodash";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
+const transformSettledValidation = (accum, { status, value, reason }) => {
+  if (status === "fulfilled") {
+    accum.values.push(value);
+  } else {
+    accum.errors.push(reason._original);
+  }
+  return accum;
+};
+
+const reduceaSettledAsyncValidation = (settledPromises) =>
+  settledPromises.reduce(transformSettledValidation, {
+    values: [],
+    errors: [],
+  });
+
 export const castString = (arg) => String(arg);
-export const castNumber = (arg) => Number(arg);
+export const castNumber = (arg) => {
+  const n = Number(arg);
+  return !Number.isNaN(n)
+    ? n
+    : `number conversion failed to provide meaningful value (${arg} = NaN)`;
+};
+
 export const castBoolean = (arg) =>
   Boolean(cnst.FALSEY_STRING_VALUES.includes(arg) ? false : arg);
 export const castOther = (arg) => arg;
@@ -162,7 +183,7 @@ export const reducerValidatorInspector = (
     ),
     typecast: typecastFn(schema.type), // prob need dynamaic assignment for geo fields (need input as numbers and strings?)
     validate: (value: string) =>
-      schema.validate((typecastFn(schema.type) as any)(value)), // this needs to be async validation
+      schema.validateAsync((typecastFn(schema.type) as any)(value)), // this needs to be async validation
   },
 });
 
@@ -178,14 +199,11 @@ export const validatorInspector = (
     validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].values()
   ) as any).reduce(reducerValidatorInspector, {});
 
-/**
- * @description Fn that generates error message when value submitted for search is of incorrect data type.
- * @param {Error} error
- * @param {string} field
- * @returns {string}
- */
-export const errorMessageInvalidValue = (error: Error, field: string): string =>
-  error.message.replace(cnst.QUOTED_VALUE, `'${field}'`);
+// description Fn that generates error message when value submitted for search is of incorrect data type.
+export const errorMessageInvalidValue = (
+  field: string,
+  message: string
+): string => `'${field}': ${message}`;
 
 /**
  * @description Fn that generates error message when GET query produces error for various reasons. Defined errors were generated via JOI validation checks. undefined types occur when trying to query a column that doesn't exist on the record. Final fallback is for when a query operation is called on a field that is not supported.
@@ -199,7 +217,7 @@ export const generateSearchQueryError = ({
   operation,
 }: ts.IParamsGenerateSearchQueryError): string =>
   error
-    ? errorMessageInvalidValue(error, field)
+    ? errorMessageInvalidValue(field, error)
     : !type
     ? `'${field}' is not a supported property on this resource`
     : `'${operation}' operation not supported`;
@@ -213,20 +231,8 @@ export const generateSearchQueryError = ({
 export const badArgsLengthError = (operation: string, values: any[]): string =>
   `'${operation}' operation requires ${cnst.DEFINED_ARG_LENGTHS[operation]} args. ${values.length} were provided.`;
 
-/**
- * @description Convenience Fn that builds array of verbose error message strings
- * @param {string} field
- */
-export const concatErrorMessages = (field: string) => (
-  accum,
-  { error },
-  i
-): string[] => [
-  ...accum,
-  ...(error
-    ? [error.message.replace(cnst.QUOTED_VALUE, `'${field}' argument #${i}`)]
-    : []),
-];
+export const defineValidationErrorMessage = (field: string) => (message, i) =>
+  `'${field}' argument #${i}: ${message}`;
 
 /**
  * @description Fn that checks to see if length of args meets the needs for a given operation. Only applies to a handful of operations, so majority default to true.
@@ -297,41 +303,58 @@ export const contextTransformer = (attribute, input) => {
  * @description Heart of the entire system. This Fn takes in a JOI validator and a query object (`ctx.request.query`) and submits both for processing. Search interfaces, fields & operations, are derived from the JOI validators, values from query object are typecasted to data types (if possible) using the types of each field from the JOI validator. Some query operations support multiple values seperated by commas, and this value parsing to arrays is also done here. The `context` object returned is used to build the query -- but is more superficial than the `components` which are used within the `where` part of the query. Any errors with a give query against a validator produces an array of errors, so the request can be stopped before submitting to database.
  * @param {Joi.Schema} validator
  * @param {ts.IParamsSearchQueryParser} query
- * @returns {ts.ISearchQueryResponse}
+ * @returns {Promise<ts.ISearchQueryResponse>}
+ * @promise searchQueryParserPromise
+ * @fulfill {ts.ISearchQueryResponse}
+ * @reject {ts.ISearchQueryResponse}
+ * @returns searchQueryParserPromise
  */
-export const searchQueryParser = (
+export const searchQueryParser = async (
   validator: Joi.Schema,
   query: ts.IParamsSearchQueryParser,
   seperator?: string
-): ts.ISearchQueryResponse => {
+): Promise<ts.ISearchQueryResponse> => {
   const errors = [];
   const components = [];
   const sep = seperator || cnst.SEARCH_QUERY_CONTEXT.seperator;
 
-  // removing context
-  Object.entries(query || {}).forEach(([key, rawValue]) => {
+  // TODO: // make a pure fn. maybe curry to inject the dependencies and return the mutated thing
+  const parseSearchQueryEntry = async ([key, rawValue]) => {
     const { field, operation } = parseFieldAndOperation(key);
     const { schema } =
       validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].get(field) || {};
     const { type } = schema || {}; // all fields have types. if undefined -- simply not a field on the resource
     const record = { field, rawValue, operation, type };
     const typecast: any = typecastFn(type);
-    if (supportMultipleValues(operation)) {
+
+    if (schema && supportMultipleValues(operation)) {
       const values = rawValue.split(sep).map(typecast);
+
       if (!validArgsforOperation(operation, values))
         errors.push({ field, error: badArgsLengthError(operation, values) });
-      const validatedValues = schema
-        ? values.map((value) => schema.validate(value))
-        : [];
-      const error = validatedValues
-        .reduce(concatErrorMessages(field), [])
+
+      const asyncValidation = Promise.allSettled(
+        values.map((item) => schema.validateAsync(item))
+      );
+      const { values: _values, errors: _errors } = await asyncValidation.then(
+        reduceaSettledAsyncValidation
+      );
+
+      const error = _errors
+        .map(defineValidationErrorMessage(field))
         .join(cnst.COMMA);
       if (error) errors.push({ field, error });
-      components.push({ ...record, value: values });
+
+      components.push({ ...record, value: _values });
     } else {
-      const { value, error } = schema
-        ? schema.validate(typecast(rawValue))
-        : ({} as any);
+      const asyncValidation = schema
+        ? schema.validateAsync(typecast(rawValue))
+        : Promise.resolve({}); // this get's ignored in the `!type` check later
+
+      const { value, error } = await asyncValidation
+        .then((_value) => ({ value: _value }))
+        .catch((err) => ({ error: err._original }));
+
       if (error || !type || !supportedOperation(operation)) {
         errors.push({
           field,
@@ -340,7 +363,10 @@ export const searchQueryParser = (
       }
       components.push({ ...record, value });
     }
-  });
+  };
+
+  await Promise.all(Object.entries(query || {}).map(parseSearchQueryEntry));
+
   return { errors, components };
 };
 
@@ -413,7 +439,7 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
     []
   );
 
-// :TODO more accurate here
+// TODO: more accurate here
 // http://www.movable-type.co.uk/scripts/latlong.html
 
 export const convertMetersToDecimalDegrees = (meters: number) =>
@@ -455,9 +481,9 @@ export const validateOneOrMany = (
   validator: Joi.Schema,
   payload: any | any[]
 ) =>
-  (Array.isArray(payload) ? Joi.array().items(validator) : validator).validate(
-    payload
-  );
+  !Array.isArray(payload)
+    ? validator.validateAsync(payload)
+    : Joi.array().items(validator).validateAsync(payload);
 
 export const removeContextKeys = (context, payload) => {
   const contextFreePayload = { ...payload };
@@ -567,7 +593,7 @@ export const seperateByKeyPrefix = (
   return [payloadWithPrefix, payloadWithoutPrefix];
 };
 
-export const callComplexResource = (
+export const callComplexResource = async (
   resourcesMap: ts.IClassResourceMap,
   resourceName: string,
   operation: string,
@@ -589,10 +615,9 @@ export const callComplexResource = (
   }
 
   const resource = resourcesMap[resourceName];
-  const subquery = resourcesMap[resource.subResourceName][operation](
-    subPayload,
-    { subqueryContext: true }
-  );
+  const subquery = await resourcesMap[resource.subResourceName][
+    operation
+  ](subPayload, { subqueryContext: true });
 
   // need to return the 400 already
   if (!subquery.result) return subquery;

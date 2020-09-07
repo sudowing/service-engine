@@ -10,18 +10,18 @@ import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
 import { callComplexResource, genResourcesMap } from "./utils";
 
-const uniqueResource = (url: string) =>
-  parseURL(url, true).pathname.endsWith("/record");
+const uniqueResource = (tail: string, url: string) =>
+  parseURL(url, true).pathname.endsWith(tail);
 
 // can maybe add prefix to fn signature and use to parse out subquery payload
 const seperateQueryAndContext = (input) =>
   Object.entries(input).reduce(
     (query, [key, value]) => {
-      const info = key.startsWith("|") ? query.context : query.payload;
-      info[key.replace("|", "")] = value;
+      const info = key.startsWith(cnst.PIPE) ? query.context : query.payload;
+      info[key.replace(cnst.PIPE, "")] = value;
       return query;
     },
-    { payload: {}, context: {}, apiType: "REST" } // apiType -- needed for corrent queryContext parsing
+    { payload: {}, context: {}, apiType: "REST" } // apiType -- needed for correct queryContext parsing
   );
 
 const j = JSON.stringify; // convience
@@ -99,16 +99,13 @@ export const serviceRouters = async ({
     ctx.response.body = typeDefsString;
   });
 
-  const healthcheck = (ctx) => {
+  appRouter.get("/healthz", (ctx) => {
     ctx.response.body = {
-      message: "hello world",
+      serviceVersion: cnst.SERVICE_VERSION,
       timestamp: Date.now(),
       metadata,
     };
-  };
-
-  appRouter.get("/ping", healthcheck);
-  appRouter.get("/healthz", healthcheck);
+  });
 
   appRouter.get("/openapi", async (ctx) => {
     const { debug } = ctx.request.query;
@@ -147,21 +144,17 @@ export const serviceRouters = async ({
     const { category, resource } = ctx.params;
     const method = ctx.method;
     const url = ctx.request.url;
-    const record = uniqueResource(url);
+    const record = uniqueResource("/record", url);
 
-    // only process for /service & /debug
-    if (category !== "service" && category !== "debug") {
-      ctx.response.status = HTTP_STATUS.NOT_FOUND;
-      return;
-    }
-
-    // only process for /service & /debug && only if resource exists and operation on resource exists
+    // only process for /service & /debug, resource && CRUD operation exists, and 404 trailing slashes
     if (
       (category !== "service" && category !== "debug") ||
       !operations.has(j({ method, record })) ||
-      !resourcesMap.hasOwnProperty(resource)
+      !resourcesMap.hasOwnProperty(resource) ||
+      uniqueResource("/record/", url) // no trailing slash
     ) {
       ctx.response.status = HTTP_STATUS.NOT_FOUND;
+      ctx.response.body = cnst.SERVICE_RESOURCE_NOT_FOUND_BODY;
       return;
     }
 
@@ -172,16 +165,20 @@ export const serviceRouters = async ({
         Object.entries(obj).filter(([key]) => !keys.includes(key))
       );
 
-    const input =
-      method === "GET"
-        ? seperateQueryAndContext(ctx.request.query) // this needs to parse out subquery input from main input
-        : seperateQueryAndContext({
-            ...stripKeys(
-              resourcesMap[resource].meta.uniqueKeyComponents,
-              ctx.request.body
-            ),
-            ...ctx.request.query,
-          }); // keys must come from querystring
+    // TODO: clean this mess up. can be much simplier I think
+    const input = seperateQueryAndContext(ctx.request.query);
+    if (method !== "GET") {
+      input.payload =
+        method === "POST"
+          ? ctx.request.body
+          : {
+              ...stripKeys(
+                resourcesMap[resource].meta.uniqueKeyComponents,
+                ctx.request.body
+              ),
+              ...input.payload, // keys are in payload --> sent from qs
+            };
+    }
 
     const payload:
       | ts.IParamsProcessBase
@@ -197,9 +194,10 @@ export const serviceRouters = async ({
       payload["hardDelete"] = !!hardDelete;
     }
 
-    const serviceResponse = resourcesMap[resource].hasSubquery
+    const asyncServiceResponse = resourcesMap[resource].hasSubquery
       ? callComplexResource(resourcesMap, resource, operation, payload)
       : resourcesMap[resource][operation]({ ...payload });
+    const serviceResponse = await asyncServiceResponse; // validation is now async!
 
     // insert db, components
     if (serviceResponse.result) {
@@ -211,7 +209,25 @@ export const serviceRouters = async ({
       }
 
       if (category === "service") {
-        records = await serviceResponse.result.sql;
+        try {
+          records = await serviceResponse.result.sql;
+        } catch (err) {
+          records = [
+            {
+              error: err,
+              request_detail: {
+                category,
+                resource,
+                method,
+                record,
+                reqId,
+                operation,
+              },
+            },
+          ]; // put in array so `output` defined correcly with `record` ternary
+          logger.error(records[0], "db call resulted in error");
+          ctx.response.status = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+        }
 
         if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
           // TODO: instead of building new object `args` -- can prob just delete keys from `payload`
@@ -219,10 +235,14 @@ export const serviceRouters = async ({
             payload: input.payload,
             reqId,
           };
-          const { result: searchCountResult } = resourcesMap[resource]
-            .hasSubquery
+
+          const _asyncServiceResponseCount = resourcesMap[resource].hasSubquery
             ? callComplexResource(resourcesMap, resource, operation, args)
             : resourcesMap[resource][operation](args);
+
+          const {
+            result: searchCountResult,
+          } = await _asyncServiceResponseCount;
 
           const sqlSearchCount = genCountQuery(db, searchCountResult.sql);
           const [{ count }] = await sqlSearchCount; // can/should maybe log this
@@ -236,27 +256,32 @@ export const serviceRouters = async ({
       return;
     }
 
-    // if single record searched and not returned -- 404
-
-    const output =
-      category === "service"
-        ? record
-          ? Array.isArray(records)
-            ? records[0]
-            : { count: records } // unique resources that are not arrays are only delete
-          : records
-        : {
-            now: Date.now(),
-            reqId,
-            url,
-            record,
-            method,
-            category,
-            resource,
-            operation,
-            input,
-            serviceResponse,
-          };
+    let output;
+    if (category === "service") {
+      output = record
+        ? Array.isArray(records)
+          ? records[0]
+          : { count: records } // unique resources that are not arrays are only delete
+        : method !== "POST"
+        ? records
+        : Array.isArray(payload.payload)
+        ? records
+        : records[0];
+    } else {
+      // 'debug' only
+      output = {
+        now: Date.now(),
+        reqId,
+        url,
+        record,
+        method,
+        category,
+        resource,
+        operation,
+        input,
+        serviceResponse,
+      };
+    }
 
     if ([null, undefined].includes(output)) {
       ctx.status = HTTP_STATUS.NOT_FOUND;

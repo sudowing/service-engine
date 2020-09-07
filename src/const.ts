@@ -167,3 +167,15 @@ export const HEADER_COUNT = "x-count";
 export const REGEX_CHAR = /(character|varchar|nchar|varying)\((?<len>\d+)\)/;
 
 export const DEFAULT_PAGINATION_LIMIT = 250;
+
+export const SERVICE_VERSION = process.env.npm_package_version || "99.98.976"; // get app version
+
+export const SERVICE_RESOURCE_NOT_FOUND_BODY = {
+  message: `use the checklist below to determine why you have received this response`,
+  checklist: [
+    `category must be "debug" or "service"`,
+    `db resource (table, view, matView) must exist`,
+    `url structure "/:category/:resource/record" does not have a trailing slasH`,
+    `HTTP method maps to a supported db CRUD operation for this resource`,
+  ],
+};
