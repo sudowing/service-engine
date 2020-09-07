@@ -6,7 +6,7 @@ import { UserInputError } from "apollo-server-koa";
 
 import { v4 as uuidv4 } from "uuid";
 
-import { HEADER_REQUEST_ID, SERVICE_VERSION } from "./const";
+import { HEADER_REQUEST_ID, SERVICE_VERSION, COMPLEX_RESOLVER_SEPERATOR } from "./const";
 import { genCountQuery } from "./database";
 import {
   IServiceResolverResponse,
@@ -29,6 +29,7 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
 
   for (const name of Object.keys(dbResources)) {
     const ResourceName = transformNameforResolver(name);
+
     schema[`type ${ResourceName}`] = [];
     schema[`input keys${ResourceName}`] = [];
     schema[`input in${ResourceName}`] = [];
@@ -50,10 +51,11 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
       }
     }
 
-    const subResourceName = ResourceName.includes("_")
-      ? ResourceName.split("_")[1]
+    const subResourceName = ResourceName.includes(COMPLEX_RESOLVER_SEPERATOR)
+      ? ResourceName.split(COMPLEX_RESOLVER_SEPERATOR)[1]
       : undefined;
     if (subResourceName) {
+
       schema[`input in_subquery_${subResourceName}`] = [
         `payload: in${subResourceName}`,
         `context: inputContext`,
@@ -383,6 +385,7 @@ export const gqlModule = async ({
     // ) // temp -- will remove when integrating complex into GraphQL
     .reduce(
       ({ Query, Mutation }, [name, resource]) => {
+
         const ResourceName = transformNameforResolver(name);
         const resourcesMap = genResourcesMap(Resources);
 

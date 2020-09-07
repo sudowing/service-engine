@@ -645,4 +645,4 @@ export const transformNameforResolver = (str) =>
   str
     .split(":")
     .map((item) => pascalCase(item)) // this is done to prevent collisions with db resources
-    .join("_");
+    .join(cnst.COMPLEX_RESOLVER_SEPERATOR);

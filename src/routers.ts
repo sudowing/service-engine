@@ -87,15 +87,16 @@ export const serviceRouters = async ({
     debugMode: true,
   });
 
+  const { typeDefsString } = await gqlModule({
+    validators,
+    dbResources,
+    dbResourceRawRows,
+    Resources,
+    toSchemaScalar,
+    hardDelete,
+  });
+
   appRouter.get("/schema", async (ctx) => {
-    const { typeDefsString } = await gqlModule({
-      validators,
-      dbResources,
-      dbResourceRawRows,
-      Resources,
-      toSchemaScalar,
-      hardDelete,
-    });
     ctx.response.body = typeDefsString;
   });
 

@@ -179,3 +179,5 @@ export const SERVICE_RESOURCE_NOT_FOUND_BODY = {
     `HTTP method maps to a supported db CRUD operation for this resource`,
   ],
 };
+
+export const COMPLEX_RESOLVER_SEPERATOR = "____"
