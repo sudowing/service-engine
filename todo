@@ -5,8 +5,6 @@ CRUD OPTIONS in service-config
 relationships in service-config (for when fk is not a constraint)
 unique vs primary key (if table has no PK -- fallback to unique key if exists and provide READ, UPDATE & DELETE)
 
-ALL VALIDATION needs to be async
-
   define relationships via config if fk not set
     fk defines itself (used for GraphQL)
 
@@ -28,10 +26,6 @@ hard delete vs soft delete.
 Currently only soft delete is enabled
 
 create and update do not return for sqlite3
-
-create many doesnt seem to work. QA against REST
-
-read with zero matches doesn't 404
 
 
 foreign key by inspection (for relationships in graphql)

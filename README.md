@@ -93,6 +93,8 @@ query context options
  - notWhere // The WHERE clause can be combined with AND, OR, and NOT operators.
  - statementContext // The WHERE clause can be combined with AND, OR, and NOT operators.
 
+##### **NOTE:** Context in REST is always in query string. Even if doing a POST, PUT, PATCH, DELETE -- the context will come from there.
+
 ## Query Makup
 
 Search queries in REST are `get` calls to the `/${schema}_${table}/`.
