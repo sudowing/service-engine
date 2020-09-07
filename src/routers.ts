@@ -12,6 +12,9 @@ import { callComplexResource, genResourcesMap } from "./utils";
 
 const uniqueResource = (url: string) =>
   parseURL(url, true).pathname.endsWith("/record");
+// const _uniqueResource = (url: string, trailingSlash = false) =>
+//   parseURL(url, true).pathname.endsWith("/record" + trailingSlash ? '/' : '');
+
 
 // can maybe add prefix to fn signature and use to parse out subquery payload
 const seperateQueryAndContext = (input) =>

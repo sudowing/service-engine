@@ -59,20 +59,10 @@ export const genericResourceCall = (
 
   try{
 
-    console.log('')
-    console.log('input.payload')
-    console.log(Array.isArray(input.payload), JSON.stringify(input.payload))
-
     info.value = await util.validateOneOrMany(
       schema,
       input.payload
     );
-
-    console.log('')
-    console.log('info.value')
-    console.log(info.value)
-
-
 
   }
   catch(err){
