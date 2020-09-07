@@ -49,13 +49,38 @@ export const genericResourceCall = (
     return util.rejectResource(parsed.errorType, parsed.error);
   }
 
+
   // set fields to all available by default
   context.fields = context.fields || fields;
 
-  const { error, value: query } = await util.validateOneOrMany(
-    schema,
-    input.payload
-  );
+  // this now throws errors. Need to catch and process
+
+  const info = { error: null, value: null}
+
+  try{
+
+    console.log('')
+    console.log('input.payload')
+    console.log(Array.isArray(input.payload), JSON.stringify(input.payload))
+
+    info.value = await util.validateOneOrMany(
+      schema,
+      input.payload
+    );
+
+    console.log('')
+    console.log('info.value')
+    console.log(info.value)
+
+
+
+  }
+  catch(err){
+    info.error = err;
+  }
+
+  const { error, value: query } = info;
+
   if (error) {
     caller.logger.error(
       {

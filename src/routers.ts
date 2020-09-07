@@ -169,16 +169,36 @@ export const serviceRouters = async ({
         Object.entries(obj).filter(([key]) => !keys.includes(key))
       );
 
-    const input =
-      method === "GET"
-        ? seperateQueryAndContext(ctx.request.query) // this needs to parse out subquery input from main input
-        : seperateQueryAndContext({
-            ...stripKeys(
-              resourcesMap[resource].meta.uniqueKeyComponents,
-              ctx.request.body
-            ),
-            ...ctx.request.query,
-          }); // keys must come from querystring
+
+
+
+
+
+
+
+    // TODO: clean this mess up. can be much simplier I think
+    const input = seperateQueryAndContext(ctx.request.query)
+    if(method !== 'GET'){
+      input.payload = method === 'POST'
+        ? ctx.request.body
+        : {
+          ...stripKeys(
+            resourcesMap[resource].meta.uniqueKeyComponents,
+            ctx.request.body
+          ),
+          ...input.payload // keys are in payload --> sent from qs
+        };
+    }
+
+
+
+
+
+
+
+
+
+
 
     const payload:
       | ts.IParamsProcessBase
@@ -193,6 +213,10 @@ export const serviceRouters = async ({
       // tslint:disable-next-line: no-string-literal
       payload["hardDelete"] = !!hardDelete;
     }
+
+
+    console.log('record')
+    console.log(record)
 
     const asyncServiceResponse = resourcesMap[resource].hasSubquery
       ? callComplexResource(resourcesMap, resource, operation, payload)
@@ -240,25 +264,29 @@ export const serviceRouters = async ({
 
     // if single record searched and not returned -- 404
 
-    const output =
-      category === "service"
-        ? record
-          ? Array.isArray(records)
-            ? records[0]
-            : { count: records } // unique resources that are not arrays are only delete
-          : records
-        : {
-            now: Date.now(),
-            reqId,
-            url,
-            record,
-            method,
-            category,
-            resource,
-            operation,
-            input,
-            serviceResponse,
-          };
+
+    let output;
+    if (category === "service") {
+      output = record
+        ? Array.isArray(records)
+          ? records[0]
+          : { count: records } // unique resources that are not arrays are only delete
+        : method !== 'POST' ? records : Array.isArray(payload.payload) ? records : records[0]
+    }
+    else { // 'debug' only
+      output = {
+        now: Date.now(),
+        reqId,
+        url,
+        record,
+        method,
+        category,
+        resource,
+        operation,
+        input,
+        serviceResponse,
+      };
+    }
 
     if ([null, undefined].includes(output)) {
       ctx.status = HTTP_STATUS.NOT_FOUND; // TODO: QA this. Happy to see it's `done` but not sure it's functioning

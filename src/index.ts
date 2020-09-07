@@ -5,6 +5,7 @@ import * as knexPostgis from "knex-postgis";
 import * as Koa from "koa";
 import * as bodyParser from "koa-bodyparser";
 import * as compress from "koa-compress";
+import * as HTTP_STATUS from "http-status";
 
 import { Resource } from "./class";
 import { author } from "./credit";
@@ -155,7 +156,23 @@ export const ignite = async ({
 
   const App = new Koa()
     .use(cors())
-    .use(bodyParser())
+    .use(bodyParser({
+      onerror(err, ctx) {
+        // want to log the error
+        const message = 'body parse error'
+
+        logger.error({err}, message)
+
+        ctx.response.status = HTTP_STATUS.UNPROCESSABLE_ENTITY;
+        ctx.response.body = {
+          message, error: err
+        };
+
+        // TODO: figure out why this response isn't stopping the processing of the request
+
+        ctx.throw('body parse error', 422);
+      }
+    }))
     .use(prepRequestForService)
     .use(compress())
     .use(appRouter.routes())

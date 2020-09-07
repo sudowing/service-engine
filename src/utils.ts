@@ -481,9 +481,9 @@ export const validateOneOrMany = (
   validator: Joi.Schema,
   payload: any | any[]
 ) =>
-  Joi.array()
-    .items(validator)
-    .validateAsync(Array.isArray(payload) ? validator : [validator]);
+  !Array.isArray(payload)
+    ? validator.validateAsync(payload)
+    : Joi.array().items(validator).validateAsync(payload);
 
 export const removeContextKeys = (context, payload) => {
   const contextFreePayload = { ...payload };
