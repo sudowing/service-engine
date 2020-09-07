@@ -17,11 +17,11 @@ const uniqueResource = (url: string) =>
 const seperateQueryAndContext = (input) =>
   Object.entries(input).reduce(
     (query, [key, value]) => {
-      const info = key.startsWith("|") ? query.context : query.payload;
-      info[key.replace("|", "")] = value;
+      const info = key.startsWith(cnst.PIPE) ? query.context : query.payload;
+      info[key.replace(cnst.PIPE, "")] = value;
       return query;
     },
-    { payload: {}, context: {}, apiType: "REST" } // apiType -- needed for corrent queryContext parsing
+    { payload: {}, context: {}, apiType: "REST" } // apiType -- needed for correct queryContext parsing
   );
 
 const j = JSON.stringify; // convience
@@ -233,7 +233,20 @@ export const serviceRouters = async ({
       }
 
       if (category === "service") {
-        records = await serviceResponse.result.sql;
+        try{
+          records = await serviceResponse.result.sql;
+        }
+        catch(err){
+          records = [{
+            error: err,
+            request_detail: {
+              category, resource, method, record,
+              reqId, operation,
+            }
+          }] // put in array so `output` defined correcly with `record` ternary
+          logger.error(records[0], 'db call resulted in error');
+          ctx.response.status = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+        }
 
         if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
           // TODO: instead of building new object `args` -- can prob just delete keys from `payload`
@@ -262,9 +275,6 @@ export const serviceRouters = async ({
       return;
     }
 
-    // if single record searched and not returned -- 404
-
-
     let output;
     if (category === "service") {
       output = record
@@ -289,7 +299,7 @@ export const serviceRouters = async ({
     }
 
     if ([null, undefined].includes(output)) {
-      ctx.status = HTTP_STATUS.NOT_FOUND; // TODO: QA this. Happy to see it's `done` but not sure it's functioning
+      ctx.status = HTTP_STATUS.NOT_FOUND;
       return;
     }
 

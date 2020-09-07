@@ -8,6 +8,7 @@ import {
   URL_ROOT_SERVICE,
   DEBUG,
   SERVICE_VERSION,
+  PIPE,
 } from "./const";
 import { IValidationExpanderReport } from "./interfaces";
 
@@ -86,7 +87,7 @@ export const searchHeaders = {
 
 const contextNumbers = ["page", "limit"];
 
-const genSearchContextParam = (seperator = "|") => (key) => ({
+const genSearchContextParam = (seperator = PIPE) => (key) => ({
   name: `${seperator}${key}`,
   description: SEARCH_QUERY_CONTEXT_DESCRIPTION[key] || `query context: ${key}`,
   in: "query",
@@ -322,7 +323,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
         type: "object",
         // property type could be more specific
         properties: [...record[pathResource].get.parameters]
-          .filter((prop) => !prop.name.startsWith("|") && prop.in !== "header") // remove context keys
+          .filter((prop) => !prop.name.startsWith(PIPE) && prop.in !== "header") // remove context keys
           .reduce(
             (props, { name, schema }) => ({ ...props, [name]: { ...schema } }),
             {}
