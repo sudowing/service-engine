@@ -329,7 +329,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
             )
           : resource[operation](query);
 
-        const {result: searchCountResult} = await _searchCountResult; // validation is now async!
+        const { result: searchCountResult } = await _searchCountResult; // validation is now async!
 
         const sqlSearchCount = genCountQuery(
           resource.db,

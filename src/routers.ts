@@ -13,7 +13,6 @@ import { callComplexResource, genResourcesMap } from "./utils";
 const uniqueResource = (tail: string, url: string) =>
   parseURL(url, true).pathname.endsWith(tail);
 
-
 // can maybe add prefix to fn signature and use to parse out subquery payload
 const seperateQueryAndContext = (input) =>
   Object.entries(input).reduce(
@@ -155,7 +154,7 @@ export const serviceRouters = async ({
       uniqueResource("/record/", url) // no trailing slash
     ) {
       ctx.response.status = HTTP_STATUS.NOT_FOUND;
-      ctx.response.body = cnst.SERVICE_RESOURCE_NOT_FOUND_BODY
+      ctx.response.body = cnst.SERVICE_RESOURCE_NOT_FOUND_BODY;
       return;
     }
 
@@ -166,36 +165,20 @@ export const serviceRouters = async ({
         Object.entries(obj).filter(([key]) => !keys.includes(key))
       );
 
-
-
-
-
-
-
-
     // TODO: clean this mess up. can be much simplier I think
-    const input = seperateQueryAndContext(ctx.request.query)
-    if(method !== 'GET'){
-      input.payload = method === 'POST'
-        ? ctx.request.body
-        : {
-          ...stripKeys(
-            resourcesMap[resource].meta.uniqueKeyComponents,
-            ctx.request.body
-          ),
-          ...input.payload // keys are in payload --> sent from qs
-        };
+    const input = seperateQueryAndContext(ctx.request.query);
+    if (method !== "GET") {
+      input.payload =
+        method === "POST"
+          ? ctx.request.body
+          : {
+              ...stripKeys(
+                resourcesMap[resource].meta.uniqueKeyComponents,
+                ctx.request.body
+              ),
+              ...input.payload, // keys are in payload --> sent from qs
+            };
     }
-
-
-
-
-
-
-
-
-
-
 
     const payload:
       | ts.IParamsProcessBase
@@ -210,10 +193,6 @@ export const serviceRouters = async ({
       // tslint:disable-next-line: no-string-literal
       payload["hardDelete"] = !!hardDelete;
     }
-
-
-    console.log('record')
-    console.log(record)
 
     const asyncServiceResponse = resourcesMap[resource].hasSubquery
       ? callComplexResource(resourcesMap, resource, operation, payload)
@@ -230,18 +209,23 @@ export const serviceRouters = async ({
       }
 
       if (category === "service") {
-        try{
+        try {
           records = await serviceResponse.result.sql;
-        }
-        catch(err){
-          records = [{
-            error: err,
-            request_detail: {
-              category, resource, method, record,
-              reqId, operation,
-            }
-          }] // put in array so `output` defined correcly with `record` ternary
-          logger.error(records[0], 'db call resulted in error');
+        } catch (err) {
+          records = [
+            {
+              error: err,
+              request_detail: {
+                category,
+                resource,
+                method,
+                record,
+                reqId,
+                operation,
+              },
+            },
+          ]; // put in array so `output` defined correcly with `record` ternary
+          logger.error(records[0], "db call resulted in error");
           ctx.response.status = HTTP_STATUS.INTERNAL_SERVER_ERROR;
         }
 
@@ -278,9 +262,13 @@ export const serviceRouters = async ({
         ? Array.isArray(records)
           ? records[0]
           : { count: records } // unique resources that are not arrays are only delete
-        : method !== 'POST' ? records : Array.isArray(payload.payload) ? records : records[0]
-    }
-    else { // 'debug' only
+        : method !== "POST"
+        ? records
+        : Array.isArray(payload.payload)
+        ? records
+        : records[0];
+    } else {
+      // 'debug' only
       output = {
         now: Date.now(),
         reqId,

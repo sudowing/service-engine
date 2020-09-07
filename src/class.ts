@@ -49,23 +49,16 @@ export const genericResourceCall = (
     return util.rejectResource(parsed.errorType, parsed.error);
   }
 
-
   // set fields to all available by default
   context.fields = context.fields || fields;
 
   // this now throws errors. Need to catch and process
 
-  const info = { error: null, value: null}
+  const info = { error: null, value: null };
 
-  try{
-
-    info.value = await util.validateOneOrMany(
-      schema,
-      input.payload
-    );
-
-  }
-  catch(err){
+  try {
+    info.value = await util.validateOneOrMany(schema, input.payload);
+  } catch (err) {
     info.error = err;
   }
 

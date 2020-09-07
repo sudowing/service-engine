@@ -21,17 +21,20 @@ export const toSearchQuery = ({
   schemaResource,
   subqueryOptions: { subquery, aggregationFn },
 }: ts.IParamsToSearchQuery) => {
-
-  const prefix = subquery ? 'top_' : '';
-
+  const prefix = subquery ? "top_" : "";
 
   const main: any = !!subquery
     ? db.raw(`(${subquery.toString()}) as ${prefix}main`)
     : sqlSchemaResource(schemaResource);
 
   const base = db.select(context.fields).from(main);
-  const query = !aggregationFn ? base :
-    db.select().from(db.raw(`(${aggregationFn(base).toString()}) as ${prefix}complex`));
+  const query = !aggregationFn
+    ? base
+    : db
+        .select()
+        .from(
+          db.raw(`(${aggregationFn(base).toString()}) as ${prefix}complex`)
+        );
   return (
     query
       // notWhere where/notWhere
@@ -186,9 +189,6 @@ export const toDeleteQuery = (keys: string[]) => ({
   return softDelete;
 };
 
-
-
-
 export const aggregationFnBuilder = (db: Knex) => (
   calculated_fields: any,
   group_by?: string[]
@@ -210,15 +210,6 @@ export const aggregationFnBuilder = (db: Knex) => (
   return group_by ? knex_query.groupBy(group_by) : knex_query;
 };
 
-
-
-
-
-
-
-
-
-
 export const genCountQuery = (
   db,
   knex_query: Knex.QueryBuilder
@@ -229,7 +220,9 @@ export const genCountQuery = (
   // @ts-ignore -- accessing private property
   knex_query._single.limit = undefined;
 
-  const count_query = db.from(db.raw(`(${knex_query.toString()}) as count_query`));
+  const count_query = db.from(
+    db.raw(`(${knex_query.toString()}) as count_query`)
+  );
   // this is needed to make the db result mysql/postgres agnostic
   return count_query.count("* as count");
 };
