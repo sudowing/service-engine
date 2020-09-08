@@ -196,3 +196,47 @@ const { App, logger } = await ignite({
 
 
 ```
+
+
+
+
+
+
+
+
+
+
+https://medium.com/the-andela-way/scaling-out-with-node-clusters-1dca4a39a2a
+
+
+npm bundleDependencies
+
+
+```
+2
+
+What worked for me was to:
+
+    Delete the node_modules in both the dependency and the consumer module.
+    Run npm unlink --no-save [dependency-module]
+    re-link with the 2-link commands as per npm-link
+
+Now I am able to fully test my unpublished module locally.
+
+Additionally, there is an npm pack command which can help you test your unpublished modules, although not quite as robust.
+```
+
+
+
+
+
+
+$ npm install knex --save
+
+# Then add one of the following (adding a --save) flag:
+$ npm install pg
+$ npm install sqlite3
+$ npm install mysql
+$ npm install mysql2
+$ npm install oracledb
+$ npm install mssql

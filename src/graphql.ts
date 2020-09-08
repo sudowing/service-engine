@@ -289,6 +289,8 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
       const _records = await serviceResponse.result.sql;
       const data = resource.transformRecords(_records);
 
+      // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
+
       // update & delete will one day support search query for bulk mutation (already supported in the class I think)
       const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
 

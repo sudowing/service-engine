@@ -210,6 +210,7 @@ export const serviceRouters = async ({
       }
 
       if (category === "service") {
+        let dbCallSuccessful = true; // do not try to get count if db call fails
         try {
           const _records = await serviceResponse.result.sql;
           records = resourcesMap[resource].transformRecords(_records);
@@ -229,9 +230,10 @@ export const serviceRouters = async ({
           ]; // put in array so `output` defined correcly with `record` ternary
           logger.error(records[0], "db call resulted in error");
           ctx.response.status = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+          dbCallSuccessful = false;
         }
 
-        if (operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
+        if (dbCallSuccessful && operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
           // TODO: instead of building new object `args` -- can prob just delete keys from `payload`
           const args = {
             payload: input.payload,
