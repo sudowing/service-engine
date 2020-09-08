@@ -200,14 +200,23 @@ export const toSchemaScalar = (type: string) => {
     // ignore. default will be string
     // 8.8. Geometric Types":
     case "point":
+    case "geometry(Point)":
     case "line":
+    case "geometry(Line)":
+    case "geometry(MultiLineString)":
     case "lseg":
+    case "geometry(Lseg)":
     case "box":
+    case "geometry(Box)":
     case "path":
-    case "path":
+    case "geometry(Path)":
     case "polygon":
+    case "geometry":
+    case "geometry(Polygon)":
+    case "geometry(MultiPolygon)":
     case "circle":
-      return "String"; // will want geoJson on output
+    case "geometry(Circle)":
+      return "JSONB"; // will want geoJson on output
     // 8.9. Network Address Types":
     case "cidr":
     case "inet":

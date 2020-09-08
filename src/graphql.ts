@@ -286,7 +286,8 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   if (serviceResponse.result) {
     try {
       const sql = serviceResponse.result.sql.toString();
-      const data = await serviceResponse.result.sql;
+      const _records = await serviceResponse.result.sql;
+      const data = resource.transformRecords(_records)
 
       // update & delete will one day support search query for bulk mutation (already supported in the class I think)
       const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
