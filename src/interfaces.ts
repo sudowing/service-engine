@@ -283,7 +283,6 @@ export interface IClassResource {
   ): TAsyncResourceResponse;
 
   transformRecords(records: any[]): any[];
-
 }
 
 export interface ISubqueryOptions {

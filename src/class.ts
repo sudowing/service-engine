@@ -1,4 +1,3 @@
-
 import * as bunyan from "bunyan";
 import * as knex from "knex";
 import * as knexPostgis from "knex-postgis";
@@ -318,19 +317,19 @@ export class Resource implements ts.IClassResource {
   transformRecords(records: any[]) {
     let output = records;
     if (records.length) {
-      const geoFields = Object.keys(records[0])
-        .filter(field => this.report.search[field].geoqueryType)
+      const geoFields = Object.keys(records[0]).filter(
+        (field) => this.report.search[field].geoqueryType
+      );
 
-      const transform = record => {
-
-        geoFields.forEach(geoField =>
-          record[geoField] = util.wktToGeoJSON(record[geoField])
-        )
+      const transform = (record) => {
+        geoFields.forEach(
+          (geoField) => (record[geoField] = util.wktToGeoJSON(record[geoField]))
+        );
         return record;
-      }
+      };
 
       if (records.length) {
-        output = records.map(transform)
+        output = records.map(transform);
       }
     }
 
@@ -338,7 +337,4 @@ export class Resource implements ts.IClassResource {
 
     return output;
   }
-
-
-
 }

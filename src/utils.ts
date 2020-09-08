@@ -650,5 +650,31 @@ export const transformNameforResolver = (str) =>
     .map((item) => pascalCase(item)) // this is done to prevent collisions with db resources
     .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
 
-export const wktToGeoJSON = wktString =>
-  wkx.Geometry.parse(Buffer.from(wktString, 'hex')).toGeoJSON()
+export const wktToGeoJSON = (wktString) =>
+  wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON();
+
+export const extractSelectedFields = (information: any) => {
+  let output = [];
+
+  const _filter = (item) =>
+    item.kind && item.name && item.name.value === "data";
+
+  const requestedFields = (item) => item.name.value;
+  const _reduce = (accum, item) =>
+    item.selectionSet &&
+    item.selectionSet.selections &&
+    item.selectionSet.selections.length
+      ? [...accum, ...item.selectionSet.selections.map(requestedFields)]
+      : accum;
+
+  information.fieldNodes.forEach((fieldNode) => {
+    if (fieldNode.selectionSet && fieldNode.selectionSet.selections) {
+      const fields = fieldNode.selectionSet.selections
+        .filter(_filter)
+        .reduce(_reduce, []);
+      output = [...output, ...fields];
+    }
+  });
+
+  return output;
+};

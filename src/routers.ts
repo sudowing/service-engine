@@ -212,8 +212,7 @@ export const serviceRouters = async ({
       if (category === "service") {
         try {
           const _records = await serviceResponse.result.sql;
-          records = resourcesMap[resource].transformRecords(_records)
-
+          records = resourcesMap[resource].transformRecords(_records);
         } catch (err) {
           records = [
             {

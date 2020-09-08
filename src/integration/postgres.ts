@@ -61,7 +61,7 @@ export const joiBase = (type: string) => {
     case "line":
     case "geometry(Line)":
     case "geometry(MultiLineString)":
-          return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
     case "lseg":
     case "geometry(Lseg)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
@@ -75,7 +75,7 @@ export const joiBase = (type: string) => {
     case "geometry":
     case "geometry(Polygon)":
     case "geometry(MultiPolygon)":
-          return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
     case "circle":
     case "geometry(Circle)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output

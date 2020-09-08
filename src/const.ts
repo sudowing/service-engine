@@ -180,4 +180,4 @@ export const SERVICE_RESOURCE_NOT_FOUND_BODY = {
   ],
 };
 
-export const COMPLEX_RESOLVER_SEPERATOR = "____"
+export const COMPLEX_RESOLVER_SEPERATOR = "____";

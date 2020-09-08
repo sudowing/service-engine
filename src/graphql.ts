@@ -1,12 +1,15 @@
 import { GraphQLModule } from "@graphql-modules/core";
 import gql from "graphql-tag";
-// import * as graphqlFields from "graphql-fields";
 import GraphQLJSON from "graphql-type-json";
 import { UserInputError } from "apollo-server-koa";
 
 import { v4 as uuidv4 } from "uuid";
 
-import { HEADER_REQUEST_ID, SERVICE_VERSION, COMPLEX_RESOLVER_SEPERATOR } from "./const";
+import {
+  HEADER_REQUEST_ID,
+  SERVICE_VERSION,
+  COMPLEX_RESOLVER_SEPERATOR,
+} from "./const";
 import { genCountQuery } from "./database";
 import {
   IServiceResolverResponse,
@@ -19,6 +22,7 @@ import {
   callComplexResource,
   genResourcesMap,
   transformNameforResolver,
+  extractSelectedFields,
 } from "./utils";
 
 export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
@@ -55,7 +59,6 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
       ? ResourceName.split(COMPLEX_RESOLVER_SEPERATOR)[1]
       : undefined;
     if (subResourceName) {
-
       schema[`input in_subquery_${subResourceName}`] = [
         `payload: in${subResourceName}`,
         `context: inputContext`,
@@ -249,10 +252,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   const input = { ...defaultInput, ...args };
   const { payload, context, options, keys, subquery } = input;
 
-  // because I'm now publishing request metadata (debug, sql, count) with records the value of record/records key
-  // cant use this
-  // const fields = Object.keys(graphqlFields(info));
-  // context.fields = fields;
+  context.fields = extractSelectedFields(info);
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
@@ -287,7 +287,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
     try {
       const sql = serviceResponse.result.sql.toString();
       const _records = await serviceResponse.result.sql;
-      const data = resource.transformRecords(_records)
+      const data = resource.transformRecords(_records);
 
       // update & delete will one day support search query for bulk mutation (already supported in the class I think)
       const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
@@ -386,7 +386,6 @@ export const gqlModule = async ({
     // ) // temp -- will remove when integrating complex into GraphQL
     .reduce(
       ({ Query, Mutation }, [name, resource]) => {
-
         const ResourceName = transformNameforResolver(name);
         const resourcesMap = genResourcesMap(Resources);
 
