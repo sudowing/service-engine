@@ -5,49 +5,38 @@ import * as cnst from ".././const";
 // https://www.postgresql.org/docs/12/datatype.html
 
 const geoPrefixes = [
-  'geometry(Point',
-  'geometry(Line',
-  'geometry(MultiLineString',
-  'geometry(Lseg',
-  'geometry(Box',
-  'geometry(Path',
-  'geometry(Polygon',
-  'geometry(MultiPolygon',
-  'geometry(Circle',
-]
-const hasGeoPrefix = type => !!(
-    geoPrefixes.filter(geoPrefix => type.startsWith(geoPrefix))
-  ).length;
+  "geometry(Point",
+  "geometry(Line",
+  "geometry(MultiLineString",
+  "geometry(Lseg",
+  "geometry(Box",
+  "geometry(Path",
+  "geometry(Polygon",
+  "geometry(MultiPolygon",
+  "geometry(Circle",
+];
+const hasGeoPrefix = (type) =>
+  !!geoPrefixes.filter((geoPrefix) => type.startsWith(geoPrefix)).length;
 
 const joiGeoTypeByPrefix = (type: string) => {
-  if(type.startsWith("")){
+  if (type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
-  }
-  else if(type.startsWith("") || type.startsWith("")){
+  } else if (type.startsWith("") || type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
-  }
-  else if(type.startsWith("")){
+  } else if (type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
-  }
-  else if(type.startsWith("")){
+  } else if (type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
-  }
-  else if(type.startsWith("")){
+  } else if (type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
-  }
-  else if(type.startsWith("") || type.startsWith("")){
+  } else if (type.startsWith("") || type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
-  }
-  else if(type.startsWith("")){
+  } else if (type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
   }
 
   return null;
-}
-
-
-
-
+};
 
 export const joiBase = (type: string) => {
   switch (type) {
@@ -189,8 +178,8 @@ export const joiBase = (type: string) => {
         return Joi.string().max(Number(match.groups.len));
       }
 
-      const geoType = joiGeoTypeByPrefix(type)
-      if(geoType){
+      const geoType = joiGeoTypeByPrefix(type);
+      if (geoType) {
         return geoType;
       }
 
@@ -331,7 +320,7 @@ export const toSchemaScalar = (type: string) => {
     case "pg_lsn":
       return "String";
     default:
-      if(hasGeoPrefix(type)) return "JSONB"; // will want geoJson on output
+      if (hasGeoPrefix(type)) return "JSONB"; // will want geoJson on output
       return "String";
   }
 };

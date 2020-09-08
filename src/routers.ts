@@ -233,7 +233,11 @@ export const serviceRouters = async ({
           dbCallSuccessful = false;
         }
 
-        if (dbCallSuccessful && operation === "search" && ctx.get(cnst.HEADER_GET_COUNT)) {
+        if (
+          dbCallSuccessful &&
+          operation === "search" &&
+          ctx.get(cnst.HEADER_GET_COUNT)
+        ) {
           // TODO: instead of building new object `args` -- can prob just delete keys from `payload`
           const args = {
             payload: input.payload,
