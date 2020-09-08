@@ -4,6 +4,51 @@ import * as cnst from ".././const";
 // defintions based on psql 12 datatypes
 // https://www.postgresql.org/docs/12/datatype.html
 
+const geoPrefixes = [
+  'geometry(Point',
+  'geometry(Line',
+  'geometry(MultiLineString',
+  'geometry(Lseg',
+  'geometry(Box',
+  'geometry(Path',
+  'geometry(Polygon',
+  'geometry(MultiPolygon',
+  'geometry(Circle',
+]
+const hasGeoPrefix = type => !!(
+    geoPrefixes.filter(geoPrefix => type.startsWith(geoPrefix))
+  ).length;
+
+const joiGeoTypeByPrefix = (type: string) => {
+  if(type.startsWith("")){
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
+  }
+  else if(type.startsWith("") || type.startsWith("")){
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+  }
+  else if(type.startsWith("")){
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
+  }
+  else if(type.startsWith("")){
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
+  }
+  else if(type.startsWith("")){
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
+  }
+  else if(type.startsWith("") || type.startsWith("")){
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+  }
+  else if(type.startsWith("")){
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
+  }
+
+  return null;
+}
+
+
+
+
+
 export const joiBase = (type: string) => {
   switch (type) {
     // 8.1. Numeric Types":
@@ -144,6 +189,11 @@ export const joiBase = (type: string) => {
         return Joi.string().max(Number(match.groups.len));
       }
 
+      const geoType = joiGeoTypeByPrefix(type)
+      if(geoType){
+        return geoType;
+      }
+
       return Joi.string(); // string to support custom data types in the db & ignored char/text fields
   }
 };
@@ -281,6 +331,7 @@ export const toSchemaScalar = (type: string) => {
     case "pg_lsn":
       return "String";
     default:
+      if(hasGeoPrefix(type)) return "JSONB"; // will want geoJson on output
       return "String";
   }
 };

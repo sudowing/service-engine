@@ -315,6 +315,7 @@ export class Resource implements ts.IClassResource {
   }
 
   transformRecords(records: any[]) {
+
     let output = records;
     if (records.length) {
       const geoFields = Object.keys(records[0]).filter(
