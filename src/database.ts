@@ -68,7 +68,7 @@ export const toSearchQuery = ({
                   value[1],
                   value[2],
                   value[3],
-                  cnst.SRID
+                  cnst.SRID // TODO: do not hard set this. get from db query on boot
                 )
               )
             );

@@ -330,11 +330,6 @@ export const searchQueryParser = async (
     const record = { field, rawValue, operation, type };
     const typecast: any = typecastFn(type);
 
-    console.log('')
-    console.log('{ field, operation }')
-    console.log({ field, operation })
-    console.log('=====')    
-
     if (schema && supportMultipleValues(operation)) {
       const values = rawValue.split(sep).map(typecast);
 
