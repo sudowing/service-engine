@@ -1,6 +1,9 @@
+import { Buffer } from "buffer";
+
 import * as Joi from "@hapi/joi";
 import { pascalCase } from "change-case";
 import { cloneDeep } from "lodash";
+import * as wkx from "wkx";
 
 import * as cnst from "./const";
 import * as ts from "./interfaces";
@@ -646,3 +649,6 @@ export const transformNameforResolver = (str) =>
     .split(":")
     .map((item) => pascalCase(item)) // this is done to prevent collisions with db resources
     .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
+
+export const wktToGeoJSON = wktString =>
+  wkx.Geometry.parse(Buffer.from(wktString, 'hex')).toGeoJSON()

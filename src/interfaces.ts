@@ -281,6 +281,9 @@ export interface IClassResource {
     payload: IParamsProcessBase,
     subqueryOptions?: ISubqueryOptions
   ): TAsyncResourceResponse;
+
+  transformRecords(records: any[]): any[];
+
 }
 
 export interface ISubqueryOptions {

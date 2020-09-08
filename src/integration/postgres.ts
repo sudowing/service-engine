@@ -56,18 +56,28 @@ export const joiBase = (type: string) => {
     // ignore. default will be string
     // 8.8. Geometric Types":
     case "point":
+    case "geometry(Point)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
     case "line":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+    case "geometry(Line)":
+    case "geometry(MultiLineString)":
+          return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
     case "lseg":
+    case "geometry(Lseg)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
     case "box":
+    case "geometry(Box)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
     case "path":
+    case "geometry(Path)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
     case "polygon":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+    case "geometry":
+    case "geometry(Polygon)":
+    case "geometry(MultiPolygon)":
+          return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
     case "circle":
+    case "geometry(Circle)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
     // 8.9. Network Address Types":
     case "cidr":
