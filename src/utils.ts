@@ -442,11 +442,7 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
     []
   );
 
-// TODO: more accurate here
-// http://www.movable-type.co.uk/scripts/latlong.html
-
-export const convertMetersToDecimalDegrees = (meters: number) =>
-  meters / cnst.DD_BASE;
+export const metersToDecimalDegrees = (meters: number) => meters / cnst.DD_BASE;
 
 export const validationExpander = (
   validator: Joi.Schema

@@ -118,7 +118,6 @@ export interface IParamsToSearchQuery extends IParamsQueryCore {
   components: ISearchQueryComponent[];
   subqueryOptions?: ISubqueryOptions;
   geoFields?: IObjectGeoFields;
-
 }
 
 export interface IParamsProcessBase {
@@ -251,7 +250,6 @@ export interface IClassResourceConstructor {
   subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
   geoFields?: IObjectGeoFields;
-
 }
 
 export type TAsyncResourceResponse = Promise<

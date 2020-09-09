@@ -2,7 +2,7 @@ import * as Knex from "knex";
 
 import * as cnst from "./const";
 import * as ts from "./interfaces";
-import { convertMetersToDecimalDegrees } from "./utils";
+import { metersToDecimalDegrees } from "./utils";
 
 /* tslint:disable */
 
@@ -60,27 +60,34 @@ export const toSearchQuery = ({
           } else if (operation === cnst.NOT_NULL) {
             sql.whereNotNull(field);
           } else if (operation === cnst.GEO_BBOX) {
+            // long, lat, long, lat | bottom-left, top-right
+            const [xMin, yMin, xMax, yMax] = (value as string[]).map(
+              parseFloat
+            );
+
             sql.andWhere(
               st.intersects(
                 field,
-                st.makeEnvelope(
-                  value[0],
-                  value[1],
-                  value[2],
-                  value[3],
-                  geoFields[field].srid
-                )
+                st.makeEnvelope(xMin, yMin, xMax, yMax, geoFields[field].srid)
               )
             );
           } else if (operation === cnst.GEO_RADIUS) {
-            const [lat, long, meters] = value as number[];
-            const coords = st.setSRID(st.makePoint(long, lat), geoFields[field].srid);
+            // long lat to match order in bbox
+            const [long, lat, meters] = (value as number[]).map(Number);
+            const coords = st.setSRID(
+              st.makePoint(long, lat),
+              geoFields[field].srid
+            );
             sql.andWhere(
-              st.dwithin(field, coords, convertMetersToDecimalDegrees(meters))
+              st.dwithin(field, coords, metersToDecimalDegrees(meters))
             );
           } else if (operation === cnst.GEO_POLYGON) {
+            // TODO: eval this
             sql.andWhere(
-              st.intersects(field, st.geomFromText(value as string, geoFields[field].srid))
+              st.intersects(
+                field,
+                st.geomFromText(value as string, geoFields[field].srid)
+              )
             );
           }
         }

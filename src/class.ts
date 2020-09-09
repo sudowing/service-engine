@@ -112,7 +112,6 @@ export class Resource implements ts.IClassResource {
   public aggregationFn?: ts.TKnexSubQuery;
   public geoFields?: ts.IObjectGeoFields;
 
-
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
   public meta: ts.IValidationExpanderMeta;
@@ -142,7 +141,6 @@ export class Resource implements ts.IClassResource {
     this.subResourceName = subResourceName;
     this.aggregationFn = aggregationFn;
     this.geoFields = geoFields;
-
 
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;

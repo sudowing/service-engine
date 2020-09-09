@@ -155,9 +155,8 @@ describe("utils", () => {
           const validation = await describeOriginal[key].validate(
             mocks.validationInputs.input[type]
           );
-          expect(validation.value).to.equal(
-            mocks.validationInputs.output[type]
-          );
+
+          expect(validation).to.equal(mocks.validationInputs.output[type]);
         }
       );
     });
@@ -179,9 +178,7 @@ describe("utils", () => {
           const validation = await describeBizarro[key].validate(
             mocks.validationInputs.input[type]
           );
-          expect(validation.value).to.equal(
-            mocks.validationInputs.output[type]
-          );
+          expect(validation).to.equal(mocks.validationInputs.output[type]);
         }
       );
     });
