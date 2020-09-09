@@ -4,6 +4,40 @@ import * as cnst from ".././const";
 // defintions based on psql 12 datatypes
 // https://www.postgresql.org/docs/12/datatype.html
 
+const geoPrefixes = [
+  "geometry(Point",
+  "geometry(Line",
+  "geometry(MultiLineString",
+  "geometry(Lseg",
+  "geometry(Box",
+  "geometry(Path",
+  "geometry(Polygon",
+  "geometry(MultiPolygon",
+  "geometry(Circle",
+];
+const hasGeoPrefix = (type) =>
+  !!geoPrefixes.filter((geoPrefix) => type.startsWith(geoPrefix)).length;
+
+const joiGeoTypeByPrefix = (type: string) => {
+  if (type.startsWith("")) {
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
+  } else if (type.startsWith("") || type.startsWith("")) {
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+  } else if (type.startsWith("")) {
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
+  } else if (type.startsWith("")) {
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
+  } else if (type.startsWith("")) {
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
+  } else if (type.startsWith("") || type.startsWith("")) {
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+  } else if (type.startsWith("")) {
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
+  }
+
+  return null;
+};
+
 export const joiBase = (type: string) => {
   switch (type) {
     // 8.1. Numeric Types":
@@ -56,18 +90,28 @@ export const joiBase = (type: string) => {
     // ignore. default will be string
     // 8.8. Geometric Types":
     case "point":
+    case "geometry(Point)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
     case "line":
+    case "geometry(Line)":
+    case "geometry(MultiLineString)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
     case "lseg":
+    case "geometry(Lseg)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
     case "box":
+    case "geometry(Box)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
     case "path":
+    case "geometry(Path)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
     case "polygon":
+    case "geometry":
+    case "geometry(Polygon)":
+    case "geometry(MultiPolygon)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
     case "circle":
+    case "geometry(Circle)":
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
     // 8.9. Network Address Types":
     case "cidr":
@@ -134,6 +178,11 @@ export const joiBase = (type: string) => {
         return Joi.string().max(Number(match.groups.len));
       }
 
+      const geoType = joiGeoTypeByPrefix(type);
+      if (geoType) {
+        return geoType;
+      }
+
       return Joi.string(); // string to support custom data types in the db & ignored char/text fields
   }
 };
@@ -190,14 +239,23 @@ export const toSchemaScalar = (type: string) => {
     // ignore. default will be string
     // 8.8. Geometric Types":
     case "point":
+    case "geometry(Point)":
     case "line":
+    case "geometry(Line)":
+    case "geometry(MultiLineString)":
     case "lseg":
+    case "geometry(Lseg)":
     case "box":
+    case "geometry(Box)":
     case "path":
-    case "path":
+    case "geometry(Path)":
     case "polygon":
+    case "geometry":
+    case "geometry(Polygon)":
+    case "geometry(MultiPolygon)":
     case "circle":
-      return "String"; // will want geoJson on output
+    case "geometry(Circle)":
+      return "JSONB"; // will want geoJson on output
     // 8.9. Network Address Types":
     case "cidr":
     case "inet":
@@ -262,6 +320,7 @@ export const toSchemaScalar = (type: string) => {
     case "pg_lsn":
       return "String";
     default:
+      if (hasGeoPrefix(type)) return "JSONB"; // will want geoJson on output
       return "String";
   }
 };
@@ -359,5 +418,15 @@ export const postgres = ({ migrationTable }) => {
         resource_column_name;
     `;
 
-  return { dbSurveyQuery, joiBase, toSchemaScalar };
+  const dbGeometryColumns = `
+    select
+      f_table_schema resource_schema,
+      f_table_name resource_name,
+      f_geometry_column resource_column_name,
+      srid,
+      "type"
+    FROM geometry_columns;
+  `;
+
+  return { dbSurveyQuery, joiBase, toSchemaScalar, dbGeometryColumns };
 };

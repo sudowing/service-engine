@@ -1,6 +1,9 @@
+import { Buffer } from "buffer";
+
 import * as Joi from "@hapi/joi";
 import { pascalCase } from "change-case";
 import { cloneDeep } from "lodash";
+import * as wkx from "wkx";
 
 import * as cnst from "./const";
 import * as ts from "./interfaces";
@@ -439,11 +442,7 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
     []
   );
 
-// TODO: more accurate here
-// http://www.movable-type.co.uk/scripts/latlong.html
-
-export const convertMetersToDecimalDegrees = (meters: number) =>
-  meters / cnst.DD_BASE;
+export const metersToDecimalDegrees = (meters: number) => meters / cnst.DD_BASE;
 
 export const validationExpander = (
   validator: Joi.Schema
@@ -645,4 +644,33 @@ export const transformNameforResolver = (str) =>
   str
     .split(":")
     .map((item) => pascalCase(item)) // this is done to prevent collisions with db resources
-    .join("_");
+    .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
+
+export const wktToGeoJSON = (wktString) =>
+  wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON();
+
+export const extractSelectedFields = (information: any) => {
+  let output = [];
+
+  const _filter = (item) =>
+    item.kind && item.name && item.name.value === "data";
+
+  const requestedFields = (item) => item.name.value;
+  const _reduce = (accum, item) =>
+    item.selectionSet &&
+    item.selectionSet.selections &&
+    item.selectionSet.selections.length
+      ? [...accum, ...item.selectionSet.selections.map(requestedFields)]
+      : accum;
+
+  information.fieldNodes.forEach((fieldNode) => {
+    if (fieldNode.selectionSet && fieldNode.selectionSet.selections) {
+      const fields = fieldNode.selectionSet.selections
+        .filter(_filter)
+        .reduce(_reduce, []);
+      output = [...output, ...fields];
+    }
+  });
+
+  return output;
+};

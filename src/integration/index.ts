@@ -11,7 +11,7 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
   }
 
   if (db.client.config.client === "sqlite3") {
-    return sqlite3({ migrationTable });
+    return { ...sqlite3({ migrationTable }), dbGeometryColumns: undefined };
   }
 
   throw new Error("unsupported db engine: postgres & sqlite3 only");

@@ -110,6 +110,7 @@ export class Resource implements ts.IClassResource {
   public hasSubquery: boolean;
   public subResourceName?: string;
   public aggregationFn?: ts.TKnexSubQuery;
+  public geoFields?: ts.IObjectGeoFields;
 
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
@@ -127,6 +128,7 @@ export class Resource implements ts.IClassResource {
     middlewareFn,
     subResourceName,
     aggregationFn,
+    geoFields,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -138,6 +140,7 @@ export class Resource implements ts.IClassResource {
     this.hasSubquery = !!subResourceName;
     this.subResourceName = subResourceName;
     this.aggregationFn = aggregationFn;
+    this.geoFields = geoFields;
 
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
@@ -299,6 +302,7 @@ export class Resource implements ts.IClassResource {
       context,
       components,
       subqueryOptions,
+      geoFields: this.geoFields,
     });
 
     this.logger.info(
@@ -312,5 +316,29 @@ export class Resource implements ts.IClassResource {
     );
 
     return util.resolveResource({ sql, query: components, context });
+  }
+
+  transformRecords(records: any[]) {
+    let output = records;
+    if (records.length) {
+      const geoFields = Object.keys(records[0]).filter(
+        (field) => this.report.search[field].geoqueryType
+      );
+
+      const transform = (record) => {
+        geoFields.forEach(
+          (geoField) => (record[geoField] = util.wktToGeoJSON(record[geoField]))
+        );
+        return record;
+      };
+
+      if (records.length) {
+        output = records.map(transform);
+      }
+    }
+
+    // transform to geoJSON
+
+    return output;
   }
 }

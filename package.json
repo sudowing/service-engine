@@ -49,7 +49,6 @@
     "bunyan": "^1.8.12",
     "change-case": "^4.1.1",
     "graphql": "^14.6.0",
-    "graphql-fields": "^2.0.3",
     "graphql-tag": "^2.10.3",
     "graphql-type-json": "^0.3.1",
     "http-status": "^1.4.2",
@@ -69,7 +68,7 @@
     "ts-node": "^8.8.1",
     "typescript": "^3.8.3",
     "uuid": "^7.0.2",
-    "wkx": "^0.4.8"
+    "wkx": "^0.5.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
