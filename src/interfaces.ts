@@ -117,6 +117,8 @@ export interface IParamsToDeleteQueryWithSearch
 export interface IParamsToSearchQuery extends IParamsQueryCore {
   components: ISearchQueryComponent[];
   subqueryOptions?: ISubqueryOptions;
+  geoFields?: IObjectGeoFields;
+
 }
 
 export interface IParamsProcessBase {
@@ -248,6 +250,8 @@ export interface IClassResourceConstructor {
   middlewareFn?: IObjectTransformer;
   subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
+  geoFields?: IObjectGeoFields;
+
 }
 
 export type TAsyncResourceResponse = Promise<
@@ -269,6 +273,7 @@ export interface IClassResource {
   hasSubquery: boolean;
   subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
+  geoFields?: IObjectGeoFields;
 
   queryBase(): IResourceQueryBase;
   contextParser(input: IParamsProcessBase): IResourceContextParserResponse;
@@ -370,4 +375,11 @@ export interface ISchemaResource {
 
 export interface IObjectStringByString {
   [index: string]: string;
+}
+
+export interface IObjectGeoFields {
+  [index: string]: {
+    srid: number;
+    type: string;
+  };
 }

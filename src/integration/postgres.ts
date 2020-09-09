@@ -418,5 +418,15 @@ export const postgres = ({ migrationTable }) => {
         resource_column_name;
     `;
 
-  return { dbSurveyQuery, joiBase, toSchemaScalar };
+  const dbGeometryColumns = `
+    select
+      f_table_schema resource_schema,
+      f_table_name resource_name,
+      f_geometry_column resource_column_name,
+      srid,
+      "type"
+    FROM geometry_columns;
+  `;
+
+  return { dbSurveyQuery, joiBase, toSchemaScalar, dbGeometryColumns };
 };

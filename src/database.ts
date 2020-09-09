@@ -20,9 +20,9 @@ export const toSearchQuery = ({
   context,
   schemaResource,
   subqueryOptions: { subquery, aggregationFn },
+  geoFields,
 }: ts.IParamsToSearchQuery) => {
   const prefix = subquery ? "top_" : "";
-
   const main: any = !!subquery
     ? db.raw(`(${subquery.toString()}) as ${prefix}main`)
     : sqlSchemaResource(schemaResource);
@@ -68,19 +68,19 @@ export const toSearchQuery = ({
                   value[1],
                   value[2],
                   value[3],
-                  cnst.SRID // TODO: do not hard set this. get from db query on boot
+                  geoFields[field].srid
                 )
               )
             );
           } else if (operation === cnst.GEO_RADIUS) {
             const [lat, long, meters] = value as number[];
-            const coords = st.setSRID(st.makePoint(long, lat), cnst.SRID);
+            const coords = st.setSRID(st.makePoint(long, lat), geoFields[field].srid);
             sql.andWhere(
               st.dwithin(field, coords, convertMetersToDecimalDegrees(meters))
             );
           } else if (operation === cnst.GEO_POLYGON) {
             sql.andWhere(
-              st.intersects(field, st.geomFromText(value as string, cnst.SRID))
+              st.intersects(field, st.geomFromText(value as string, geoFields[field].srid))
             );
           }
         }

@@ -110,6 +110,8 @@ export class Resource implements ts.IClassResource {
   public hasSubquery: boolean;
   public subResourceName?: string;
   public aggregationFn?: ts.TKnexSubQuery;
+  public geoFields?: ts.IObjectGeoFields;
+
 
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
@@ -127,6 +129,7 @@ export class Resource implements ts.IClassResource {
     middlewareFn,
     subResourceName,
     aggregationFn,
+    geoFields,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -138,6 +141,8 @@ export class Resource implements ts.IClassResource {
     this.hasSubquery = !!subResourceName;
     this.subResourceName = subResourceName;
     this.aggregationFn = aggregationFn;
+    this.geoFields = geoFields;
+
 
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
@@ -299,6 +304,7 @@ export class Resource implements ts.IClassResource {
       context,
       components,
       subqueryOptions,
+      geoFields: this.geoFields,
     });
 
     this.logger.info(

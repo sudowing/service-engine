@@ -50,15 +50,15 @@ export const ignite = async ({
   });
 
   // these are specific to the db engine version
-  const { dbSurveyQuery, joiBase, toSchemaScalar } = getDatabaseResources({
+  const { dbSurveyQuery, joiBase, toSchemaScalar, dbGeometryColumns } = getDatabaseResources({
     db,
   });
 
   const payload = await db.raw(dbSurveyQuery);
-  // const { rows: dbResourceRawRows } = payload;
   const dbResourceRawRows = payload.hasOwnProperty("rows")
-    ? payload.rows
-    : payload;
+    ? payload.rows : payload;
+
+
 
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,
@@ -77,6 +77,25 @@ export const ignite = async ({
     {}
   );
 
+  let geoFields = {}
+  if(dbGeometryColumns && mapSchemaResources.public_geometry_columns) {
+    const _results = await db.raw(dbGeometryColumns);
+    const geoRows = _results.hasOwnProperty("rows")
+      ? _results.rows : _results;
+
+    const fn = (accum, {type, srid, ...curr}) => {
+      const resourceName = `${curr.resource_schema}_${curr.resource_name}`
+      if (!accum[resourceName]) {accum[resourceName] = {}}
+      accum[resourceName][curr.resource_column_name] = {
+        type, srid
+      }
+      return accum;
+    }
+
+    geoFields = geoRows.reduce(fn, {});
+  }
+
+
   // this has other uses -- needs to be isolated
   const Resources = Object.entries(validators).map(
     ([name, validator]: TDatabaseResources) => [
@@ -90,6 +109,7 @@ export const ignite = async ({
         schemaResource: mapSchemaResources[name],
         middlewareFn:
           middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
+        geoFields: geoFields[name] || undefined
       }),
     ]
   );
@@ -123,6 +143,7 @@ export const ignite = async ({
             middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
           subResourceName,
           aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
+          geoFields: geoFields[name] || undefined
         }),
       ]);
     }
