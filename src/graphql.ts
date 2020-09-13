@@ -25,25 +25,52 @@ import {
   extractSelectedFields,
 } from "./utils";
 
-export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
+export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
+  const resources = Object.fromEntries(Resources)
   const schema = {
     query: [],
     mutation: [],
   };
 
   for (const name of Object.keys(dbResources)) {
-    const ResourceName = transformNameforResolver(name);
+    const report = (resources[name] as IClassResource).report;
+    const hasGeoQueryType = report.search &&
+      !!Object.values(report.search)
+        .filter(({geoqueryType}) => !! geoqueryType).length
 
+    const ResourceName = transformNameforResolver(name);
     schema[`type ${ResourceName}`] = [];
     schema[`input keys${ResourceName}`] = [];
     schema[`input in${ResourceName}`] = [];
+    schema[`input in_range${ResourceName}`] = [];
+
+    if(hasGeoQueryType){
+      schema[`input st_${ResourceName}`] = [];
+    }
+
     schema[`input input${ResourceName}`] = [];
 
     for (const [field, record] of Object.entries(dbResources[name])) {
       const { notnull, type, primarykey }: any = record;
       const schemaScalar = toSchemaScalar(type);
+      const geoType = !!report.search[field].geoqueryType;
 
       schema[`input in${ResourceName}`].push(`${field}: ${schemaScalar}`);
+      if(schemaScalar !== 'Boolean'){
+        schema[`input in_range${ResourceName}`]
+          .push(`${field}: ${schemaScalar === 'String' ? 'in_range_string' : 'in_range_float'}`);
+      }
+
+      if(hasGeoQueryType && geoType){
+        schema[`input st_${ResourceName}`] = [
+          ...schema[`input st_${ResourceName}`],
+          `radius_${field}: st_radius`,
+          `bbox_${field}: st_bbox`,
+          `polygon_${field}: String`,
+        ]
+          // .push(`${field}: st_radius | st_bbox | String`);
+        // .push(`${field}: String`);
+      }
 
       schema[`type ${ResourceName}`].push(
         `${field}: ${schemaScalar}${notnull ? "!" : ""}`
@@ -65,16 +92,41 @@ export const gqlTypes = ({ dbResources, toSchemaScalar }) => {
       ];
     }
 
+    const spacialType = (st: boolean) => (str: string) =>
+      st || !str.startsWith('geo')
+
+    const searchInterfaces = [
+      `equal: in${ResourceName}`,
+      `gt: in${ResourceName}`,
+      `gte: in${ResourceName}`,
+      `lt: in${ResourceName}`,
+      `lte: in${ResourceName}`,
+      `not: in${ResourceName}`,
+      `like: in${ResourceName}`,
+      `null: in${ResourceName}`,
+      `not_null: in${ResourceName}`,
+      // accept multiple values
+      `in: in${ResourceName}`,
+      `not_in: in${ResourceName}`,
+      // accept DEFINED multiple values {object keys}
+        `range: in_range${ResourceName}`,
+        `not_range: in_range${ResourceName}`,
+        // accept DEFINED multiple values of DEFINED type
+        `geo: st_${ResourceName}`,
+    ].filter(spacialType(hasGeoQueryType));
+
+    schema[`input search${ResourceName}`] = searchInterfaces;
+
     const simpleQuery = `
         Search${ResourceName}(
-            payload: in${ResourceName}
+            payload: search${ResourceName}
             context: inputContext
             options: serviceInputOptions
         ): resSearch${ResourceName}
     `;
     const complexQuery = `
         Search${ResourceName}(
-            payload: in${ResourceName}
+            payload: search${ResourceName}
             context: inputContext
             options: serviceInputOptions
             subquery: in_subquery_${subResourceName}
@@ -169,6 +221,7 @@ export const gqlSchema = async ({
   const { query, mutation, ...other } = gqlTypes({
     dbResources,
     toSchemaScalar,
+    Resources
   });
 
   const items = Object.entries(other).map(
@@ -193,6 +246,28 @@ export const gqlSchema = async ({
             timestamp: Float
         }
 
+        input in_range_string {
+          min: String
+          max: String
+        }
+
+        input in_range_float {
+          min: Float
+          max: Float
+        }
+
+        input st_radius {
+          long: Float
+          lat: Float
+          meters: Float
+        }
+
+        input st_bbox {
+          xMin: Float
+          yMin: Float
+          xMax: Float
+          yMax: Float
+        }
 
         input inputContext {
           seperator: String
@@ -251,6 +326,23 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
 
   const input = { ...defaultInput, ...args };
   const { payload, context, options, keys, subquery } = input;
+
+  const wip = (i: object) =>
+    Object.fromEntries(
+      Object.entries(i)
+      .flatMap(([op, values]) =>
+        Object.keys(values)
+        .map(field => [`${field}.${op}`, values])
+    ))
+
+
+  console.log('')
+  console.log('payload')
+  console.log(payload)
+  console.log('--------')
+  console.log('wip(payload')
+  console.log(wip(payload))
+  console.log('--------')
 
   context.fields = extractSelectedFields(info);
   if (context.orderBy) {

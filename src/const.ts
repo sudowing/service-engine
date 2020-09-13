@@ -50,15 +50,15 @@ export const PIPE_SEPERATOR = "|seperator";
 export const SEPERATOR = "seperator";
 // values are weither they support multiple values seperated by commas
 export const SUPPORTED_OPERATIONS = {
-  [EQUAL]: false,
-  gt: false,
-  gte: false,
-  lt: false,
-  lte: false,
-  not: false,
-  like: false,
-  null: false,
-  not_null: false,
+    [EQUAL]: false,
+    gt: false,
+    gte: false,
+    lt: false,
+    lte: false,
+    not: false,
+    like: false,
+    null: false,
+    not_null: false,
   range: true,
   not_range: true,
   in: true,
@@ -73,6 +73,13 @@ export const DEFINED_ARG_LENGTHS = {
   geo_bbox: 4,
   geo_radius: 3,
 };
+
+// so graphql knows what is a different Scalar type
+// export const oooo = [
+//   'geo_bbox',
+//   'geo_radius',
+//   'geo_polygon',
+// ]
 
 export const SYMBOL_GEOQUERY = Symbol("geoquery");
 
