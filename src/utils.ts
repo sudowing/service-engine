@@ -17,7 +17,7 @@ const transformSettledValidation = (accum, { status, value, reason }) => {
   return accum;
 };
 
-const reduceaSettledAsyncValidation = (settledPromises) =>
+const reduceSettledAsyncValidation = (settledPromises) =>
   settledPromises.reduce(transformSettledValidation, {
     values: [],
     errors: [],
@@ -315,11 +315,21 @@ export const contextTransformer = (attribute, input) => {
 export const searchQueryParser = async (
   validator: Joi.Schema,
   query: ts.IParamsSearchQueryParser,
+  apiType: string,
   seperator?: string
 ): Promise<ts.ISearchQueryResponse> => {
   const errors = [];
   const components = [];
   const sep = seperator || cnst.SEARCH_QUERY_CONTEXT.seperator;
+
+
+  console.log('')
+  console.log('query')
+  console.log(query)
+  console.log('--------')
+  console.log('apiType')
+  console.log(apiType)
+  console.log('--------')
 
   // TODO: // make a pure fn. maybe curry to inject the dependencies and return the mutated thing
   const parseSearchQueryEntry = async ([key, rawValue]) => {
@@ -331,18 +341,25 @@ export const searchQueryParser = async (
     const typecast: any = typecastFn(type);
 
     if (schema && supportMultipleValues(operation)) {
-      const values = rawValue.split(sep).map(typecast);
+      // if GRAPHQL must convert to string to pass validation
+      const values = apiType === 'GRAPHQL' ? (rawValue.map(String) as any[]) : rawValue.split(sep)
+        .map(typecast);
 
-      if (!validArgsforOperation(operation, values))
-        errors.push({ field, error: badArgsLengthError(operation, values) });
+      if (!validArgsforOperation(operation, values)) errors.push({ field, error: badArgsLengthError(operation, values) });
 
       const asyncValidation = Promise.allSettled(
-        values.map((item) => schema.validateAsync(item))
-      );
-      const { values: _values, errors: _errors } = await asyncValidation.then(
-        reduceaSettledAsyncValidation
+        values.map(item => schema.validateAsync(item))
       );
 
+      const { values: _values, errors: _errors } = await asyncValidation.then(
+        reduceSettledAsyncValidation
+      );
+
+      console.log('')
+      console.log('_values, _errors')
+      console.log(_values, _errors)
+      console.log('--------')
+      
       const error = _errors
         .map(defineValidationErrorMessage(field))
         .join(cnst.COMMA);
@@ -464,10 +481,11 @@ export const validationExpander = (
   const meta: ts.IValidationExpanderMeta = {
     softDeleteFields: softDeleteFields(report.read),
     uniqueKeyComponents: uniqueKeyComponents(report.read),
-    searchQueryParser: (query, context) =>
+    searchQueryParser: (query, apiType, context) =>
       searchQueryParser(
         validator,
         query,
+        apiType,
         context && context.sep ? context.sep : undefined
       ),
   };

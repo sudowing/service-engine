@@ -282,7 +282,8 @@ export class Resource implements ts.IClassResource {
 
     const { errors, components } = await this.meta.searchQueryParser(
       this.middlewareFn ? this.middlewareFn(input.payload) : input.payload,
-      context
+      input.apiType,
+      context,
     );
     if (errors.length) {
       this.logger.error(

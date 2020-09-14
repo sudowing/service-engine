@@ -327,30 +327,49 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   const input = { ...defaultInput, ...args };
   const { payload, context, options, keys, subquery } = input;
 
-  const wip = (i: object) =>
+  const parseGraphQLInput = (field, op, value) => {
+    if (op === 'geo'){
+      const [_op, ..._field] = field.split('_');
+      const _value = _op === 'polygon'
+        ? [value]
+        : _op === 'radius'
+          ? [value.long, value.lat, value.meters]
+          : [value.xMin, value.yMin, value.xMax, value.yMax]
+      return [`${_field}.geo_${_op}`, _value]
+    }
+    else if (['not_range','range'].includes(op)){
+      return [`${field}.${op}`, [value.min, value.max]]
+    }
+    else if (['not_in','in'].includes(op)){
+      return [`${field}.${op}`, value]
+    }
+
+    return [`${field}.${op}`, value]
+  }
+
+  const gqlParsePayload = (i: object) =>
     Object.fromEntries(
       Object.entries(i)
       .flatMap(([op, values]) =>
-        Object.keys(values)
-        .map(field => [`${field}.${op}`, values])
+        Object.entries(values)
+          .map(([field, value]) => parseGraphQLInput(field, op, value))
     ))
-
 
   console.log('')
   console.log('payload')
   console.log(payload)
   console.log('--------')
-  console.log('wip(payload')
-  console.log(wip(payload))
+  console.log('gqlParsePayload(payload')
+  console.log(gqlParsePayload(payload))
   console.log('--------')
 
   context.fields = extractSelectedFields(info);
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
-
   const query = {
-    payload: operation !== "update" ? payload : { ...payload, ...keys },
+    payload: operation === "update" ? { ...payload, ...keys }
+      : operation === "search" ? gqlParsePayload(payload) : payload,
     context,
     requestId: reqId,
     apiType,
@@ -373,7 +392,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
       )
     : resource[operation](query);
 
-  const serviceResponse = await _serviceResponse; // validation is now async!
+  const serviceResponse = await _serviceResponse;
 
   if (serviceResponse.result) {
     try {

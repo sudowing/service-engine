@@ -59,13 +59,13 @@ export const SUPPORTED_OPERATIONS = {
     like: false,
     null: false,
     not_null: false,
-  range: true,
-  not_range: true,
   in: true,
   not_in: true,
-  geo_bbox: true,
-  geo_radius: true,
-  geo_polygon: true,
+    range: true,
+    not_range: true,
+    geo_bbox: true,
+    geo_radius: true,
+    geo_polygon: true,
 };
 export const DEFINED_ARG_LENGTHS = {
   range: 2,
@@ -73,13 +73,6 @@ export const DEFINED_ARG_LENGTHS = {
   geo_bbox: 4,
   geo_radius: 3,
 };
-
-// so graphql knows what is a different Scalar type
-// export const oooo = [
-//   'geo_bbox',
-//   'geo_radius',
-//   'geo_polygon',
-// ]
 
 export const SYMBOL_GEOQUERY = Symbol("geoquery");
 
