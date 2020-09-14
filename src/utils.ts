@@ -322,15 +322,6 @@ export const searchQueryParser = async (
   const components = [];
   const sep = seperator || cnst.SEARCH_QUERY_CONTEXT.seperator;
 
-
-  console.log('')
-  console.log('query')
-  console.log(query)
-  console.log('--------')
-  console.log('apiType')
-  console.log(apiType)
-  console.log('--------')
-
   // TODO: // make a pure fn. maybe curry to inject the dependencies and return the mutated thing
   const parseSearchQueryEntry = async ([key, rawValue]) => {
     const { field, operation } = parseFieldAndOperation(key);
@@ -342,24 +333,22 @@ export const searchQueryParser = async (
 
     if (schema && supportMultipleValues(operation)) {
       // if GRAPHQL must convert to string to pass validation
-      const values = apiType === 'GRAPHQL' ? (rawValue.map(String) as any[]) : rawValue.split(sep)
-        .map(typecast);
+      const values =
+        apiType === "GRAPHQL"
+          ? (rawValue.map(String) as any[])
+          : rawValue.split(sep).map(typecast);
 
-      if (!validArgsforOperation(operation, values)) errors.push({ field, error: badArgsLengthError(operation, values) });
+      if (!validArgsforOperation(operation, values))
+        errors.push({ field, error: badArgsLengthError(operation, values) });
 
       const asyncValidation = Promise.allSettled(
-        values.map(item => schema.validateAsync(item))
+        values.map((item) => schema.validateAsync(item))
       );
 
       const { values: _values, errors: _errors } = await asyncValidation.then(
         reduceSettledAsyncValidation
       );
 
-      console.log('')
-      console.log('_values, _errors')
-      console.log(_values, _errors)
-      console.log('--------')
-      
       const error = _errors
         .map(defineValidationErrorMessage(field))
         .join(cnst.COMMA);

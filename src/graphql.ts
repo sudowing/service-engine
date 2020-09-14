@@ -26,7 +26,7 @@ import {
 } from "./utils";
 
 export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
-  const resources = Object.fromEntries(Resources)
+  const resources = Object.fromEntries(Resources);
   const schema = {
     query: [],
     mutation: [],
@@ -34,9 +34,11 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
 
   for (const name of Object.keys(dbResources)) {
     const report = (resources[name] as IClassResource).report;
-    const hasGeoQueryType = report.search &&
-      !!Object.values(report.search)
-        .filter(({geoqueryType}) => !! geoqueryType).length
+    const hasGeoQueryType =
+      report.search &&
+      !!Object.values(report.search).filter(
+        ({ geoqueryType }) => !!geoqueryType
+      ).length;
 
     const ResourceName = transformNameforResolver(name);
     schema[`type ${ResourceName}`] = [];
@@ -44,7 +46,7 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
     schema[`input in${ResourceName}`] = [];
     schema[`input in_range${ResourceName}`] = [];
 
-    if(hasGeoQueryType){
+    if (hasGeoQueryType) {
       schema[`input st_${ResourceName}`] = [];
     }
 
@@ -56,19 +58,22 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
       const geoType = !!report.search[field].geoqueryType;
 
       schema[`input in${ResourceName}`].push(`${field}: ${schemaScalar}`);
-      if(schemaScalar !== 'Boolean'){
-        schema[`input in_range${ResourceName}`]
-          .push(`${field}: ${schemaScalar === 'String' ? 'in_range_string' : 'in_range_float'}`);
+      if (schemaScalar !== "Boolean") {
+        schema[`input in_range${ResourceName}`].push(
+          `${field}: ${
+            schemaScalar === "String" ? "in_range_string" : "in_range_float"
+          }`
+        );
       }
 
-      if(hasGeoQueryType && geoType){
+      if (hasGeoQueryType && geoType) {
         schema[`input st_${ResourceName}`] = [
           ...schema[`input st_${ResourceName}`],
           `radius_${field}: st_radius`,
           `bbox_${field}: st_bbox`,
           `polygon_${field}: String`,
-        ]
-          // .push(`${field}: st_radius | st_bbox | String`);
+        ];
+        // .push(`${field}: st_radius | st_bbox | String`);
         // .push(`${field}: String`);
       }
 
@@ -93,7 +98,7 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
     }
 
     const spacialType = (st: boolean) => (str: string) =>
-      st || !str.startsWith('geo')
+      st || !str.startsWith("geo");
 
     const searchInterfaces = [
       `equal: in${ResourceName}`,
@@ -109,10 +114,10 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
       `in: in${ResourceName}`,
       `not_in: in${ResourceName}`,
       // accept DEFINED multiple values {object keys}
-        `range: in_range${ResourceName}`,
-        `not_range: in_range${ResourceName}`,
-        // accept DEFINED multiple values of DEFINED type
-        `geo: st_${ResourceName}`,
+      `range: in_range${ResourceName}`,
+      `not_range: in_range${ResourceName}`,
+      // accept DEFINED multiple values of DEFINED type
+      `geo: st_${ResourceName}`,
     ].filter(spacialType(hasGeoQueryType));
 
     schema[`input search${ResourceName}`] = searchInterfaces;
@@ -221,7 +226,7 @@ export const gqlSchema = async ({
   const { query, mutation, ...other } = gqlTypes({
     dbResources,
     toSchemaScalar,
-    Resources
+    Resources,
   });
 
   const items = Object.entries(other).map(
@@ -328,48 +333,44 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   const { payload, context, options, keys, subquery } = input;
 
   const parseGraphQLInput = (field, op, value) => {
-    if (op === 'geo'){
-      const [_op, ..._field] = field.split('_');
-      const _value = _op === 'polygon'
-        ? [value]
-        : _op === 'radius'
+    if (op === "geo") {
+      const [_op, ..._field] = field.split("_");
+      const _value =
+        _op === "polygon"
+          ? [value]
+          : _op === "radius"
           ? [value.long, value.lat, value.meters]
-          : [value.xMin, value.yMin, value.xMax, value.yMax]
-      return [`${_field}.geo_${_op}`, _value]
-    }
-    else if (['not_range','range'].includes(op)){
-      return [`${field}.${op}`, [value.min, value.max]]
-    }
-    else if (['not_in','in'].includes(op)){
-      return [`${field}.${op}`, value]
+          : [value.xMin, value.yMin, value.xMax, value.yMax];
+      return [`${_field}.geo_${_op}`, _value];
+    } else if (["not_range", "range"].includes(op)) {
+      return [`${field}.${op}`, [value.min, value.max]];
+    } else if (["not_in", "in"].includes(op)) {
+      return [`${field}.${op}`, value];
     }
 
-    return [`${field}.${op}`, value]
-  }
+    return [`${field}.${op}`, value];
+  };
 
   const gqlParsePayload = (i: object) =>
     Object.fromEntries(
-      Object.entries(i)
-      .flatMap(([op, values]) =>
-        Object.entries(values)
-          .map(([field, value]) => parseGraphQLInput(field, op, value))
-    ))
-
-  console.log('')
-  console.log('payload')
-  console.log(payload)
-  console.log('--------')
-  console.log('gqlParsePayload(payload')
-  console.log(gqlParsePayload(payload))
-  console.log('--------')
+      Object.entries(i).flatMap(([op, values]) =>
+        Object.entries(values).map(([field, value]) =>
+          parseGraphQLInput(field, op, value)
+        )
+      )
+    );
 
   context.fields = extractSelectedFields(info);
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
   const query = {
-    payload: operation === "update" ? { ...payload, ...keys }
-      : operation === "search" ? gqlParsePayload(payload) : payload,
+    payload:
+      operation === "update"
+        ? { ...payload, ...keys }
+        : operation === "search"
+        ? gqlParsePayload(payload)
+        : payload,
     context,
     requestId: reqId,
     apiType,

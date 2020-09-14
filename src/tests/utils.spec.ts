@@ -272,7 +272,7 @@ describe("utils", () => {
       const { errors, components } = await fn(
         mocks.testTable,
         mocks.exampleSearchQuery,
-        mocks.apiType01,
+        mocks.apiType01
       );
 
       const checkForMocksinTestResults = (

@@ -213,7 +213,7 @@ export interface IValidationExpanderMeta {
   searchQueryParser: (
     query: any,
     apiType: string,
-    context?: any,
+    context?: any
   ) => Promise<ISearchQueryResponse>;
 }
 

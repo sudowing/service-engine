@@ -12,7 +12,7 @@ export const testKeyedTable = Joi.object({
   zulu: Joi.boolean().invalid(cnst.SYMBOL_SOFT_DELETE),
 });
 
-export const apiType01 = 'REST';
+export const apiType01 = "REST";
 
 export const testTable = Joi.object({
   alpha: Joi.string().required(),
