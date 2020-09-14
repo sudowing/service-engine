@@ -60,7 +60,7 @@ export const toSearchQuery = ({
           } else if (operation === cnst.NOT_NULL) {
             sql.whereNotNull(field);
           } else if (operation === cnst.GEO_BBOX) {
-            // long, lat, long, lat | bottom-left, top-right
+            // long, lat, long, lat | bottom-left, top-right | prob matters which hemisphere
             const [xMin, yMin, xMax, yMax] = (value as string[]).map(
               parseFloat
             );

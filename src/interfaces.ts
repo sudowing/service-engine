@@ -212,6 +212,7 @@ export interface IValidationExpanderMeta {
   uniqueKeyComponents: any[];
   searchQueryParser: (
     query: any,
+    apiType: string,
     context?: any
   ) => Promise<ISearchQueryResponse>;
 }

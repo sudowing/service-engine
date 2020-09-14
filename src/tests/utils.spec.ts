@@ -271,7 +271,8 @@ describe("utils", () => {
     it("produces errors and components as expected (now async!)", async () => {
       const { errors, components } = await fn(
         mocks.testTable,
-        mocks.exampleSearchQuery
+        mocks.exampleSearchQuery,
+        mocks.apiType01
       );
 
       const checkForMocksinTestResults = (
