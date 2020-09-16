@@ -681,3 +681,18 @@ export const extractSelectedFields = (information: any) => {
 
   return output;
 };
+
+export const initPostProcessing = (knexConfig) =>
+  !knexConfig.client.includes("mysql")
+    ? knexConfig
+    : {
+        postProcessResponse: (result, queryContext) => {
+          // only do this for mysql2
+          return Array.isArray(result) &&
+            result.length &&
+            result[0].constructor.name === "Array"
+            ? result[0] // should be TextRow
+            : result;
+        },
+        ...knexConfig,
+      };

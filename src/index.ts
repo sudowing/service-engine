@@ -21,6 +21,8 @@ import { prepRequestForService } from "./middleware";
 import { serviceRouters } from "./routers";
 import { genDatabaseResourceValidators, castBoolean } from "./utils";
 
+export { initPostProcessing } from "./utils";
+
 // currently this is server wide setting. future will be per resource
 const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
   ? castBoolean(process.env.ENABLE_HARD_DELETE)

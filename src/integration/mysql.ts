@@ -135,7 +135,15 @@ export const toSchemaScalar = (type: string) => {
     // MULTILINESTRING
     // MULTIPOLYGON
     // GEOMETRYCOLLECTION
-
+    case cnst.GEOMETRY:
+    case cnst.POINT:
+    case cnst.LINESTRING:
+    case cnst.POLYGON:
+    case cnst.MULTIPOINT:
+    case cnst.MULTILINESTRING:
+    case cnst.MULTIPOLYGON:
+    case cnst.GEOMETRYCOLLECTION:
+      return "JSONB";
     // 11.5 The JSON Data Type
     // JSON
 
@@ -200,7 +208,7 @@ export const mysql = ({ migrationTable }) => {
       main.TABLE_SCHEMA = detail.TABLE_SCHEMA
       and
       main.TABLE_NAME = detail.TABLE_NAME
-  JOIN information_schema.statistics stats
+  LEFT JOIN information_schema.statistics stats
       on
       detail.TABLE_SCHEMA = stats.index_schema
       and
