@@ -697,5 +697,5 @@ export const initPostProcessing = (knexConfig) =>
         ...knexConfig,
       };
 
-export const supportsReturnOnCreateAndUpdate = client =>
-  ['pg','mssql','oracledb'].includes(client)
+export const supportsReturnOnCreateAndUpdate = (client) =>
+  ["pg", "mssql", "oracledb"].includes(client);

@@ -428,7 +428,13 @@ export const dialect = ({ migrationTable }) => {
     FROM geometry_columns;
   `;
 
-  const versionQuery = `select version() as db_version;`
+  const versionQuery = `select version() as db_version;`;
 
-  return { dbSurveyQuery, versionQuery, joiBase, toSchemaScalar, dbGeometryColumns };
+  return {
+    dbSurveyQuery,
+    versionQuery,
+    joiBase,
+    toSchemaScalar,
+    dbGeometryColumns,
+  };
 };

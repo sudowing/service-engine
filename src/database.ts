@@ -2,7 +2,10 @@ import * as Knex from "knex";
 
 import * as cnst from "./const";
 import * as ts from "./interfaces";
-import { metersToDecimalDegrees, supportsReturnOnCreateAndUpdate } from "./utils";
+import {
+  metersToDecimalDegrees,
+  supportsReturnOnCreateAndUpdate,
+} from "./utils";
 
 /* tslint:disable */
 
@@ -108,9 +111,13 @@ export const toCreateQuery = ({
   context,
   schemaResource,
 }: ts.IParamsToQueryBase) => {
-  const supportsReturn = supportsReturnOnCreateAndUpdate(db.client.config.client)
-  return db.insert(query, (supportsReturn ? context.fields : undefined)).into(sqlSchemaResource(schemaResource)); // fields exists. was set in generic
-}
+  const supportsReturn = supportsReturnOnCreateAndUpdate(
+    db.client.config.client
+  );
+  return db
+    .insert(query, supportsReturn ? context.fields : undefined)
+    .into(sqlSchemaResource(schemaResource)); // fields exists. was set in generic
+};
 
 export const toReadQuery = ({
   db,
@@ -143,10 +150,12 @@ export const toUpdateQuery = (keys: string[]) => ({
     { pk: {}, values: {} }
   );
 
-  const supportsReturn = supportsReturnOnCreateAndUpdate(db.client.config.client)
+  const supportsReturn = supportsReturnOnCreateAndUpdate(
+    db.client.config.client
+  );
   return db(sqlSchemaResource(schemaResource))
     .where(pk) // pull only keys from query || ensure it's being done upstream
-    .update(values, (supportsReturn ? context.fields : undefined)); // remove keys & cannot update fields from query && fields exists. was set in generic
+    .update(values, supportsReturn ? context.fields : undefined); // remove keys & cannot update fields from query && fields exists. was set in generic
 };
 
 export const toDeleteQuery = (keys: string[]) => ({
