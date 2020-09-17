@@ -241,6 +241,7 @@ $ npm install mysql2
 $ npm install oracledb
 $ npm install mssql
 
+-----
 
 design concept
 
@@ -258,3 +259,6 @@ ST queries supported via knex-postgis
 
 openapi docs derived from survey
 
+-----
+
+also note that postgre WKT will be converted to geojson automatically while mysql will just stay as it's json representation

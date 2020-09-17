@@ -512,7 +512,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   };
 
   const serviceRoutes = {
-    "/ping": {
+    "/healthz": {
       get: {
         summary: "heathcheck resource",
         operationId: "ping",

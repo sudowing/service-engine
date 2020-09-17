@@ -2,33 +2,17 @@ update logger with file and trace
 make every http call get logged to debug
 
 CRUD OPTIONS in service-config
-relationships in service-config (for when fk is not a constraint)
-unique vs primary key (if table has no PK -- fallback to unique key if exists and provide READ, UPDATE & DELETE)
-
-  define relationships via config if fk not set
-    fk defines itself (used for GraphQL)
-
-add support for sqlite
-add support for oracle
-
 
 standardize connection for db config
-
-connect to sqlite
 
 hard delete vs soft delete.
 Currently only soft delete is enabled
 
-create and update do not return for sqlite3
-
-foreign key by inspection (for relationships in graphql)
-dataloader
-
+create and update do not return for sqlite3 (or maybe msql)
 
 THROW ERROR warning if any field name has a space or not supported GraphQL char
 
-note in readme
-
-also note that postgre WKT will be converted to geojson automatically while mysql will just stay as it's json representation
-
 add db version to healthcheck route
+
+postgres mssql oracle -- all support RETURNING.
+prob need to cull from mysql -- need to QA
