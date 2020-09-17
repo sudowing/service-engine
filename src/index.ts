@@ -54,6 +54,7 @@ export const ignite = async ({
   // these are specific to the db engine version
   const {
     dbSurveyQuery,
+    versionQuery,
     joiBase,
     toSchemaScalar,
     dbGeometryColumns,
@@ -61,10 +62,15 @@ export const ignite = async ({
     db,
   });
 
-  const payload = await db.raw(dbSurveyQuery);
-  const dbResourceRawRows = payload.hasOwnProperty("rows")
-    ? payload.rows
-    : payload;
+  const [dbResourceRawRows, dbVersionRawRows] = await Promise.all([
+    db.raw(dbSurveyQuery),
+    db.raw(versionQuery)
+  ]).then((payload: any) => payload.hasOwnProperty("rows") ? payload.rows : payload)
+  metadata.db_info = {
+    dialect: db.client.config.client,
+    version: dbVersionRawRows[0].db_version,
+  }
+
 
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,

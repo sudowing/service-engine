@@ -101,7 +101,7 @@ export const toSchemaScalar = (type: string) => {
   }
 };
 
-export const sqlite3 = ({ migrationTable }) => {
+export const dialect = ({ migrationTable }) => {
   const dbSurveyQuery = `
     SELECT
         '' resource_schema,
@@ -148,5 +148,7 @@ export const sqlite3 = ({ migrationTable }) => {
         p.name;
     `;
 
-  return { dbSurveyQuery, joiBase, toSchemaScalar };
+    const versionQuery = `select sqlite_version() as db_version;`
+
+  return { dbSurveyQuery, versionQuery, joiBase, toSchemaScalar };
 };

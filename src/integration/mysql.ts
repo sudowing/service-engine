@@ -152,7 +152,7 @@ export const toSchemaScalar = (type: string) => {
   }
 };
 
-export const mysql = ({ migrationTable }) => {
+export const dialect = ({ migrationTable }) => {
   const dbSurveyQuery = `
   SELECT
     detail.TABLE_SCHEMA resource_schema,
@@ -230,5 +230,6 @@ export const mysql = ({ migrationTable }) => {
     detail.column_name;
     `;
 
-  return { dbSurveyQuery, joiBase, toSchemaScalar };
+    const versionQuery = `select version() as db_version;`
+  return { dbSurveyQuery, versionQuery, joiBase, toSchemaScalar };
 };
