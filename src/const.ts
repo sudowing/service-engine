@@ -46,6 +46,20 @@ export const GEO_BBOX = "geo_bbox";
 export const GEO_RADIUS = "geo_radius";
 export const GEO_POLYGON = "geo_polygon";
 
+export const BIT = "bit";
+export const TINYINT = "tinyint";
+export const SMALLINT = "smallint";
+export const MEDIUMINT = "mediumint";
+export const INT = "int";
+export const INTEGER = "integer";
+export const YEAR = "year";
+export const GEOMETRY = "geometry";
+export const LINESTRING = "linestring";
+export const MULTIPOINT = "multipoint";
+export const MULTILINESTRING = "multilinestring";
+export const MULTIPOLYGON = "multipolygon";
+export const GEOMETRYCOLLECTION = "geometrycollection";
+
 export const PIPE_SEPERATOR = "|seperator";
 export const SEPERATOR = "seperator";
 // values are weither they support multiple values seperated by commas

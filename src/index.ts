@@ -21,6 +21,8 @@ import { prepRequestForService } from "./middleware";
 import { serviceRouters } from "./routers";
 import { genDatabaseResourceValidators, castBoolean } from "./utils";
 
+export { initPostProcessing } from "./utils";
+
 // currently this is server wide setting. future will be per resource
 const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
   ? castBoolean(process.env.ENABLE_HARD_DELETE)
@@ -52,6 +54,7 @@ export const ignite = async ({
   // these are specific to the db engine version
   const {
     dbSurveyQuery,
+    versionQuery,
     joiBase,
     toSchemaScalar,
     dbGeometryColumns,
@@ -59,10 +62,39 @@ export const ignite = async ({
     db,
   });
 
-  const payload = await db.raw(dbSurveyQuery);
-  const dbResourceRawRows = payload.hasOwnProperty("rows")
-    ? payload.rows
-    : payload;
+  const [dbResourceRawRows, dbVersionRawRows] = await Promise.all([
+    db.raw(dbSurveyQuery),
+    db.raw(versionQuery),
+  ]).then((payload: any) =>
+    payload.hasOwnProperty("rows") ? payload.rows : payload
+  );
+  metadata.db_info = {
+    dialect: db.client.config.client,
+    version: dbVersionRawRows[0].db_version,
+  };
+
+  const fields = ["resource_schema", "resource_name", "resource_column_name"];
+
+  const REGEX_LEGAL_SDL = /[0-9a-zA-Z_]+/g;
+  const flagNonSupportedSchemaChars = (record) =>
+    Object.entries(record).filter(
+      ([key, value]) =>
+        fields.includes(key) &&
+        value.toString().match(REGEX_LEGAL_SDL).length > 1
+    ).length > 0;
+
+  const problemResources = dbResourceRawRows.filter(
+    flagNonSupportedSchemaChars
+  );
+  if (!!problemResources.length) {
+    logger.error(
+      { problemResources },
+      `unsupported character (likely whitespace) in on of these fields [${fields.join(
+        ","
+      )}]`
+    );
+    process.exit(1);
+  }
 
   const { validators, dbResources } = await genDatabaseResourceValidators({
     db,

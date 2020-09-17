@@ -240,3 +240,25 @@ $ npm install mysql
 $ npm install mysql2
 $ npm install oracledb
 $ npm install mssql
+
+-----
+
+design concept
+
+koa view --> STANDARDIZED QUERY & CONTEXT <-- GraphQL Resolver
+Validation & Knex Query Building
+Knex Execution
+
+Survey the db to get info on DB resources
+Use this to auto generate validators & Resource Objects,
+Create REST endpoints and Resolvers for each resource
+
+Fully validated
+DB engine specifics abstracted away via knex
+ST queries supported via knex-postgis
+
+openapi docs derived from survey
+
+-----
+
+also note that postgre WKT will be converted to geojson automatically while mysql will just stay as it's json representation

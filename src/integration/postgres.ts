@@ -325,7 +325,7 @@ export const toSchemaScalar = (type: string) => {
   }
 };
 
-export const postgres = ({ migrationTable }) => {
+export const dialect = ({ migrationTable }) => {
   const dbSurveyQuery = `
       select distinct
         resource_schema,
@@ -428,5 +428,13 @@ export const postgres = ({ migrationTable }) => {
     FROM geometry_columns;
   `;
 
-  return { dbSurveyQuery, joiBase, toSchemaScalar, dbGeometryColumns };
+  const versionQuery = `select version() as db_version;`;
+
+  return {
+    dbSurveyQuery,
+    versionQuery,
+    joiBase,
+    toSchemaScalar,
+    dbGeometryColumns,
+  };
 };

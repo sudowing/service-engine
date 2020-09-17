@@ -5,6 +5,8 @@ import { UserInputError } from "apollo-server-koa";
 
 import { v4 as uuidv4 } from "uuid";
 
+import * as fs from "fs";
+
 import {
   HEADER_REQUEST_ID,
   SERVICE_VERSION,
@@ -312,6 +314,8 @@ export const gqlSchema = async ({
   try {
     typeDefs = gql(typeDefsString);
   } catch (err) {
+    fs.writeFileSync("schema.error.typeDefsString.txt", typeDefsString);
+    fs.writeFileSync("schema.error.json", JSON.stringify({ err }));
     throw err;
   }
 

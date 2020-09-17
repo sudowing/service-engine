@@ -6,364 +6,230 @@ import * as cnst from ".././const";
 
 export const joiBase = (type: string) => {
   switch (type) {
-    // 8.1. Numeric Types":
-    case "smallint":
-    case "integer":
-    case "bigint":
+    // 11.1 Numeric Data Types
+    case cnst.BIT:
+    case cnst.TINYINT:
+    case cnst.SMALLINT:
+    case cnst.MEDIUMINT:
+    case cnst.INT:
+    case cnst.INTEGER:
       return Joi.number().integer();
-    case "decimal":
-    case "numeric":
-    case "real":
-    case "double precision":
-      return Joi.string(); // string because of arbitrary presision that cannot be jsonified -- have special values (Infinity, -Infinity, NaN)
-    case "smallserial":
-    case "serial":
-    case "bigserial":
+    // BIGINT
+    // DECIMAL
+    // DEC
+    // NUMERIC
+    // FIXED
+    // FLOAT
+    // DOUBLE
+    // DOUBLE PRECISION
+    // REAL
+
+    // 11.2 Date and Time Data Types
+    // DATE
+    // TIME
+    // DATETIME
+    // TIMESTAMP
+    case cnst.YEAR:
       return Joi.number().integer();
-    case "int2":
-    case "int4":
-    case "int8":
-      return Joi.number().integer();
-    // 8.2. Monetary Types":
-    case "money || bigint in js":
-      return Joi.string(); // string as it is arbitrary length
-    // 8.3. Character Types":
-    // case "character varying(n)": // ignore. default will be string
-    // case "varchar(n)": // ignore. default will be string
-    // case "character(n)": // ignore. default will be string
-    // case "char(n)": // ignore. default will be string
-    case "character varying":
-    case "text":
-    case '"char"':
-    case "name":
-      return Joi.string();
-    // 8.4. Binary Data Types":
-    case "bytea":
-      return Joi.string();
-    // 8.5. Date/Time Types":
-    // case "timestamp": tz optional // ignore. default will be string
-    // case "timestamp": wtz // ignore. default will be string
-    case "timestamp without time zone":
-    case "date":
-    // case "time": tz optional // ignore. default will be string
-    // case "time": wtz // ignore. default will be string
-    case "interval":
-      return Joi.string();
-    // 8.6. Boolean Type":
-    case "boolean":
-      return Joi.boolean();
-    // 8.7. Enumerated Types":
-    // ignore. default will be string
-    // 8.8. Geometric Types":
-    case "point":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
-    case "line":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
-    case "lseg":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
-    case "box":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
-    case "path":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
-    case "polygon":
+
+    // 11.3 String Data Types
+    // CHAR
+    // NATIONAL CHAR
+    // NCHAR
+    // VARCHAR
+    // NATIONAL VARCHAR
+    // NVARCHAR
+    // BINARY
+    // VARBINARY
+    // TINYBLOB
+    // TINYTEXT
+    // BLOB
+    // TEXT
+    // MEDIUMBLOB
+    // MEDIUMTEXT
+    // LONGBLOB
+    // LONGTEXT
+    // ENUM
+    // SET
+
+    // 11.4 Spatial Data Types
+    case cnst.GEOMETRY:
       return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
-    case "circle":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
-    // 8.9. Network Address Types":
-    case "cidr":
-    case "inet":
-    case "macaddr":
-      return Joi.string();
-    // 8.10. Bit String Types":
-    // case "bit(n)": // ignore. default will be string
-    // case "bit varying(n)": // ignore. default will be string
-    //    return Joi.string();
+    case cnst.POINT:
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
+    case cnst.LINESTRING:
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+    case cnst.POLYGON:
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+    case cnst.MULTIPOINT:
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
+    case cnst.MULTILINESTRING:
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+    case cnst.MULTIPOLYGON:
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+    case cnst.GEOMETRYCOLLECTION:
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
 
-    // 8.11. Text Search Types":
-    // 8.11.1. tsvector":
-    // 8.11.2. tsquery":
+    // 11.5 The JSON Data Type
+    // JSON
 
-    // 8.12. UUID Type":
-    case "uuid":
-    case "string":
-      return Joi.string();
-    // 8.13. XML Type":
-    case "xml":
-      return Joi.string();
-    // 8.14. JSON Types":
-    case "json":
-    case "jsonb":
-    case "jsonpath":
-      return Joi.string(); // will want to use JSONB on output
-
-    // 8.15. Arrays":
-    // ignore. default will be string
-    // in the future -- breaking change will type
-
-    // 8.16. Composite Types":
-    // ignore. default will be string
-
-    // 8.17. Range Types":
-    case "int4range":
-    case "int8range":
-      return Joi.number().integer();
-    case "numrange":
-    case "* float":
-      return Joi.number();
-    case "tsrange":
-    case "tstzrange":
-    case "daterange":
-      return Joi.string();
-    // 8.18. Domain Types": // ignore. let default catch it
-    // 8.19. Object Identifier Types":
-    case "oid":
-      return Joi.number().integer();
-    case "regproc":
-    case "regprocedure":
-    case "regoper":
-    case "regoperator":
-    case "regclass":
-    case "regtype":
-    case "regrole":
-    case "regnamespace":
-    case "regconfig":
-    case "regdictionary":
-      return Joi.string();
-    // 8.20. pg_lsn Type":
-    case "pg_lsn":
-      return Joi.string();
     default:
-      const match = type.match(cnst.REGEX_CHAR);
-      if (match) {
-        return Joi.string().length(Number(match.groups.len));
-      }
-
-      // need to catch other types ignored above via REGEX
-
-      return Joi.string(); // string to support custom data types in the db
+      return Joi.string();
   }
 };
 
 export const toSchemaScalar = (type: string) => {
   switch (type) {
-    // 8.1. Numeric Types":
-    case "smallint":
-    case "integer":
-    case "bigint":
+    // 11.1 Numeric Data Types
+    case cnst.BIT:
+    case cnst.TINYINT:
+    case cnst.SMALLINT:
+    case cnst.MEDIUMINT:
+    case cnst.INT:
+    case cnst.INTEGER:
       return "Float";
-    case "decimal":
-    case "numeric":
-    case "real":
-    case "double precision":
-      return "String"; // String because of arbitrary precision that cannot be jsonifieds
-    case "smallserial":
-    case "serial":
-    case "bigserial":
-      return "Float";
-    case "int2":
-    case "int4":
-    case "int8":
-      return "Float";
-    // 8.2. Monetary Types":
-    case "money || bigint in js":
-      return "String"; // string as it is arbitrary length
-    // 8.3. Character Types":
-    // case "character varying(n)": // ignore. default will be string
-    // case "varchar(n)": // ignore. default will be string
-    // case "character(n)": // ignore. default will be string
-    // case "char(n)": // ignore. default will be string
-    case "character varying":
-    case "text":
-    case '"char"':
-    case "name":
-      return "String";
-    // 8.4. Binary Data Types":
-    case "bytea":
-      return "String";
-    // 8.5. Date/Time Types":
-    // case "timestamp": tz optional // ignore. default will be string
-    // case "timestamp": wtz // ignore. default will be string
-    case "timestamp without time zone":
-    case "date":
-    // case "time": tz optional // ignore. default will be string
-    // case "time": wtz // ignore. default will be string
-    case "interval":
-      return "String";
-    // 8.6. Boolean Type":
-    case "boolean":
-      return "Boolean";
-    // 8.7. Enumerated Types":
-    // ignore. default will be string
-    // 8.8. Geometric Types":
-    case "point":
-    case "line":
-    case "lseg":
-    case "box":
-    case "path":
-    case "path":
-    case "polygon":
-    case "circle":
-      return "String"; // will want geoJson on output
-    // 8.9. Network Address Types":
-    case "cidr":
-    case "inet":
-    case "macaddr":
-      return "String";
-    // 8.10. Bit String Types":
-    // case "bit(n)": // ignore. default will be string
-    // case "bit varying(n)": // ignore. default will be string
-    //    return 'String';
+    // BIGINT
+    // DECIMAL
+    // DEC
+    // NUMERIC
+    // FIXED
+    // FLOAT
+    // DOUBLE
+    // DOUBLE PRECISION
+    // REAL
 
-    // 8.11. Text Search Types":
-    // 8.11.1. tsvector":
-    // 8.11.2. tsquery":
-
-    // 8.12. UUID Type":
-    case "uuid":
-    case "string":
-      return "String";
-    // 8.13. XML Type":
-    case "xml":
-      return "String";
-    // 8.14. JSON Types":
-    case "json":
-    case "jsonb":
-    case "jsonpath":
-      return "String"; // will want to use JSONB on output
-
-    // 8.15. Arrays":
-    // ignore. default will be string
-    // in the future -- breaking change will type
-
-    // 8.16. Composite Types":
-    // ignore. default will be string
-
-    // 8.17. Range Types":
-    case "int4range":
-    case "int8range":
+    // 11.2 Date and Time Data Types
+    // DATE
+    // TIME
+    // DATETIME
+    // TIMESTAMP
+    case cnst.YEAR:
       return "Float";
-    case "numrange":
-    case "* float":
-      return "Float";
-    case "tsrange":
-    case "tstzrange":
-    case "daterange":
-      return "String";
-    // 8.18. Domain Types": // ignore. let default catch it
-    // 8.19. Object Identifier Types":
-    case "oid":
-      return "Float";
-    case "regproc":
-    case "regprocedure":
-    case "regoper":
-    case "regoperator":
-    case "regclass":
-    case "regtype":
-    case "regrole":
-    case "regnamespace":
-    case "regconfig":
-    case "regdictionary":
-      return "String";
-    // 8.20. pg_lsn Type":
-    case "pg_lsn":
-      return "String";
+
+    // 11.3 String Data Types
+    // CHAR
+    // NATIONAL CHAR
+    // NCHAR
+    // VARCHAR
+    // NATIONAL VARCHAR
+    // NVARCHAR
+    // BINARY
+    // VARBINARY
+    // TINYBLOB
+    // TINYTEXT
+    // BLOB
+    // TEXT
+    // MEDIUMBLOB
+    // MEDIUMTEXT
+    // LONGBLOB
+    // LONGTEXT
+    // ENUM
+    // SET
+
+    // 11.4 Spatial Data Types
+    // GEOMETRY
+    // POINT
+    // LINESTRING
+    // POLYGON
+    // MULTIPOINT
+    // MULTILINESTRING
+    // MULTIPOLYGON
+    // GEOMETRYCOLLECTION
+    case cnst.GEOMETRY:
+    case cnst.POINT:
+    case cnst.LINESTRING:
+    case cnst.POLYGON:
+    case cnst.MULTIPOINT:
+    case cnst.MULTILINESTRING:
+    case cnst.MULTIPOLYGON:
+    case cnst.GEOMETRYCOLLECTION:
+      return "JSONB";
+    // 11.5 The JSON Data Type
+    // JSON
+
     default:
       return "String";
   }
 };
 
-export const postgres = ({ migrationTable }) => {
+export const dialect = ({ migrationTable }) => {
   const dbSurveyQuery = `
-      select distinct
-        resource_schema,
-        resource_type,
-        resource_name,
-        resource_column_id,
-        resource_column_name,
-        "notnull",
-        "type",
-        case
-          when primarykey >0 then true
-          else false
-        end as primarykey,
-        case
-          when uniquekey >0 then true
-          else false
-        end as uniquekey
-      from
-        (
-        select
-          "oid",
-          resource_schema,
-          resource_type,
-          resource_name,
-          resource_column_id,
-          resource_column_name,
-          "notnull",
-          "type",
-          max(primarykey) primarykey,
-          max(uniquekey) uniquekey
-        from
-          (
-            select
-              c.oid oid,
-              s.nspname resource_schema,
-              case
-                when c.relkind = 'r' then 'table'
-                when c.relkind = 'v' then 'view'
-                when c.relkind = 'm' then 'materialized view'
-                else 'unknown'
-              end as resource_type,
-              c.relname as resource_name,
-              a.attnum as resource_column_id,
-              a.attname as resource_column_name,
-              a.attnotnull as notnull,
-              pg_catalog.format_type(a.atttypid, a.atttypmod) as type,
-              case
-                when p.contype = 'p' then 1
-                else 0
-              end as primarykey,
-              case
-                when p.contype = 'u' then 1
-                else 0
-              end as uniquekey
-            from
-              pg_attribute a
-            join pg_class c on
-              c.oid = a.attrelid
-            join pg_namespace s on
-              c.relnamespace = s.oid
-            left join pg_attrdef d on
-              d.adrelid = c.oid
-              and d.adnum = a.attnum
-            left join pg_namespace n on
-              n.oid = c.relnamespace
-            left join pg_constraint p on
-              p.conrelid = c.oid
-              and a.attnum = any (p.conkey)
-            where
-              c.relkind in ('r', 'v', 'm') -- tables, views, materialized views
-              and a.attnum > 0
-              and not a.attisdropped
-              and s.nspname not in ('information_schema', 'pg_catalog')
-              and c.relname not in ('knex_migrations', 'knex_migrations_lock')
-              and c.relname not in ('${migrationTable}', '${migrationTable}_lock')
-            ) main
-        group by
-          "oid",
-          resource_schema,
-          resource_type,
-          resource_name,
-          resource_column_id,
-          resource_column_name,
-          "notnull",
-          "type"
-          ) base
-      order by
-        resource_schema,
-        resource_name,
-        resource_column_name;
+  SELECT
+    detail.TABLE_SCHEMA resource_schema,
+    case
+      when main.TABLE_TYPE = 'VIEW' then 'view'
+      else 'table'
+    end resource_type,
+    detail.TABLE_NAME resource_name,
+    detail.ordinal_position resource_column_id,
+    detail.column_name resource_column_name,
+    case
+      when detail.is_nullable = 'NO' then True
+      else False
+    end notnull,
+    detail.data_type "type",
+    case
+      stats.index_name
+      when 'PRIMARY' then 1
+      else 0
+    end as primarykey,
+    case
+      stats.non_unique
+      when 1 then 0
+      else 1
+    end as uniquekey
+  FROM
+    information_schema.tables main
+  JOIN (
+    select
+      col.TABLE_SCHEMA,
+      col.TABLE_NAME,
+      col.ordinal_position,
+      col.column_name,
+      col.data_type,
+      case
+        when col.character_maximum_length is not null then col.character_maximum_length
+        else col.numeric_precision
+      end as max_length,
+      col.is_nullable
+    from
+      information_schema.columns col
+    where
+      col.table_schema not in ('sys',
+      'information_schema',
+      'mysql',
+      'performance_schema')
+    order by
+      col.table_schema,
+      col.table_name,
+      col.ordinal_position
+    ) detail
+      on
+      main.TABLE_SCHEMA = detail.TABLE_SCHEMA
+      and
+      main.TABLE_NAME = detail.TABLE_NAME
+  LEFT JOIN information_schema.statistics stats
+      on
+      detail.TABLE_SCHEMA = stats.index_schema
+      and
+      detail.TABLE_NAME = stats.table_name
+      and
+      detail.column_name = stats.column_name
+  WHERE
+    main.table_schema not in (
+      'sys',
+      'performance_schema',
+      'information_schema',
+      'mysql'
+    )
+    and
+    detail.TABLE_NAME not in ('${migrationTable}', '${migrationTable}_lock')
+  ORDER BY
+    detail.TABLE_SCHEMA,
+    detail.TABLE_NAME,
+    detail.column_name;
     `;
 
-  return { dbSurveyQuery, joiBase, toSchemaScalar };
+  const versionQuery = `select version() as db_version;`;
+  return { dbSurveyQuery, versionQuery, joiBase, toSchemaScalar };
 };

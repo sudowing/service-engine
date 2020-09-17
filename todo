@@ -2,35 +2,5 @@ update logger with file and trace
 make every http call get logged to debug
 
 CRUD OPTIONS in service-config
-relationships in service-config (for when fk is not a constraint)
-unique vs primary key (if table has no PK -- fallback to unique key if exists and provide READ, UPDATE & DELETE)
-
-  define relationships via config if fk not set
-    fk defines itself (used for GraphQL)
-
-add support for mysql (count object will look different)
-add support for sqlite
-add support for oracle
-
-config based flag for custom types (which will need to all be strings)
-if yes,
-    strings
-if no...
-    throw error || graceful shutdown with verbose messages
 
 standardize connection for db config
-
-connect to mysql and sqlite
-
-hard delete vs soft delete.
-Currently only soft delete is enabled
-
-create and update do not return for sqlite3
-
-
-foreign key by inspection (for relationships in graphql)
-dataloader
-
-postgis
-
-FILTER BY CALCULATED FIELD `n`. must replace the `n` with the calulation reference in the where before execution

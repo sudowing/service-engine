@@ -321,6 +321,7 @@ export class Resource implements ts.IClassResource {
 
   transformRecords(records: any[]) {
     let output = records;
+    const stDataAsWkt = this.db.client.config.client === "pg";
     if (records.length) {
       const geoFields = Object.keys(records[0]).filter(
         (field) => this.report.search[field].geoqueryType
@@ -333,7 +334,7 @@ export class Resource implements ts.IClassResource {
         return record;
       };
 
-      if (records.length) {
+      if (records.length && stDataAsWkt) {
         output = records.map(transform);
       }
     }
