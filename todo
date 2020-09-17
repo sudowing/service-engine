@@ -4,15 +4,3 @@ make every http call get logged to debug
 CRUD OPTIONS in service-config
 
 standardize connection for db config
-
-hard delete vs soft delete.
-Currently only soft delete is enabled
-
-postgres mssql oracle -- all support RETURNING.
-  create and update do not return for sqlite3 (or maybe msql)
-  prob need to cull from mysql -- need to QA
-
-THROW ERROR warning if any field name has a space or not supported GraphQL char
-
-add db version to healthcheck route
-
