@@ -262,3 +262,25 @@ openapi docs derived from survey
 -----
 
 also note that postgre WKT will be converted to geojson automatically while mysql will just stay as it's json representation
+
+
+
+
+
+
+
+
+logger log.msg
+  service_call
+      general call
+
+  CRUD CALLS TO CLASS
+  context_errors
+  validation_error
+  resource_response
+  resource_call
+
+  in router (and needs to be in graphql)
+  db_call_failed
+
+  startup_failed

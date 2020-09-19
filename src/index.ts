@@ -8,6 +8,7 @@ import * as compress from "koa-compress";
 import * as HTTP_STATUS from "http-status";
 
 import { Resource } from "./class";
+import { STARTUP_FAILED } from "./const";
 import { author } from "./credit";
 import { aggregationFnBuilder } from "./database";
 import { gqlModule } from "./graphql";
@@ -87,11 +88,15 @@ export const ignite = async ({
     flagNonSupportedSchemaChars
   );
   if (!!problemResources.length) {
-    logger.error(
-      { problemResources },
-      `unsupported character (likely whitespace) in on of these fields [${fields.join(
-        ","
-      )}]`
+    logger.fatal(
+      {
+        summary: "unsupported character breaking GraphqL Schema",
+        detail:
+          "DB resource name or field contains character unsupported in GraphQL SDL (schema definition language). Supported characters are limited to `[0-9a-zA-Z_]` in all three `fieldsOfConcern`. Review each field within the `problemResources` records. Solutions would include updating the DDL to a name that is supported of omitting the resource from this service via a startup config",
+        problemResources,
+        fieldsOfConcern: fields,
+      },
+      STARTUP_FAILED
     );
     process.exit(1);
   }
@@ -156,14 +161,16 @@ export const ignite = async ({
     ({ topResourceName, subResourceName, calculated_fields, group_by }) => {
       // confirm they exist else
       if (!dbResources[topResourceName] || !dbResources[subResourceName]) {
-        logger.fatal({
-          message: "server start failed: server improperly configured",
-          detail:
-            "one of the resources provided for a complexResource does not exist. Make sure both are reflected in the DB as tables, views or materialized views. They must exist at boot so this system can auto generate the appropriate @hapi/joi validators -- which drive all of the REST & GraphQL interfaces (and auto documentation)",
-          complex_query: { topResourceName, subResourceName },
-        });
-        process.exitCode = 1;
-        process.kill(process.pid, "SIGINT");
+        logger.fatal(
+          {
+            summary: "bad configuration",
+            detail:
+              "one of the resources provided for a complexResource does not exist. Make sure both are reflected in the DB as tables, views or materialized views. They must exist at boot so this system can auto generate the appropriate @hapi/joi validators -- which drive all of the REST & GraphQL interfaces (and auto documentation)",
+            complex_query: { topResourceName, subResourceName },
+          },
+          STARTUP_FAILED
+        );
+        process.exit(1);
       }
 
       const name = `${topResourceName}:${subResourceName}`;
@@ -234,7 +241,7 @@ export const ignite = async ({
         },
       })
     )
-    .use(prepRequestForService)
+    .use(prepRequestForService(logger))
     .use(compress())
     .use(appRouter.routes())
     .use(appRouter.allowedMethods())

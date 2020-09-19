@@ -232,7 +232,7 @@ export const serviceRouters = async ({
               },
             },
           ]; // put in array so `output` defined correcly with `record` ternary
-          logger.error(records[0], "db call resulted in error");
+          logger.error(records[0], cnst.DB_CALL_FAILED);
           ctx.response.status = HTTP_STATUS.INTERNAL_SERVER_ERROR;
           dbCallSuccessful = false;
         }
