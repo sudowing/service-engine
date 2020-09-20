@@ -216,6 +216,7 @@ export const gqlSchema = async ({
   dbResourceRawRows,
   Resources,
   toSchemaScalar,
+  metadata,
 }) => {
   // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
   Resources.forEach(([name, Resource]: [string, IClassResource]) => {
@@ -248,9 +249,30 @@ export const gqlSchema = async ({
             ${mutation.join(ln)}
         }
 
+        type serviceAppMetadata {
+          appShortName: String
+          title: String
+          description: String
+          termsOfService: String
+          name: String
+          email: String
+          url: String
+          servers: [String]
+          appName: String
+          routerPrefix: String
+        }
+
+        type serviceAppDataBaseInfo {
+          dialect: String
+          version: String
+        }
+
+
         type serviceAppHealthz {
             serviceVersion: String
             timestamp: Float
+            metadata: serviceAppMetadata
+            db_info: serviceAppDataBaseInfo
         }
 
         input in_range_string {
@@ -403,6 +425,12 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
     try {
       const sql = serviceResponse.result.sql.toString();
       const _records = await serviceResponse.result.sql;
+
+      console.log('')
+      console.log('_records')
+      console.log(_records)
+      console.log('--------')
+
       const data = resource.transformRecords(_records);
 
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
@@ -488,6 +516,7 @@ export const gqlModule = async ({
   Resources,
   toSchemaScalar,
   hardDelete,
+  metadata,
 }) => {
   // resolvers are built. now just need to add gqlschema for complexResources
   const { typeDefsString, typeDefs } = await gqlSchema({
@@ -496,6 +525,7 @@ export const gqlModule = async ({
     dbResourceRawRows,
     Resources,
     toSchemaScalar,
+    metadata,
   });
 
   const serviceResolvers = Resources
@@ -546,9 +576,12 @@ export const gqlModule = async ({
     JSONB: GraphQLJSON,
     Query: {
       service_healthz(obj, args, context, info) {
+        const { db_info, ...rest } = metadata;
         return {
           serviceVersion: SERVICE_VERSION,
           timestamp: Date.now(),
+          metadata: rest,
+          db_info,
         };
       },
     },

@@ -98,6 +98,7 @@ export const serviceRouters = async ({
     Resources,
     toSchemaScalar,
     hardDelete,
+    metadata
   });
 
   appRouter.get("/schema", async (ctx) => {
@@ -105,10 +106,12 @@ export const serviceRouters = async ({
   });
 
   appRouter.get("/healthz", (ctx) => {
+    const { db_info, ...rest } = metadata;
     ctx.response.body = {
       serviceVersion: cnst.SERVICE_VERSION,
       timestamp: Date.now(),
-      metadata,
+      metadata: rest,
+      db_info,
     };
   });
 

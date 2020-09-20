@@ -200,6 +200,7 @@ export const ignite = async ({
     Resources,
     toSchemaScalar,
     hardDelete: ENABLE_HARD_DELETE,
+    metadata
   });
 
   const { schema, context } = AppModule;
