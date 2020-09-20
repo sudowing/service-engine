@@ -229,7 +229,7 @@ export const ignite = async ({
     Resources,
     toSchemaScalar,
     hardDelete: ENABLE_HARD_DELETE,
-    supportsReturn
+    supportsReturn,
   });
 
   const App = new Koa()

@@ -11,7 +11,7 @@ import {
   HEADER_REQUEST_ID,
   SERVICE_VERSION,
   COMPLEX_RESOLVER_SEPERATOR,
-  NON_RETURNING_SUCCESS_RESPONSE
+  NON_RETURNING_SUCCESS_RESPONSE,
 } from "./const";
 import { genCountQuery } from "./database";
 import {
@@ -28,7 +28,12 @@ import {
   extractSelectedFields,
 } from "./utils";
 
-export const gqlTypes = ({ dbResources, toSchemaScalar, Resources, supportsReturn }) => {
+export const gqlTypes = ({
+  dbResources,
+  toSchemaScalar,
+  Resources,
+  supportsReturn,
+}) => {
   const resources = Object.fromEntries(Resources);
   const schema = {
     query: [],
@@ -144,7 +149,9 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources, supportsRetur
     schema.query.push(subResourceName ? complexQuery : simpleQuery);
 
     // TODO: can also skip defining the response since it wont be used
-    const createResponse = !supportsReturn ? `NonReturningSuccessResponse` : `resCreate${ResourceName}`
+    const createResponse = !supportsReturn
+      ? `NonReturningSuccessResponse`
+      : `resCreate${ResourceName}`;
 
     schema.mutation.push(`
         Create${ResourceName}(
@@ -195,8 +202,10 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources, supportsRetur
           ): resRead${ResourceName}
       `);
 
-    // TODO: can also skip defining the response since it wont be used
-    const updateResponse = !supportsReturn ? `NonReturningSuccessResponse` : `resUpdate${ResourceName}`
+      // TODO: can also skip defining the response since it wont be used
+      const updateResponse = !supportsReturn
+        ? `NonReturningSuccessResponse`
+        : `resUpdate${ResourceName}`;
 
       schema.mutation.push(`
           Update${ResourceName}(
@@ -376,7 +385,7 @@ const apiType = "GRAPHQL";
 export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   resource,
   hardDelete: boolean,
-  supportsReturn: boolean,
+  supportsReturn: boolean
 ) => (operation: string) => async (obj, args, ctx, info) => {
   const reqId = ctx.reqId || "reqId no issued";
   const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
@@ -412,11 +421,14 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
       )
     );
 
+  // tslint:disable-next-line: prefer-const
+  let { props, fields } = extractSelectedFields(info);
+  const callDatabase = props.includes("data");
 
-
-  context.fields = !supportsReturn && ["create", "update"].includes(operation)
-      ? []
-      : extractSelectedFields(info);
+  if (!supportsReturn && ["create", "update"].includes(operation)) {
+    fields = [];
+  }
+  context.fields = fields;
 
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
@@ -455,12 +467,13 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   if (serviceResponse.result) {
     try {
       const sql = serviceResponse.result.sql.toString();
-      const _records = await serviceResponse.result.sql;
-
-
-      const data = !supportsReturn && ["create", "update"].includes(operation)
-        ? operation === 'update' ? [NON_RETURNING_SUCCESS_RESPONSE] : NON_RETURNING_SUCCESS_RESPONSE
-        : resource.transformRecords(_records);
+      const _records = callDatabase ? await serviceResponse.result.sql : [];
+      const data =
+        !supportsReturn && ["create", "update"].includes(operation)
+          ? operation === "update"
+            ? [NON_RETURNING_SUCCESS_RESPONSE]
+            : NON_RETURNING_SUCCESS_RESPONSE
+          : resource.transformRecords(_records);
 
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
 
@@ -491,18 +504,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
         debug,
       };
 
-
-
-
-
-
-
-
-
-
-
-
-      if (operation === "search" && options.count) {
+      if (callDatabase && operation === "search" && options.count) {
         // later could apply to update & delete
 
         const { seperator, notWhere, statementContext } = query.context;

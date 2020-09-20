@@ -3,8 +3,4 @@ blacklist/whitelist
 
 standardize connection for db config
 
-204s for graphql too -- figure that out for CREATE and UPDATE
 update open api for 204s
-
-graphql always executes transaction -- isn't dependend on requesting the data back,
-can be

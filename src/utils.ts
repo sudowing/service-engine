@@ -657,10 +657,13 @@ export const wktToGeoJSON = (wktString) =>
   wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON();
 
 export const extractSelectedFields = (information: any) => {
-  let output = [];
+  let props = []; // top level fields from GraphQL Type
+  let fields = []; // fields within `data` GraphQL Type
 
-  const _filter = (item) =>
-    item.kind && item.name && item.name.value === "data";
+  const _filter = (name?: string) => (item) =>
+    !name
+      ? item.kind && item.name
+      : item.kind && item.name && item.name.value === name;
 
   const requestedFields = (item) => item.name.value;
   const _reduce = (accum, item) =>
@@ -672,14 +675,19 @@ export const extractSelectedFields = (information: any) => {
 
   information.fieldNodes.forEach((fieldNode) => {
     if (fieldNode.selectionSet && fieldNode.selectionSet.selections) {
-      const fields = fieldNode.selectionSet.selections
-        .filter(_filter)
+      const _props = fieldNode.selectionSet.selections
+        .filter(_filter())
+        .map(requestedFields);
+
+      const _fields = fieldNode.selectionSet.selections
+        .filter(_filter("data"))
         .reduce(_reduce, []);
-      output = [...output, ...fields];
+      fields = [...fields, ..._fields];
+      props = [...props, ..._props];
     }
   });
 
-  return output;
+  return { props, fields };
 };
 
 export const initPostProcessing = (knexConfig) =>
