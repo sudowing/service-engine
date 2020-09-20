@@ -100,6 +100,7 @@ export interface IParamsQueryCore {
   resource: string;
   context: ISearchQueryContext;
   schemaResource: ISchemaResource;
+  supportsReturn: boolean;
 }
 
 export interface IParamsToQueryBase extends IParamsQueryCore {
@@ -251,6 +252,7 @@ export interface IClassResourceConstructor {
   subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
   geoFields?: IObjectGeoFields;
+  supportsReturn: boolean;
 }
 
 export type TAsyncResourceResponse = Promise<
@@ -273,7 +275,7 @@ export interface IClassResource {
   subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
   geoFields?: IObjectGeoFields;
-
+  supportsReturn: boolean;
   queryBase(): IResourceQueryBase;
   contextParser(input: IParamsProcessBase): IResourceContextParserResponse;
 

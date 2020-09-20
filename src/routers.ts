@@ -8,11 +8,7 @@ import * as cnst from "./const";
 import { genCountQuery } from "./database";
 import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
-import {
-  callComplexResource,
-  genResourcesMap,
-  supportsReturnOnCreateAndUpdate,
-} from "./utils";
+import { callComplexResource, genResourcesMap } from "./utils";
 
 const uniqueResource = (tail: string, url: string) =>
   parseURL(url, true).pathname.endsWith(tail);
@@ -47,6 +43,7 @@ export const serviceRouters = async ({
   Resources,
   toSchemaScalar,
   hardDelete,
+  supportsReturn,
 }) => {
   const appRouter = new Router();
   const serviceRouter = new Router({
@@ -98,7 +95,8 @@ export const serviceRouters = async ({
     Resources,
     toSchemaScalar,
     hardDelete,
-    metadata
+    metadata,
+    supportsReturn,
   });
 
   appRouter.get("/schema", async (ctx) => {
@@ -306,7 +304,7 @@ export const serviceRouters = async ({
     // not all dialects return data. for those that dont -- send 204 & NOBODY
 
     if (
-      !supportsReturnOnCreateAndUpdate(db.client.config.client) &&
+      !supportsReturn &&
       [cnst.CREATE.toLowerCase(), cnst.UPDATE.toLowerCase()].includes(operation)
     ) {
       ctx.status = HTTP_STATUS.NO_CONTENT;

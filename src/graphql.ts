@@ -11,6 +11,7 @@ import {
   HEADER_REQUEST_ID,
   SERVICE_VERSION,
   COMPLEX_RESOLVER_SEPERATOR,
+  NON_RETURNING_SUCCESS_RESPONSE
 } from "./const";
 import { genCountQuery } from "./database";
 import {
@@ -27,7 +28,7 @@ import {
   extractSelectedFields,
 } from "./utils";
 
-export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
+export const gqlTypes = ({ dbResources, toSchemaScalar, Resources, supportsReturn }) => {
   const resources = Object.fromEntries(Resources);
   const schema = {
     query: [],
@@ -141,10 +142,14 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
     `;
 
     schema.query.push(subResourceName ? complexQuery : simpleQuery);
+
+    // TODO: can also skip defining the response since it wont be used
+    const createResponse = !supportsReturn ? `NonReturningSuccessResponse` : `resCreate${ResourceName}`
+
     schema.mutation.push(`
         Create${ResourceName}(
             payload: [input${ResourceName}!]!
-        ): resCreate${ResourceName}
+        ): ${createResponse}
     `);
 
     schema[`type resCreate${ResourceName}`] = `
@@ -189,11 +194,15 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
               payload: keys${ResourceName}!
           ): resRead${ResourceName}
       `);
+
+    // TODO: can also skip defining the response since it wont be used
+    const updateResponse = !supportsReturn ? `NonReturningSuccessResponse` : `resUpdate${ResourceName}`
+
       schema.mutation.push(`
           Update${ResourceName}(
               keys: keys${ResourceName}!,
               payload: in${ResourceName}!
-          ): resUpdate${ResourceName}
+          ): ${updateResponse}
           Delete${ResourceName}(
               payload: keys${ResourceName}!
           ): resDelete${ResourceName}
@@ -217,6 +226,7 @@ export const gqlSchema = async ({
   Resources,
   toSchemaScalar,
   metadata,
+  supportsReturn,
 }) => {
   // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
   Resources.forEach(([name, Resource]: [string, IClassResource]) => {
@@ -230,6 +240,7 @@ export const gqlSchema = async ({
     dbResources,
     toSchemaScalar,
     Resources,
+    supportsReturn,
   });
 
   const items = Object.entries(other).map(
@@ -267,6 +278,20 @@ export const gqlSchema = async ({
           version: String
         }
 
+        type NonReturningSuccessResponseData {
+          success: Boolean
+        }
+
+        type serviceAppDataBaseInfo {
+          dialect: String
+          version: String
+        }
+
+        type NonReturningSuccessResponse {
+          sql: String
+          debug: JSONB
+          data: NonReturningSuccessResponseData
+        }
 
         type serviceAppHealthz {
             serviceVersion: String
@@ -350,7 +375,8 @@ export const gqlSchema = async ({
 const apiType = "GRAPHQL";
 export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   resource,
-  hardDelete
+  hardDelete: boolean,
+  supportsReturn: boolean,
 ) => (operation: string) => async (obj, args, ctx, info) => {
   const reqId = ctx.reqId || "reqId no issued";
   const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
@@ -386,7 +412,12 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
       )
     );
 
-  context.fields = extractSelectedFields(info);
+
+
+  context.fields = !supportsReturn && ["create", "update"].includes(operation)
+      ? []
+      : extractSelectedFields(info);
+
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
@@ -426,12 +457,10 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
       const sql = serviceResponse.result.sql.toString();
       const _records = await serviceResponse.result.sql;
 
-      console.log('')
-      console.log('_records')
-      console.log(_records)
-      console.log('--------')
 
-      const data = resource.transformRecords(_records);
+      const data = !supportsReturn && ["create", "update"].includes(operation)
+        ? operation === 'update' ? [NON_RETURNING_SUCCESS_RESPONSE] : NON_RETURNING_SUCCESS_RESPONSE
+        : resource.transformRecords(_records);
 
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
 
@@ -461,6 +490,17 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
         sql,
         debug,
       };
+
+
+
+
+
+
+
+
+
+
+
 
       if (operation === "search" && options.count) {
         // later could apply to update & delete
@@ -517,6 +557,7 @@ export const gqlModule = async ({
   toSchemaScalar,
   hardDelete,
   metadata,
+  supportsReturn,
 }) => {
   // resolvers are built. now just need to add gqlschema for complexResources
   const { typeDefsString, typeDefs } = await gqlSchema({
@@ -526,6 +567,7 @@ export const gqlModule = async ({
     Resources,
     toSchemaScalar,
     metadata,
+    supportsReturn,
   });
 
   const serviceResolvers = Resources
@@ -539,7 +581,8 @@ export const gqlModule = async ({
 
         const resolver = makeServiceResolver(resourcesMap)(
           resource,
-          hardDelete
+          hardDelete,
+          resource.supportsReturn
         );
 
         const output = {

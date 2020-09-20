@@ -198,3 +198,5 @@ export const SERVICE_RESOURCE_NOT_FOUND_BODY = {
 };
 
 export const COMPLEX_RESOLVER_SEPERATOR = "____";
+
+export const NON_RETURNING_SUCCESS_RESPONSE = { success: true };

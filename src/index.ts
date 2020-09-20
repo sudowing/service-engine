@@ -20,7 +20,11 @@ import {
 } from "./interfaces";
 import { prepRequestForService } from "./middleware";
 import { serviceRouters } from "./routers";
-import { genDatabaseResourceValidators, castBoolean } from "./utils";
+import {
+  genDatabaseResourceValidators,
+  castBoolean,
+  supportsReturnOnCreateAndUpdate,
+} from "./utils";
 
 export { initPostProcessing } from "./utils";
 
@@ -42,6 +46,10 @@ export const ignite = async ({
 }) => {
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
+
+  const supportsReturn = supportsReturnOnCreateAndUpdate(
+    db.client.config.client
+  );
 
   // this is set here as it is used by the router && the openapi doc generator
   metadata.appName = metadata.shortAppName || "service-engine-app";
@@ -152,6 +160,7 @@ export const ignite = async ({
         middlewareFn:
           middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
         geoFields: geoFields[name] || undefined,
+        supportsReturn,
       }),
     ]
   );
@@ -188,6 +197,7 @@ export const ignite = async ({
           subResourceName,
           aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
           geoFields: geoFields[name] || undefined,
+          supportsReturn,
         }),
       ]);
     }
@@ -200,7 +210,8 @@ export const ignite = async ({
     Resources,
     toSchemaScalar,
     hardDelete: ENABLE_HARD_DELETE,
-    metadata
+    metadata,
+    supportsReturn,
   });
 
   const { schema, context } = AppModule;
@@ -218,6 +229,7 @@ export const ignite = async ({
     Resources,
     toSchemaScalar,
     hardDelete: ENABLE_HARD_DELETE,
+    supportsReturn
   });
 
   const App = new Koa()
