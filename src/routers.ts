@@ -76,6 +76,7 @@ export const serviceRouters = async ({
     dbResources,
     ResourceReports,
     debugMode: false,
+    supportsReturn,
   });
   const apiDocsDebug = await genDatabaseResourceOpenApiDocs({
     db,
@@ -86,6 +87,7 @@ export const serviceRouters = async ({
     dbResources,
     ResourceReports,
     debugMode: true,
+    supportsReturn,
   });
 
   const { typeDefsString } = await gqlModule({

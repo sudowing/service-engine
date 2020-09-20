@@ -52,6 +52,13 @@ export const standardHeaders = {
   },
 };
 
+const NO_BODY_204 = ({
+  "204": {
+    headers: { ...standardHeaders },
+    description: `A NO BODY Response as DB does not support returning on CREATE or UPDATE`,
+  }
+})
+
 const requestHeaders = {
   "x-get-count": {
     in: "header",
@@ -167,6 +174,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   validators,
   dbResources,
   ResourceReports,
+  supportsReturn,
 }) => {
   const ResourceReportsObject = Object.fromEntries(ResourceReports);
 
@@ -319,6 +327,11 @@ export const genDatabaseResourceOpenApiDocs = async ({
         },
       };
 
+      if(!supportsReturn){
+        record[pathResource].post.responses = NO_BODY_204;
+      }
+
+
       schemas[Resource] = {
         type: "object",
         // property type could be more specific
@@ -386,6 +399,12 @@ export const genDatabaseResourceOpenApiDocs = async ({
             },
           },
         };
+
+        if(!supportsReturn){
+          record[pathResourceRecord].put.responses = NO_BODY_204;
+        }
+
+
         record[pathResourceRecord].delete = {
           summary: `delete ${resource}`,
           operationId: `delete${Resource}`,
