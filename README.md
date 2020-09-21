@@ -2,7 +2,38 @@
 
 #### Service-Engine is an ambitious project that aims to provide CRUD + Search functionality to any popular database REST & GraphQL. The service will autodetect DB resources (tables, views, materialized views), provision REST Endpoints & GraphQL Resolvers, provide full validation of each call and auto generate openapi documention that will fully describe all REST resources on the server.
 
-## Quick Start
+
+---
+
+##  <a id="table-of-contents"></a>Table of Contents
+
+* [Quick Start](#quick-start)
+* [Start with Prisma for GraphQL API](#start-with-prisma)
+* [Source data](#db-data-source)
+* [Schema](#db-schema)
+  * [Source Data Tables](#db-schema-tables-source)
+  * [Analytic Data Tables](#db-schema-tables-analytic)
+* [Geocoding Addresses](#geocoding)
+* [Prisma IDs](#prisma-requirements)
+* [GraphQL Queries](#graphql-queries)
+  * [HCPCS Service Performance & Leaders](#graphql-hcpcs-service-performance-and-leaders)
+  * [Provider Identiy & Service Performance](#graphql-provider-id-and-service-performance)
+* [Development](#development)
+  * [Run Service](#dev-run-Service)
+  * [Container Maintenance](#dev-container-maintenance)
+  * [Generate DB Export](#dev-generate-db-export)
+  * [Restore DB from Export](#dev-restore-db-from-export)
+  * [Build & Load DB via ETL Process](#dev-full-etl-process)
+  * [Container Entry Shortcut](#dev-container-entry-shortcut)
+* [Project Origin & Inspiration](#project-origin)
+* [Additional Data Sets](#additional-data-sets)
+* [Versioning](#versioning)
+* [License](#license)
+
+---
+##  <a id="quick-start"></a>Quick Start
+
+Docker is the quickest start. links here and here to docker image and template
 
 ### install lib and dependencies
 ```
@@ -284,3 +315,65 @@ logger log.msg
   db_call_failed
 
   startup_failed
+
+
+-----
+
+youtube videos
+
+quick start
+example app
+
+supported databases
+    postgres
+    postgis
+    sqlite3
+    mysql
+
+
+permissions
+
+metadata
+knex config
+
+openapi3
+
+standards
+    headers
+      reqId
+      sql
+      count
+    query vs context
+        where vs context
+        geoqueries
+    validation
+
+debug mode
+
+search interfces
+
+migrations
+middleware
+complex queries
+  admittedly a little clunky. but it works and provides the interfaces, validation, openapi generation, REST and GraphQL support. The best form of critisim is a `Pull Request`
+
+db differeneces
+    non returning
+    sqlite no schemas
+
+supported characters in schema, tables, fields
+knex migrations enable/disable (choice or service account permissions)
+
+config
+  use_migtrations
+  pagination max
+  db_info
+
+
+GraphQL
+
+Patreon for how design and development videos
+
+Future development
+
+
