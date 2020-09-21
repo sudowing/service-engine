@@ -2,5 +2,3 @@ CRUD OPTIONS in service-config
 blacklist/whitelist
 
 standardize connection for db config
-
-update open api for 204s
