@@ -13,7 +13,7 @@ import { prepRequestForService } from "./middleware";
 import { prepare } from "./setup";
 import { castBoolean, supportsReturnOnCreateAndUpdate } from "./utils";
 
-export { initPostProcessing } from "./utils";
+export { initPostProcessing, permit } from "./utils";
 
 // currently this is server wide setting. future will be per resource
 const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE

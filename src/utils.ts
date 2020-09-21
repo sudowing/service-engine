@@ -705,5 +705,44 @@ export const initPostProcessing = (knexConfig) =>
         ...knexConfig,
       };
 
+
 export const supportsReturnOnCreateAndUpdate = (client) =>
   ["pg", "mssql", "oracledb"].includes(client);
+
+
+const PERMIT_CREATE = 1
+const PERMIT_READ = 2
+const PERMIT_UPDATE = 4
+const PERMIT_DELETE = 8
+
+// tslint:disable: no-bitwise
+export const permit = () => ({
+  _permission: 0,
+  create(){
+    this._permission = this._permission | PERMIT_CREATE;
+    return this;
+  },
+  read(){
+    this._permission = this._permission | PERMIT_READ;
+    return this;
+  },
+  update(){
+    this._permission = this._permission | PERMIT_UPDATE;
+    return this;
+  },
+  delete(){
+    this._permission = this._permission | PERMIT_DELETE;
+    return this;
+  },
+  crud(){
+    return this.create().read().update().delete();
+  },
+  none(){
+    this._permission = 0;
+    return this;
+  },
+  get(){
+    return this._permission;
+  },
+})
+
