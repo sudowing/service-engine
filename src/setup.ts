@@ -16,7 +16,7 @@ export const prepare = async ({
   st,
   metadata,
   logger,
-  middlewarz,
+  middleware,
   supportsReturn,
   complexResources,
   hardDelete,
@@ -119,7 +119,7 @@ export const prepare = async ({
         validator,
         schemaResource: mapSchemaResources[name],
         middlewareFn:
-          middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
+          middleware && middleware[name] ? middleware[name] : undefined,
         geoFields: geoFields[name] || undefined,
         supportsReturn,
       }),
@@ -153,7 +153,7 @@ export const prepare = async ({
           validator: validators[topResourceName],
           schemaResource: mapSchemaResources[topResourceName],
           middlewareFn:
-            middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
+            middleware && middleware[name] ? middleware[name] : undefined,
           subResourceName,
           aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
           geoFields: geoFields[name] || undefined,

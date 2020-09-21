@@ -23,7 +23,7 @@ const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
 export const ignite = async ({
   db,
   metadata,
-  resourceSearchMiddleware: middlewarz,
+  resourceSearchMiddleware,
   complexResources,
 }: {
   db: any;
@@ -52,7 +52,7 @@ export const ignite = async ({
     st,
     metadata,
     logger,
-    middlewarz,
+    middleware: resourceSearchMiddleware,
     supportsReturn,
     complexResources,
     hardDelete: ENABLE_HARD_DELETE,
