@@ -11,6 +11,7 @@ import {
   PIPE,
 } from "./const";
 import { IValidationExpanderReport } from "./interfaces";
+import { permitted } from "./utils";
 
 const genSearchParams = (oa3DataSchema, resource) => ([
   name,
@@ -250,6 +251,15 @@ export const genDatabaseResourceOpenApiDocs = async ({
       );
 
       const Resource = pascalCase(resource);
+      const allow = permitted(permissions)
+      const permit = {
+        create: allow(resource, 'create'),
+        read: allow(resource, 'read'),
+        update: allow(resource, 'update'),
+        delete: allow(resource, 'delete'),
+        any: true,
+      }
+      permit.any = permit.create || permit.read || permit.update || permit.delete
 
       const pathResource = genPath(`${URL_ROOT_SERVICE}/${resource}`);
       const pathResourceRecord = `${pathResource}/record`;
@@ -332,16 +342,27 @@ export const genDatabaseResourceOpenApiDocs = async ({
         record[pathResource].post.responses = NO_BODY_204;
       }
 
-      schemas[Resource] = {
-        type: "object",
-        // property type could be more specific
-        properties: [...record[pathResource].get.parameters]
-          .filter((prop) => !prop.name.startsWith(PIPE) && prop.in !== "header") // remove context keys
-          .reduce(
-            (props, { name, schema }) => ({ ...props, [name]: { ...schema } }),
-            {}
-          ),
-      };
+      // if can operate with record -- go ahead and list it
+      if(permit.any){
+        schemas[Resource] = {
+          type: "object",
+          // property type could be more specific
+          properties: [...record[pathResource].get.parameters]
+            .filter((prop) => !prop.name.startsWith(PIPE) && prop.in !== "header") // remove context keys
+            .reduce(
+              (props, { name, schema }) => ({ ...props, [name]: { ...schema } }),
+              {}
+            ),
+        };
+      }
+
+      if (!permit.read) {
+        delete record[pathResource].get;
+      }
+
+      if (!permit.create) {
+        delete record[pathResource].post;
+      }
 
       if (keys.length) {
         const keyComponentParams = keyParams(oa3DataSchema)(keys, resource);
@@ -424,6 +445,18 @@ export const genDatabaseResourceOpenApiDocs = async ({
             },
           },
         };
+
+        if (!permit.read) {
+          delete record[pathResourceRecord].get;
+        }
+        if (!permit.update) {
+          delete record[pathResourceRecord].put;
+        }
+        if (!permit.delete) {
+          delete record[pathResourceRecord].delete;
+        }
+      
+
       }
 
       // no create on views & materialized views
@@ -533,7 +566,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
     "/healthz": {
       get: {
         summary: "heathcheck resource",
-        operationId: "ping",
+        operationId: "healthz",
         tags: ["_service"],
         responses: {
           "200": {
