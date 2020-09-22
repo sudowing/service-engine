@@ -1,6 +1,7 @@
 import { parse as parseURL } from "url";
 
 import * as Router from "@koa/router";
+
 import * as HTTP_STATUS from "http-status";
 
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
@@ -8,7 +9,7 @@ import * as cnst from "./const";
 import { genCountQuery } from "./database";
 import * as ts from "./interfaces";
 import { gqlModule } from "./graphql";
-import { callComplexResource, genResourcesMap } from "./utils";
+import { callComplexResource, genResourcesMap, permitted } from "./utils";
 
 const uniqueResource = (tail: string, url: string) =>
   parseURL(url, true).pathname.endsWith(tail);
@@ -44,6 +45,7 @@ export const serviceRouters = async ({
   toSchemaScalar,
   hardDelete,
   supportsReturn,
+  permissions,
 }) => {
   const appRouter = new Router();
   const serviceRouter = new Router({
@@ -77,6 +79,7 @@ export const serviceRouters = async ({
     ResourceReports,
     debugMode: false,
     supportsReturn,
+    permissions,
   });
   const apiDocsDebug = await genDatabaseResourceOpenApiDocs({
     db,
@@ -88,6 +91,7 @@ export const serviceRouters = async ({
     ResourceReports,
     debugMode: true,
     supportsReturn,
+    permissions,
   });
 
   const { typeDefsString } = await gqlModule({
@@ -99,6 +103,7 @@ export const serviceRouters = async ({
     hardDelete,
     metadata,
     supportsReturn,
+    permissions,
   });
 
   appRouter.get("/schema", async (ctx) => {
@@ -154,10 +159,15 @@ export const serviceRouters = async ({
     const url = ctx.request.url;
     const record = uniqueResource("/record", url);
 
+    const operation = operations.get(j({ method, record }));
+
+    const permit = permitted(permissions)(resource, operation)
+
     // only process for /service & /debug, resource && CRUD operation exists, and 404 trailing slashes
     if (
       (category !== "service" && category !== "debug") ||
       !operations.has(j({ method, record })) ||
+      !permit ||
       !resourcesMap.hasOwnProperty(resource) ||
       uniqueResource("/record/", url) // no trailing slash
     ) {
@@ -166,7 +176,9 @@ export const serviceRouters = async ({
       return;
     }
 
-    const operation = operations.get(j({ method, record }));
+
+
+
 
     const stripKeys = (keys: string[], obj: object) =>
       Object.fromEntries(

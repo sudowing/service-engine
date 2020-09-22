@@ -194,6 +194,7 @@ export const SERVICE_RESOURCE_NOT_FOUND_BODY = {
     `db resource (table, view, matView) must exist`,
     `url structure "/:category/:resource/record" does not have a trailing slasH`,
     `HTTP method maps to a supported db CRUD operation for this resource`,
+    `db resources are enabled via configured permissions: check systemPermissions & resourcePermissions`,
   ],
 };
 
@@ -206,3 +207,10 @@ export const UNSUPPORTED_CHARACTER_IN_DB =
 
 export const BAD_CONFIG_COMPLEX_RESOURCE =
   "one of the resources provided for a complexResource does not exist. Make sure both are reflected in the DB as tables, views or materialized views. They must exist at boot so this system can auto generate the appropriate @hapi/joi validators -- which drive all of the REST & GraphQL interfaces (and auto documentation)";
+
+export const PERMIT_CREATE = 1;
+export const PERMIT_READ = 2;
+export const PERMIT_UPDATE = 4;
+export const PERMIT_DELETE = 8;
+// tslint:disable-next-line: no-bitwise
+export const PERMIT_CRUD = PERMIT_CREATE | PERMIT_READ | PERMIT_UPDATE | PERMIT_DELETE;

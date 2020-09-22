@@ -710,28 +710,23 @@ export const supportsReturnOnCreateAndUpdate = (client) =>
   ["pg", "mssql", "oracledb"].includes(client);
 
 
-const PERMIT_CREATE = 1
-const PERMIT_READ = 2
-const PERMIT_UPDATE = 4
-const PERMIT_DELETE = 8
-
 // tslint:disable: no-bitwise
-export const permit = () => ({
+export const permit = (): ts.IServicePermission => ({
   _permission: 0,
   create(){
-    this._permission = this._permission | PERMIT_CREATE;
+    this._permission = this._permission | cnst.PERMIT_CREATE;
     return this;
   },
   read(){
-    this._permission = this._permission | PERMIT_READ;
+    this._permission = this._permission | cnst.PERMIT_READ;
     return this;
   },
   update(){
-    this._permission = this._permission | PERMIT_UPDATE;
+    this._permission = this._permission | cnst.PERMIT_UPDATE;
     return this;
   },
   delete(){
-    this._permission = this._permission | PERMIT_DELETE;
+    this._permission = this._permission | cnst.PERMIT_DELETE;
     return this;
   },
   crud(){
@@ -746,3 +741,33 @@ export const permit = () => ({
   },
 })
 
+const prepCase = str => str.split('.').join('_')
+// NOTE: be sure to change key case to match `db_resources`
+export const extractPermissions = (permissions: ts.IObjectStringByGeneric<ts.IServicePermission>): ts.IObjectStringByNumber =>
+  Object.fromEntries(
+    Object.entries(permissions).map(([key, value]) => [prepCase(key), value.get()])
+  )
+
+
+export const operationFlag = (operation: string) => {
+  switch(operation){
+    case 'create':
+      return cnst.PERMIT_CREATE;
+    case 'read':
+    case 'search':
+        return cnst.PERMIT_READ;
+    case 'update':
+      return cnst.PERMIT_UPDATE;
+    case 'delete':
+      return cnst.PERMIT_DELETE;
+  }
+  return 0;
+}
+
+// | because we are applying fine grain to higher policy
+export const permitted = (permissions: ts.IConfigServicePermission) =>
+  (resource: string, operation: string) =>
+    !!(
+      operationFlag(operation)
+      & (permissions.systemPermissions | permissions.resourcePermissions[resource])
+    );

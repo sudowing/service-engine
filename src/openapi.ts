@@ -175,6 +175,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   dbResources,
   ResourceReports,
   supportsReturn,
+  permissions,
 }) => {
   const ResourceReportsObject = Object.fromEntries(ResourceReports);
 

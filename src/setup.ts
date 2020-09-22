@@ -20,6 +20,7 @@ export const prepare = async ({
   supportsReturn,
   complexResources,
   hardDelete,
+  permissions
 }) => {
   // these are specific to the db engine version
   const {
@@ -172,6 +173,7 @@ export const prepare = async ({
     hardDelete,
     metadata,
     supportsReturn,
+    permissions,
   });
 
   const { appRouter, serviceRouter } = await serviceRouters({
@@ -186,6 +188,7 @@ export const prepare = async ({
     toSchemaScalar,
     hardDelete,
     supportsReturn,
+    permissions,
   });
 
   return { appRouter, serviceRouter, AppModule };

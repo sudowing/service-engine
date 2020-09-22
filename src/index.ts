@@ -7,11 +7,18 @@ import * as bodyParser from "koa-bodyparser";
 import * as compress from "koa-compress";
 import * as HTTP_STATUS from "http-status";
 
+import { PERMIT_CRUD } from "./const";
 import { author } from "./credit";
-import { IObjectTransformerMap, IComplexResourceConfig } from "./interfaces";
+import {
+  IObjectTransformerMap,
+  IComplexResourceConfig,
+  IObjectStringByGeneric,
+  IServicePermission,
+  IConfigServicePermission,
+} from "./interfaces";
 import { prepRequestForService } from "./middleware";
 import { prepare } from "./setup";
-import { castBoolean, supportsReturnOnCreateAndUpdate } from "./utils";
+import { castBoolean, supportsReturnOnCreateAndUpdate, extractPermissions } from "./utils";
 
 export { initPostProcessing, permit } from "./utils";
 
@@ -25,18 +32,29 @@ export const ignite = async ({
   metadata,
   resourceSearchMiddleware,
   complexResources,
+  systemPermissions,
+  resourcePermissions,
 }: {
   db: any;
   metadata: any;
   resourceSearchMiddleware?: IObjectTransformerMap;
   complexResources?: IComplexResourceConfig[];
+  systemPermissions?: IServicePermission,
+  resourcePermissions?: IObjectStringByGeneric<IServicePermission>,
 }) => {
+
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
 
   const supportsReturn = supportsReturnOnCreateAndUpdate(
     db.client.config.client
   );
+
+
+const permissions: IConfigServicePermission = {
+  systemPermissions: systemPermissions ? extractPermissions({systemPermissions}).systemPermissions : PERMIT_CRUD,
+  resourcePermissions: extractPermissions(resourcePermissions || {}),
+}
 
   // this is set here as it is used by the router && the openapi doc generator
   metadata.appName = metadata.shortAppName || "service-engine-app";
@@ -56,6 +74,7 @@ export const ignite = async ({
     supportsReturn,
     complexResources,
     hardDelete: ENABLE_HARD_DELETE,
+    permissions,
   });
 
   const { schema, context } = AppModule;

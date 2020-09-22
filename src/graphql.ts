@@ -560,6 +560,7 @@ export const gqlModule = async ({
   hardDelete,
   metadata,
   supportsReturn,
+  permissions,
 }) => {
   // resolvers are built. now just need to add gqlschema for complexResources
   const { typeDefsString, typeDefs } = await gqlSchema({
