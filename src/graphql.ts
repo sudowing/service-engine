@@ -3,12 +3,9 @@ import gql from "graphql-tag";
 import GraphQLJSON from "graphql-type-json";
 import { UserInputError } from "apollo-server-koa";
 
-import { v4 as uuidv4 } from "uuid";
-
 import * as fs from "fs";
 
 import {
-  HEADER_REQUEST_ID,
   SERVICE_VERSION,
   COMPLEX_RESOLVER_SEPERATOR,
   NON_RETURNING_SUCCESS_RESPONSE,
@@ -700,8 +697,7 @@ export const gqlModule = async ({
     typeDefs,
     resolvers: [appResolvers, serviceResolvers],
     context({ ctx }) {
-      const reqId = uuidv4();
-      ctx.response.set(HEADER_REQUEST_ID, reqId);
+      const reqId = ctx.response.header["x-request-id"] || "uuidv4()";
       return {
         reqId,
       };
