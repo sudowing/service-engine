@@ -251,15 +251,16 @@ export const genDatabaseResourceOpenApiDocs = async ({
       );
 
       const Resource = pascalCase(resource);
-      const allow = permitted(permissions)
+      const allow = permitted(permissions);
       const permit = {
-        create: allow(resource, 'create'),
-        read: allow(resource, 'read'),
-        update: allow(resource, 'update'),
-        delete: allow(resource, 'delete'),
+        create: allow(resource, "create"),
+        read: allow(resource, "read"),
+        update: allow(resource, "update"),
+        delete: allow(resource, "delete"),
         any: true,
-      }
-      permit.any = permit.create || permit.read || permit.update || permit.delete
+      };
+      permit.any =
+        permit.create || permit.read || permit.update || permit.delete;
 
       const pathResource = genPath(`${URL_ROOT_SERVICE}/${resource}`);
       const pathResourceRecord = `${pathResource}/record`;
@@ -343,14 +344,19 @@ export const genDatabaseResourceOpenApiDocs = async ({
       }
 
       // if can operate with record -- go ahead and list it
-      if(permit.any){
+      if (permit.any) {
         schemas[Resource] = {
           type: "object",
           // property type could be more specific
           properties: [...record[pathResource].get.parameters]
-            .filter((prop) => !prop.name.startsWith(PIPE) && prop.in !== "header") // remove context keys
+            .filter(
+              (prop) => !prop.name.startsWith(PIPE) && prop.in !== "header"
+            ) // remove context keys
             .reduce(
-              (props, { name, schema }) => ({ ...props, [name]: { ...schema } }),
+              (props, { name, schema }) => ({
+                ...props,
+                [name]: { ...schema },
+              }),
               {}
             ),
         };
@@ -455,8 +461,6 @@ export const genDatabaseResourceOpenApiDocs = async ({
         if (!permit.delete) {
           delete record[pathResourceRecord].delete;
         }
-      
-
       }
 
       // no create on views & materialized views

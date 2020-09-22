@@ -20,7 +20,7 @@ export const prepare = async ({
   supportsReturn,
   complexResources,
   hardDelete,
-  permissions
+  permissions,
 }) => {
   // these are specific to the db engine version
   const {

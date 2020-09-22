@@ -705,69 +705,73 @@ export const initPostProcessing = (knexConfig) =>
         ...knexConfig,
       };
 
-
 export const supportsReturnOnCreateAndUpdate = (client) =>
   ["pg", "mssql", "oracledb"].includes(client);
-
 
 // tslint:disable: no-bitwise
 export const permit = (): ts.IServicePermission => ({
   _permission: 0,
-  create(){
+  create() {
     this._permission = this._permission | cnst.PERMIT_CREATE;
     return this;
   },
-  read(){
+  read() {
     this._permission = this._permission | cnst.PERMIT_READ;
     return this;
   },
-  update(){
+  update() {
     this._permission = this._permission | cnst.PERMIT_UPDATE;
     return this;
   },
-  delete(){
+  delete() {
     this._permission = this._permission | cnst.PERMIT_DELETE;
     return this;
   },
-  crud(){
+  crud() {
     return this.create().read().update().delete();
   },
-  none(){
+  none() {
     this._permission = 0;
     return this;
   },
-  get(){
+  get() {
     return this._permission;
   },
-})
+});
 
-const prepCase = str => str.split('.').join('_')
+const prepCase = (str) => str.split(".").join("_");
 // NOTE: be sure to change key case to match `db_resources`
-export const extractPermissions = (permissions: ts.IObjectStringByGeneric<ts.IServicePermission>): ts.IObjectStringByNumber =>
+export const extractPermissions = (
+  permissions: ts.IObjectStringByGeneric<ts.IServicePermission>
+): ts.IObjectStringByNumber =>
   Object.fromEntries(
-    Object.entries(permissions).map(([key, value]) => [prepCase(key), value.get()])
-  )
-
+    Object.entries(permissions).map(([key, value]) => [
+      prepCase(key),
+      value.get(),
+    ])
+  );
 
 export const operationFlag = (operation: string) => {
-  switch(operation){
-    case 'create':
+  switch (operation) {
+    case "create":
       return cnst.PERMIT_CREATE;
-    case 'read':
-    case 'search':
-        return cnst.PERMIT_READ;
-    case 'update':
+    case "read":
+    case "search":
+      return cnst.PERMIT_READ;
+    case "update":
       return cnst.PERMIT_UPDATE;
-    case 'delete':
+    case "delete":
       return cnst.PERMIT_DELETE;
   }
   return 0;
-}
+};
 
 // | because we are applying fine grain to higher policy
-export const permitted = (permissions: ts.IConfigServicePermission) =>
-  (resource: string, operation: string) =>
-    !!(
-      operationFlag(operation)
-      & (permissions.systemPermissions | permissions.resourcePermissions[resource])
-    );
+export const permitted = (permissions: ts.IConfigServicePermission) => (
+  resource: string,
+  operation: string
+) =>
+  !!(
+    operationFlag(operation) &
+    (permissions.systemPermissions | permissions.resourcePermissions[resource])
+  );

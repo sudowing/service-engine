@@ -212,5 +212,6 @@ export const PERMIT_CREATE = 1;
 export const PERMIT_READ = 2;
 export const PERMIT_UPDATE = 4;
 export const PERMIT_DELETE = 8;
-// tslint:disable-next-line: no-bitwise
-export const PERMIT_CRUD = PERMIT_CREATE | PERMIT_READ | PERMIT_UPDATE | PERMIT_DELETE;
+// tslint:disable: no-bitwise
+export const PERMIT_CRUD =
+  PERMIT_CREATE | PERMIT_READ | PERMIT_UPDATE | PERMIT_DELETE;

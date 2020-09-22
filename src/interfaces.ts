@@ -401,7 +401,6 @@ export interface IServicePermission {
   crud(): IServicePermission;
   none(): IServicePermission;
   get(): number;
-
 }
 
 export interface IConfigServicePermission {

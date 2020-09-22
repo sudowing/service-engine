@@ -161,7 +161,7 @@ export const serviceRouters = async ({
 
     const operation = operations.get(j({ method, record }));
 
-    const permit = permitted(permissions)(resource, operation)
+    const permit = permitted(permissions)(resource, operation);
 
     // only process for /service & /debug, resource && CRUD operation exists, and 404 trailing slashes
     if (
@@ -175,10 +175,6 @@ export const serviceRouters = async ({
       ctx.response.body = cnst.SERVICE_RESOURCE_NOT_FOUND_BODY;
       return;
     }
-
-
-
-
 
     const stripKeys = (keys: string[], obj: object) =>
       Object.fromEntries(

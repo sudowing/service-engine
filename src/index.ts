@@ -18,7 +18,11 @@ import {
 } from "./interfaces";
 import { prepRequestForService } from "./middleware";
 import { prepare } from "./setup";
-import { castBoolean, supportsReturnOnCreateAndUpdate, extractPermissions } from "./utils";
+import {
+  castBoolean,
+  supportsReturnOnCreateAndUpdate,
+  extractPermissions,
+} from "./utils";
 
 export { initPostProcessing, permit } from "./utils";
 
@@ -39,10 +43,9 @@ export const ignite = async ({
   metadata: any;
   resourceSearchMiddleware?: IObjectTransformerMap;
   complexResources?: IComplexResourceConfig[];
-  systemPermissions?: IServicePermission,
-  resourcePermissions?: IObjectStringByGeneric<IServicePermission>,
+  systemPermissions?: IServicePermission;
+  resourcePermissions?: IObjectStringByGeneric<IServicePermission>;
 }) => {
-
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
 
@@ -50,11 +53,12 @@ export const ignite = async ({
     db.client.config.client
   );
 
-
-const permissions: IConfigServicePermission = {
-  systemPermissions: systemPermissions ? extractPermissions({systemPermissions}).systemPermissions : PERMIT_CRUD,
-  resourcePermissions: extractPermissions(resourcePermissions || {}),
-}
+  const permissions: IConfigServicePermission = {
+    systemPermissions: systemPermissions
+      ? extractPermissions({ systemPermissions }).systemPermissions
+      : PERMIT_CRUD,
+    resourcePermissions: extractPermissions(resourcePermissions || {}),
+  };
 
   // this is set here as it is used by the router && the openapi doc generator
   metadata.appName = metadata.shortAppName || "service-engine-app";
