@@ -1,5 +1,0 @@
-CRUD OPTIONS in service-config
-
-standardize connection for db config
-
-fix graphql uuid. get from ctx state header
