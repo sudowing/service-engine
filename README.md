@@ -377,3 +377,29 @@ Patreon for how design and development videos
 Future development
 
 
+
+```js
+import { ignite, initPostProcessing, permit } from "service-engine";
+
+// set system & resource. bitwise `OR` used to set resource level permissions
+const systemPermissions = permit().none();
+const resourcePermissions = {
+  'schema.r': permit().read(),
+  'schema.table.u': permit().update(),
+  'schema.view.d': permit().delete(),
+  'public.gis_osm_places_free_1': permit().create().read(),
+  'schema.matView.cru': permit().create().read().update(),
+  'schema.matView.c-r-u-d': permit().create().read().update().delete(),
+  'schema.matView.crud': permit().crud(),
+  'schema.matView.none': permit().none(),
+  // sqlite3 has no schemas
+  'table': permit().create().read().update().delete(),
+  'view': permit().create().read().update().delete(),
+}
+
+const { App, logger } = await ignite({
+    db, metadata, resourceSearchMiddleware, complexResources,
+    systemPermissions,
+    resourcePermissions,
+});
+```

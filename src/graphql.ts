@@ -26,6 +26,7 @@ import {
   genResourcesMap,
   transformNameforResolver,
   extractSelectedFields,
+  permitted,
 } from "./utils";
 
 export const gqlTypes = ({
@@ -33,6 +34,7 @@ export const gqlTypes = ({
   toSchemaScalar,
   Resources,
   supportsReturn,
+  permissions,
 }) => {
   const resources = Object.fromEntries(Resources);
   const schema = {
@@ -41,6 +43,18 @@ export const gqlTypes = ({
   };
 
   for (const name of Object.keys(dbResources)) {
+
+    const allow = permitted(permissions)
+    const permit = {
+      create: allow(name, 'create'),
+      read: allow(name, 'read'),
+      update: allow(name, 'update'),
+      delete: allow(name, 'delete'),
+      any: true,
+    }
+    permit.any = permit.create || permit.read || permit.update || permit.delete
+
+
     const report = (resources[name] as IClassResource).report;
     const hasGeoQueryType =
       report.search &&
@@ -49,6 +63,7 @@ export const gqlTypes = ({
       ).length;
 
     const ResourceName = transformNameforResolver(name);
+    
     schema[`type ${ResourceName}`] = [];
     schema[`input keys${ResourceName}`] = [];
     schema[`input in${ResourceName}`] = [];
@@ -146,76 +161,102 @@ export const gqlTypes = ({
         ): resSearch${ResourceName}
     `;
 
-    schema.query.push(subResourceName ? complexQuery : simpleQuery);
+    if(permit.read){
+      schema.query.push(subResourceName ? complexQuery : simpleQuery);
+    }
 
-    // TODO: can also skip defining the response since it wont be used
-    const createResponse = !supportsReturn
-      ? `NonReturningSuccessResponse`
-      : `resCreate${ResourceName}`;
+    if(permit.create){
+      // TODO: can also skip defining the response since it wont be used
+      const createResponse = !supportsReturn
+        ? `NonReturningSuccessResponse`
+        : `resCreate${ResourceName}`;
 
-    schema.mutation.push(`
-        Create${ResourceName}(
-            payload: [input${ResourceName}!]!
-        ): ${createResponse}
-    `);
+      schema.mutation.push(`
+          Create${ResourceName}(
+              payload: [input${ResourceName}!]!
+          ): ${createResponse}
+      `);
 
-    schema[`type resCreate${ResourceName}`] = `
+      schema[`type resCreate${ResourceName}`] = `
           sql: String
           debug: JSONB
           data: [${ResourceName}]
       `;
+    }
 
-    schema[`type resRead${ResourceName}`] = `
+    if(permit.read){
+      schema[`type resRead${ResourceName}`] = `
           sql: String
           debug: JSONB
           data: ${ResourceName}
       `;
+    }
 
-    schema[`type resUpdate${ResourceName}`] = `
+    if(permit.update){
+      schema[`type resUpdate${ResourceName}`] = `
           sql: String
           debug: JSONB
           data: ${ResourceName}
       `;
+    }
 
-    schema[`type resDelete${ResourceName}`] = `
+    if(permit.delete){
+      schema[`type resDelete${ResourceName}`] = `
           sql: String
           debug: JSONB
           data: Float
       `;
+    }
 
-    schema[`type resSearch${ResourceName}`] = `
+    if(permit.read){
+      schema[`type resSearch${ResourceName}`] = `
           sql: String
           debug: JSONB
           count: Float
           data: [${ResourceName}]
       `;
+    }
 
     const keys = Object.values(dbResources[name]).filter(
       (item: any) => item.primarykey
     );
 
+
+
     // these types if resource is keyed. else delete related defined types
     if (keys.length) {
-      schema.query.push(`
-          Read${ResourceName}(
-              payload: keys${ResourceName}!
-          ): resRead${ResourceName}
-      `);
+      if(permit.read){
+        schema.query.push(`
+            Read${ResourceName}(
+                payload: keys${ResourceName}!
+            ): resRead${ResourceName}
+        `);
+      }
 
-      // TODO: can also skip defining the response since it wont be used
-      const updateResponse = !supportsReturn
-        ? `NonReturningSuccessResponse`
-        : `resUpdate${ResourceName}`;
+      if(permit.update){
+        // TODO: can also skip defining the response since it wont be used
+        const updateResponse = !supportsReturn
+          ? `NonReturningSuccessResponse`
+          : `resUpdate${ResourceName}`;
 
-      schema.mutation.push(`
-          Update${ResourceName}(
-              keys: keys${ResourceName}!,
-              payload: in${ResourceName}!
-          ): ${updateResponse}
-          Delete${ResourceName}(
-              payload: keys${ResourceName}!
-          ): resDelete${ResourceName}
-      `);
+        schema.mutation.push(`
+            Update${ResourceName}(
+                keys: keys${ResourceName}!,
+                payload: in${ResourceName}!
+            ): ${updateResponse}
+        `);
+      }
+
+      if(permit.delete){
+        schema.mutation.push(`
+            Delete${ResourceName}(
+                payload: keys${ResourceName}!
+            ): resDelete${ResourceName}
+        `);
+      }
+
+
+
     } else {
       delete schema[`input keys${ResourceName}`];
       delete schema[`type resRead${ResourceName}`];
@@ -236,6 +277,7 @@ export const gqlSchema = async ({
   toSchemaScalar,
   metadata,
   supportsReturn,
+  permissions,
 }) => {
   // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
   Resources.forEach(([name, Resource]: [string, IClassResource]) => {
@@ -250,6 +292,7 @@ export const gqlSchema = async ({
     toSchemaScalar,
     Resources,
     supportsReturn,
+    permissions,
   });
 
   const items = Object.entries(other).map(
@@ -571,6 +614,7 @@ export const gqlModule = async ({
     toSchemaScalar,
     metadata,
     supportsReturn,
+    permissions,
   });
 
   const serviceResolvers = Resources
@@ -579,6 +623,17 @@ export const gqlModule = async ({
     // ) // temp -- will remove when integrating complex into GraphQL
     .reduce(
       ({ Query, Mutation }, [name, resource]) => {
+
+        const allow = permitted(permissions)
+        const permit = {
+          create: allow(name, 'create'),
+          read: allow(name, 'read'),
+          update: allow(name, 'update'),
+          delete: allow(name, 'delete'),
+          any: true,
+        }
+        permit.any = permit.create || permit.read || permit.update || permit.delete
+
         const ResourceName = transformNameforResolver(name);
         const resourcesMap = genResourcesMap(Resources);
 
@@ -602,6 +657,9 @@ export const gqlModule = async ({
           },
         };
 
+
+
+
         const keys = Object.values(
           dbResources[getFirstIfSeperated(name)]
         ).filter((item: any) => item.primarykey);
@@ -612,7 +670,25 @@ export const gqlModule = async ({
           delete output.Mutation[`Update${ResourceName}`];
           delete output.Mutation[`Delete${ResourceName}`];
         }
+        else{
 
+          if(!permit.read){
+            delete output.Query[`Read${ResourceName}`];
+          }
+          if(!permit.update){
+            delete output.Mutation[`Update${ResourceName}`];
+          }
+          if(!permit.delete){
+            delete output.Mutation[`Delete${ResourceName}`];
+          }
+
+        }
+        if(!permit.create){
+          delete output.Query[`Create${ResourceName}`];
+        }
+        if(!permit.read){
+          delete output.Query[`Search${ResourceName}`];
+        }
         return output;
       },
       { Query: {}, Mutation: {} }
