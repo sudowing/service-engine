@@ -84,6 +84,7 @@ export const genericResourceCall = (
     context,
     // tslint:disable-next-line: no-string-literal
     hardDelete: !!input["hardDelete"],
+    supportsReturn: caller.supportsReturn,
   });
 
   caller.logger.info(
@@ -111,6 +112,7 @@ export class Resource implements ts.IClassResource {
   public subResourceName?: string;
   public aggregationFn?: ts.TKnexSubQuery;
   public geoFields?: ts.IObjectGeoFields;
+  public supportsReturn: boolean;
 
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
@@ -129,6 +131,7 @@ export class Resource implements ts.IClassResource {
     subResourceName,
     aggregationFn,
     geoFields,
+    supportsReturn,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -141,6 +144,7 @@ export class Resource implements ts.IClassResource {
     this.subResourceName = subResourceName;
     this.aggregationFn = aggregationFn;
     this.geoFields = geoFields;
+    this.supportsReturn = supportsReturn;
 
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
@@ -304,6 +308,7 @@ export class Resource implements ts.IClassResource {
       components,
       subqueryOptions,
       geoFields: this.geoFields,
+      supportsReturn: true,
     });
 
     this.logger.info(
@@ -322,7 +327,7 @@ export class Resource implements ts.IClassResource {
   transformRecords(records: any[]) {
     let output = records;
     const stDataAsWkt = this.db.client.config.client === "pg";
-    if (records.length) {
+    if (stDataAsWkt && records.length) {
       const geoFields = Object.keys(records[0]).filter(
         (field) => this.report.search[field].geoqueryType
       );
@@ -334,7 +339,7 @@ export class Resource implements ts.IClassResource {
         return record;
       };
 
-      if (records.length && stDataAsWkt) {
+      if (geoFields.length) {
         output = records.map(transform);
       }
     }

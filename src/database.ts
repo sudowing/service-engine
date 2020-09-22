@@ -2,10 +2,7 @@ import * as Knex from "knex";
 
 import * as cnst from "./const";
 import * as ts from "./interfaces";
-import {
-  metersToDecimalDegrees,
-  supportsReturnOnCreateAndUpdate,
-} from "./utils";
+import { metersToDecimalDegrees } from "./utils";
 
 /* tslint:disable */
 
@@ -110,10 +107,8 @@ export const toCreateQuery = ({
   query,
   context,
   schemaResource,
+  supportsReturn,
 }: ts.IParamsToQueryBase) => {
-  const supportsReturn = supportsReturnOnCreateAndUpdate(
-    db.client.config.client
-  );
   return db
     .insert(query, supportsReturn ? context.fields : undefined)
     .into(sqlSchemaResource(schemaResource)); // fields exists. was set in generic
@@ -140,6 +135,7 @@ export const toUpdateQuery = (keys: string[]) => ({
   context,
   searchQuery,
   schemaResource,
+  supportsReturn,
 }: ts.IParamsToQueryWithSearch) => {
   const { pk, values } = Object.entries(query).reduce(
     (bundle, [key, value]) => {
@@ -150,9 +146,6 @@ export const toUpdateQuery = (keys: string[]) => ({
     { pk: {}, values: {} }
   );
 
-  const supportsReturn = supportsReturnOnCreateAndUpdate(
-    db.client.config.client
-  );
   return db(sqlSchemaResource(schemaResource))
     .where(pk) // pull only keys from query || ensure it's being done upstream
     .update(values, supportsReturn ? context.fields : undefined); // remove keys & cannot update fields from query && fields exists. was set in generic

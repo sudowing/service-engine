@@ -657,10 +657,13 @@ export const wktToGeoJSON = (wktString) =>
   wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON();
 
 export const extractSelectedFields = (information: any) => {
-  let output = [];
+  let props = []; // top level fields from GraphQL Type
+  let fields = []; // fields within `data` GraphQL Type
 
-  const _filter = (item) =>
-    item.kind && item.name && item.name.value === "data";
+  const _filter = (name?: string) => (item) =>
+    !name
+      ? item.kind && item.name
+      : item.kind && item.name && item.name.value === name;
 
   const requestedFields = (item) => item.name.value;
   const _reduce = (accum, item) =>
@@ -672,14 +675,19 @@ export const extractSelectedFields = (information: any) => {
 
   information.fieldNodes.forEach((fieldNode) => {
     if (fieldNode.selectionSet && fieldNode.selectionSet.selections) {
-      const fields = fieldNode.selectionSet.selections
-        .filter(_filter)
+      const _props = fieldNode.selectionSet.selections
+        .filter(_filter())
+        .map(requestedFields);
+
+      const _fields = fieldNode.selectionSet.selections
+        .filter(_filter("data"))
         .reduce(_reduce, []);
-      output = [...output, ...fields];
+      fields = [...fields, ..._fields];
+      props = [...props, ..._props];
     }
   });
 
-  return output;
+  return { props, fields };
 };
 
 export const initPostProcessing = (knexConfig) =>
@@ -699,3 +707,71 @@ export const initPostProcessing = (knexConfig) =>
 
 export const supportsReturnOnCreateAndUpdate = (client) =>
   ["pg", "mssql", "oracledb"].includes(client);
+
+// tslint:disable: no-bitwise
+export const permit = (): ts.IServicePermission => ({
+  _permission: 0,
+  create() {
+    this._permission = this._permission | cnst.PERMIT_CREATE;
+    return this;
+  },
+  read() {
+    this._permission = this._permission | cnst.PERMIT_READ;
+    return this;
+  },
+  update() {
+    this._permission = this._permission | cnst.PERMIT_UPDATE;
+    return this;
+  },
+  delete() {
+    this._permission = this._permission | cnst.PERMIT_DELETE;
+    return this;
+  },
+  crud() {
+    return this.create().read().update().delete();
+  },
+  none() {
+    this._permission = 0;
+    return this;
+  },
+  get() {
+    return this._permission;
+  },
+});
+
+const prepCase = (str) => str.split(".").join("_");
+// NOTE: be sure to change key case to match `db_resources`
+export const extractPermissions = (
+  permissions: ts.IObjectStringByGeneric<ts.IServicePermission>
+): ts.IObjectStringByNumber =>
+  Object.fromEntries(
+    Object.entries(permissions).map(([key, value]) => [
+      prepCase(key),
+      value.get(),
+    ])
+  );
+
+export const operationFlag = (operation: string) => {
+  switch (operation) {
+    case "create":
+      return cnst.PERMIT_CREATE;
+    case "read":
+    case "search":
+      return cnst.PERMIT_READ;
+    case "update":
+      return cnst.PERMIT_UPDATE;
+    case "delete":
+      return cnst.PERMIT_DELETE;
+  }
+  return 0;
+};
+
+// | because we are applying fine grain to higher policy
+export const permitted = (permissions: ts.IConfigServicePermission) => (
+  resource: string,
+  operation: string
+) =>
+  !!(
+    operationFlag(operation) &
+    (permissions.systemPermissions | permissions.resourcePermissions[resource])
+  );

@@ -100,6 +100,7 @@ export interface IParamsQueryCore {
   resource: string;
   context: ISearchQueryContext;
   schemaResource: ISchemaResource;
+  supportsReturn: boolean;
 }
 
 export interface IParamsToQueryBase extends IParamsQueryCore {
@@ -251,6 +252,7 @@ export interface IClassResourceConstructor {
   subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
   geoFields?: IObjectGeoFields;
+  supportsReturn: boolean;
 }
 
 export type TAsyncResourceResponse = Promise<
@@ -273,7 +275,7 @@ export interface IClassResource {
   subResourceName?: string;
   aggregationFn?: TKnexSubQuery;
   geoFields?: IObjectGeoFields;
-
+  supportsReturn: boolean;
   queryBase(): IResourceQueryBase;
   contextParser(input: IParamsProcessBase): IResourceContextParserResponse;
 
@@ -375,10 +377,33 @@ export interface ISchemaResource {
 export interface IObjectStringByString {
   [index: string]: string;
 }
+export interface IObjectStringByNumber {
+  [index: string]: number;
+}
+
+export interface IObjectStringByGeneric<T> {
+  [index: string]: T;
+}
 
 export interface IObjectGeoFields {
   [index: string]: {
     srid: number;
     type: string;
   };
+}
+
+export interface IServicePermission {
+  _permission: number;
+  create(): IServicePermission;
+  read(): IServicePermission;
+  update(): IServicePermission;
+  delete(): IServicePermission;
+  crud(): IServicePermission;
+  none(): IServicePermission;
+  get(): number;
+}
+
+export interface IConfigServicePermission {
+  systemPermissions: number;
+  resourcePermissions: IObjectStringByNumber;
 }

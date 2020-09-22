@@ -1,6 +1,0 @@
-update logger with file and trace
-make every http call get logged to debug
-
-CRUD OPTIONS in service-config
-
-standardize connection for db config

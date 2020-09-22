@@ -7,21 +7,24 @@ import * as bodyParser from "koa-bodyparser";
 import * as compress from "koa-compress";
 import * as HTTP_STATUS from "http-status";
 
-import { Resource } from "./class";
+import { PERMIT_CRUD } from "./const";
 import { author } from "./credit";
-import { aggregationFnBuilder } from "./database";
-import { gqlModule } from "./graphql";
-import { getDatabaseResources } from "./integration";
 import {
   IObjectTransformerMap,
-  TDatabaseResources,
   IComplexResourceConfig,
+  IObjectStringByGeneric,
+  IServicePermission,
+  IConfigServicePermission,
 } from "./interfaces";
 import { prepRequestForService } from "./middleware";
-import { serviceRouters } from "./routers";
-import { genDatabaseResourceValidators, castBoolean } from "./utils";
+import { prepare } from "./setup";
+import {
+  castBoolean,
+  supportsReturnOnCreateAndUpdate,
+  extractPermissions,
+} from "./utils";
 
-export { initPostProcessing } from "./utils";
+export { initPostProcessing, permit } from "./utils";
 
 // currently this is server wide setting. future will be per resource
 const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
@@ -31,16 +34,31 @@ const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
 export const ignite = async ({
   db,
   metadata,
-  resourceSearchMiddleware: middlewarz,
+  resourceSearchMiddleware,
   complexResources,
+  systemPermissions,
+  resourcePermissions,
 }: {
   db: any;
   metadata: any;
   resourceSearchMiddleware?: IObjectTransformerMap;
   complexResources?: IComplexResourceConfig[];
+  systemPermissions?: IServicePermission;
+  resourcePermissions?: IObjectStringByGeneric<IServicePermission>;
 }) => {
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
+
+  const supportsReturn = supportsReturnOnCreateAndUpdate(
+    db.client.config.client
+  );
+
+  const permissions: IConfigServicePermission = {
+    systemPermissions: systemPermissions
+      ? extractPermissions({ systemPermissions }).systemPermissions
+      : PERMIT_CRUD,
+    resourcePermissions: extractPermissions(resourcePermissions || {}),
+  };
 
   // this is set here as it is used by the router && the openapi doc generator
   metadata.appName = metadata.shortAppName || "service-engine-app";
@@ -51,166 +69,20 @@ export const ignite = async ({
     level: 0,
   });
 
-  // these are specific to the db engine version
-  const {
-    dbSurveyQuery,
-    versionQuery,
-    joiBase,
-    toSchemaScalar,
-    dbGeometryColumns,
-  } = getDatabaseResources({
+  const { appRouter, serviceRouter, AppModule } = await prepare({
     db,
-  });
-
-  const [dbResourceRawRows, dbVersionRawRows] = await Promise.all([
-    db.raw(dbSurveyQuery),
-    db.raw(versionQuery),
-  ]).then((payload: any) =>
-    payload.hasOwnProperty("rows") ? payload.rows : payload
-  );
-  metadata.db_info = {
-    dialect: db.client.config.client,
-    version: dbVersionRawRows[0].db_version,
-  };
-
-  const fields = ["resource_schema", "resource_name", "resource_column_name"];
-
-  const REGEX_LEGAL_SDL = /[0-9a-zA-Z_]+/g;
-  const flagNonSupportedSchemaChars = (record) =>
-    Object.entries(record).filter(
-      ([key, value]) =>
-        fields.includes(key) &&
-        value.toString().match(REGEX_LEGAL_SDL).length > 1
-    ).length > 0;
-
-  const problemResources = dbResourceRawRows.filter(
-    flagNonSupportedSchemaChars
-  );
-  if (!!problemResources.length) {
-    logger.error(
-      { problemResources },
-      `unsupported character (likely whitespace) in on of these fields [${fields.join(
-        ","
-      )}]`
-    );
-    process.exit(1);
-  }
-
-  const { validators, dbResources } = await genDatabaseResourceValidators({
-    db,
-    dbResourceRawRows,
-    joiBase,
-  });
-
-  const mapSchemaResources = dbResourceRawRows.reduce(
-    (resourceMap, { resource_schema, resource_name }) => ({
-      ...resourceMap,
-      [`${resource_schema}_${resource_name}`]: {
-        resource_schema,
-        resource_name,
-      },
-    }),
-    {}
-  );
-
-  let geoFields = {};
-  if (dbGeometryColumns && mapSchemaResources.public_geometry_columns) {
-    const _results = await db.raw(dbGeometryColumns);
-    const geoRows = _results.hasOwnProperty("rows") ? _results.rows : _results;
-
-    const fn = (accum, { type, srid, ...curr }) => {
-      const resourceName = `${curr.resource_schema}_${curr.resource_name}`;
-      if (!accum[resourceName]) {
-        accum[resourceName] = {};
-      }
-      accum[resourceName][curr.resource_column_name] = {
-        type,
-        srid,
-      };
-      return accum;
-    };
-
-    geoFields = geoRows.reduce(fn, {});
-  }
-
-  // this has other uses -- needs to be isolated
-  const Resources = Object.entries(validators).map(
-    ([name, validator]: TDatabaseResources) => [
-      name,
-      new Resource({
-        db,
-        st,
-        logger,
-        name,
-        validator,
-        schemaResource: mapSchemaResources[name],
-        middlewareFn:
-          middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
-        geoFields: geoFields[name] || undefined,
-      }),
-    ]
-  );
-
-  // build the complex resources based on the provided configs
-  (complexResources || []).forEach(
-    ({ topResourceName, subResourceName, calculated_fields, group_by }) => {
-      // confirm they exist else
-      if (!dbResources[topResourceName] || !dbResources[subResourceName]) {
-        logger.fatal({
-          message: "server start failed: server improperly configured",
-          detail:
-            "one of the resources provided for a complexResource does not exist. Make sure both are reflected in the DB as tables, views or materialized views. They must exist at boot so this system can auto generate the appropriate @hapi/joi validators -- which drive all of the REST & GraphQL interfaces (and auto documentation)",
-          complex_query: { topResourceName, subResourceName },
-        });
-        process.exitCode = 1;
-        process.kill(process.pid, "SIGINT");
-      }
-
-      const name = `${topResourceName}:${subResourceName}`;
-      Resources.push([
-        name,
-        new Resource({
-          db,
-          st,
-          logger,
-          name,
-          validator: validators[topResourceName],
-          schemaResource: mapSchemaResources[topResourceName],
-          middlewareFn:
-            middlewarz && middlewarz[name] ? middlewarz[name] : undefined,
-          subResourceName,
-          aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
-          geoFields: geoFields[name] || undefined,
-        }),
-      ]);
-    }
-  );
-
-  const { AppModule } = await gqlModule({
-    validators,
-    dbResources,
-    dbResourceRawRows,
-    Resources,
-    toSchemaScalar,
+    st,
+    metadata,
+    logger,
+    middleware: resourceSearchMiddleware,
+    supportsReturn,
+    complexResources,
     hardDelete: ENABLE_HARD_DELETE,
+    permissions,
   });
 
   const { schema, context } = AppModule;
-
   const apolloServer = new ApolloServer({ schema, context }); // ,debug
-
-  const { appRouter, serviceRouter } = await serviceRouters({
-    db,
-    st,
-    logger,
-    metadata,
-    validators,
-    dbResources,
-    dbResourceRawRows,
-    Resources,
-    toSchemaScalar,
-    hardDelete: ENABLE_HARD_DELETE,
-  });
 
   const App = new Koa()
     .use(cors())
@@ -234,7 +106,7 @@ export const ignite = async ({
         },
       })
     )
-    .use(prepRequestForService)
+    .use(prepRequestForService(logger))
     .use(compress())
     .use(appRouter.routes())
     .use(appRouter.allowedMethods())

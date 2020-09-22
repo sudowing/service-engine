@@ -3,14 +3,12 @@ import gql from "graphql-tag";
 import GraphQLJSON from "graphql-type-json";
 import { UserInputError } from "apollo-server-koa";
 
-import { v4 as uuidv4 } from "uuid";
-
 import * as fs from "fs";
 
 import {
-  HEADER_REQUEST_ID,
   SERVICE_VERSION,
   COMPLEX_RESOLVER_SEPERATOR,
+  NON_RETURNING_SUCCESS_RESPONSE,
 } from "./const";
 import { genCountQuery } from "./database";
 import {
@@ -25,9 +23,16 @@ import {
   genResourcesMap,
   transformNameforResolver,
   extractSelectedFields,
+  permitted,
 } from "./utils";
 
-export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
+export const gqlTypes = ({
+  dbResources,
+  toSchemaScalar,
+  Resources,
+  supportsReturn,
+  permissions,
+}) => {
   const resources = Object.fromEntries(Resources);
   const schema = {
     query: [],
@@ -35,6 +40,16 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
   };
 
   for (const name of Object.keys(dbResources)) {
+    const allow = permitted(permissions);
+    const permit = {
+      create: allow(name, "create"),
+      read: allow(name, "read"),
+      update: allow(name, "update"),
+      delete: allow(name, "delete"),
+      any: true,
+    };
+    permit.any = permit.create || permit.read || permit.update || permit.delete;
+
     const report = (resources[name] as IClassResource).report;
     const hasGeoQueryType =
       report.search &&
@@ -43,6 +58,7 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
       ).length;
 
     const ResourceName = transformNameforResolver(name);
+
     schema[`type ${ResourceName}`] = [];
     schema[`input keys${ResourceName}`] = [];
     schema[`input in${ResourceName}`] = [];
@@ -140,43 +156,61 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
         ): resSearch${ResourceName}
     `;
 
-    schema.query.push(subResourceName ? complexQuery : simpleQuery);
-    schema.mutation.push(`
-        Create${ResourceName}(
-            payload: [input${ResourceName}!]!
-        ): resCreate${ResourceName}
-    `);
+    if (permit.read) {
+      schema.query.push(subResourceName ? complexQuery : simpleQuery);
+    }
 
-    schema[`type resCreate${ResourceName}`] = `
+    if (permit.create) {
+      // TODO: can also skip defining the response since it wont be used
+      const createResponse = !supportsReturn
+        ? `NonReturningSuccessResponse`
+        : `resCreate${ResourceName}`;
+
+      schema.mutation.push(`
+          Create${ResourceName}(
+              payload: [input${ResourceName}!]!
+          ): ${createResponse}
+      `);
+
+      schema[`type resCreate${ResourceName}`] = `
           sql: String
           debug: JSONB
           data: [${ResourceName}]
       `;
+    }
 
-    schema[`type resRead${ResourceName}`] = `
+    if (permit.read) {
+      schema[`type resRead${ResourceName}`] = `
           sql: String
           debug: JSONB
           data: ${ResourceName}
       `;
+    }
 
-    schema[`type resUpdate${ResourceName}`] = `
+    if (permit.update) {
+      schema[`type resUpdate${ResourceName}`] = `
           sql: String
           debug: JSONB
           data: ${ResourceName}
       `;
+    }
 
-    schema[`type resDelete${ResourceName}`] = `
+    if (permit.delete) {
+      schema[`type resDelete${ResourceName}`] = `
           sql: String
           debug: JSONB
           data: Float
       `;
+    }
 
-    schema[`type resSearch${ResourceName}`] = `
+    if (permit.read) {
+      schema[`type resSearch${ResourceName}`] = `
           sql: String
           debug: JSONB
           count: Float
           data: [${ResourceName}]
       `;
+    }
 
     const keys = Object.values(dbResources[name]).filter(
       (item: any) => item.primarykey
@@ -184,20 +218,35 @@ export const gqlTypes = ({ dbResources, toSchemaScalar, Resources }) => {
 
     // these types if resource is keyed. else delete related defined types
     if (keys.length) {
-      schema.query.push(`
-          Read${ResourceName}(
-              payload: keys${ResourceName}!
-          ): resRead${ResourceName}
-      `);
-      schema.mutation.push(`
-          Update${ResourceName}(
-              keys: keys${ResourceName}!,
-              payload: in${ResourceName}!
-          ): resUpdate${ResourceName}
-          Delete${ResourceName}(
-              payload: keys${ResourceName}!
-          ): resDelete${ResourceName}
-      `);
+      if (permit.read) {
+        schema.query.push(`
+            Read${ResourceName}(
+                payload: keys${ResourceName}!
+            ): resRead${ResourceName}
+        `);
+      }
+
+      if (permit.update) {
+        // TODO: can also skip defining the response since it wont be used
+        const updateResponse = !supportsReturn
+          ? `NonReturningSuccessResponse`
+          : `resUpdate${ResourceName}`;
+
+        schema.mutation.push(`
+            Update${ResourceName}(
+                keys: keys${ResourceName}!,
+                payload: in${ResourceName}!
+            ): ${updateResponse}
+        `);
+      }
+
+      if (permit.delete) {
+        schema.mutation.push(`
+            Delete${ResourceName}(
+                payload: keys${ResourceName}!
+            ): resDelete${ResourceName}
+        `);
+      }
     } else {
       delete schema[`input keys${ResourceName}`];
       delete schema[`type resRead${ResourceName}`];
@@ -216,6 +265,9 @@ export const gqlSchema = async ({
   dbResourceRawRows,
   Resources,
   toSchemaScalar,
+  metadata,
+  supportsReturn,
+  permissions,
 }) => {
   // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
   Resources.forEach(([name, Resource]: [string, IClassResource]) => {
@@ -229,6 +281,8 @@ export const gqlSchema = async ({
     dbResources,
     toSchemaScalar,
     Resources,
+    supportsReturn,
+    permissions,
   });
 
   const items = Object.entries(other).map(
@@ -248,9 +302,44 @@ export const gqlSchema = async ({
             ${mutation.join(ln)}
         }
 
+        type serviceAppMetadata {
+          appShortName: String
+          title: String
+          description: String
+          termsOfService: String
+          name: String
+          email: String
+          url: String
+          servers: [String]
+          appName: String
+          routerPrefix: String
+        }
+
+        type serviceAppDataBaseInfo {
+          dialect: String
+          version: String
+        }
+
+        type NonReturningSuccessResponseData {
+          success: Boolean
+        }
+
+        type serviceAppDataBaseInfo {
+          dialect: String
+          version: String
+        }
+
+        type NonReturningSuccessResponse {
+          sql: String
+          debug: JSONB
+          data: NonReturningSuccessResponseData
+        }
+
         type serviceAppHealthz {
             serviceVersion: String
             timestamp: Float
+            metadata: serviceAppMetadata
+            db_info: serviceAppDataBaseInfo
         }
 
         input in_range_string {
@@ -328,7 +417,8 @@ export const gqlSchema = async ({
 const apiType = "GRAPHQL";
 export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   resource,
-  hardDelete
+  hardDelete: boolean,
+  supportsReturn: boolean
 ) => (operation: string) => async (obj, args, ctx, info) => {
   const reqId = ctx.reqId || "reqId no issued";
   const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
@@ -364,7 +454,15 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
       )
     );
 
-  context.fields = extractSelectedFields(info);
+  // tslint:disable-next-line: prefer-const
+  let { props, fields } = extractSelectedFields(info);
+  const callDatabase = props.includes("data");
+
+  if (!supportsReturn && ["create", "update"].includes(operation)) {
+    fields = [];
+  }
+  context.fields = fields;
+
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
@@ -402,8 +500,13 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   if (serviceResponse.result) {
     try {
       const sql = serviceResponse.result.sql.toString();
-      const _records = await serviceResponse.result.sql;
-      const data = resource.transformRecords(_records);
+      const _records = callDatabase ? await serviceResponse.result.sql : [];
+      const data =
+        !supportsReturn && ["create", "update"].includes(operation)
+          ? operation === "update"
+            ? [NON_RETURNING_SUCCESS_RESPONSE]
+            : NON_RETURNING_SUCCESS_RESPONSE
+          : resource.transformRecords(_records);
 
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
 
@@ -434,7 +537,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
         debug,
       };
 
-      if (operation === "search" && options.count) {
+      if (callDatabase && operation === "search" && options.count) {
         // later could apply to update & delete
 
         const { seperator, notWhere, statementContext } = query.context;
@@ -488,6 +591,9 @@ export const gqlModule = async ({
   Resources,
   toSchemaScalar,
   hardDelete,
+  metadata,
+  supportsReturn,
+  permissions,
 }) => {
   // resolvers are built. now just need to add gqlschema for complexResources
   const { typeDefsString, typeDefs } = await gqlSchema({
@@ -496,6 +602,9 @@ export const gqlModule = async ({
     dbResourceRawRows,
     Resources,
     toSchemaScalar,
+    metadata,
+    supportsReturn,
+    permissions,
   });
 
   const serviceResolvers = Resources
@@ -504,12 +613,24 @@ export const gqlModule = async ({
     // ) // temp -- will remove when integrating complex into GraphQL
     .reduce(
       ({ Query, Mutation }, [name, resource]) => {
+        const allow = permitted(permissions);
+        const permit = {
+          create: allow(name, "create"),
+          read: allow(name, "read"),
+          update: allow(name, "update"),
+          delete: allow(name, "delete"),
+          any: true,
+        };
+        permit.any =
+          permit.create || permit.read || permit.update || permit.delete;
+
         const ResourceName = transformNameforResolver(name);
         const resourcesMap = genResourcesMap(Resources);
 
         const resolver = makeServiceResolver(resourcesMap)(
           resource,
-          hardDelete
+          hardDelete,
+          resource.supportsReturn
         );
 
         const output = {
@@ -535,8 +656,23 @@ export const gqlModule = async ({
           delete output.Query[`Read${ResourceName}`];
           delete output.Mutation[`Update${ResourceName}`];
           delete output.Mutation[`Delete${ResourceName}`];
+        } else {
+          if (!permit.read) {
+            delete output.Query[`Read${ResourceName}`];
+          }
+          if (!permit.update) {
+            delete output.Mutation[`Update${ResourceName}`];
+          }
+          if (!permit.delete) {
+            delete output.Mutation[`Delete${ResourceName}`];
+          }
         }
-
+        if (!permit.create) {
+          delete output.Query[`Create${ResourceName}`];
+        }
+        if (!permit.read) {
+          delete output.Query[`Search${ResourceName}`];
+        }
         return output;
       },
       { Query: {}, Mutation: {} }
@@ -546,9 +682,12 @@ export const gqlModule = async ({
     JSONB: GraphQLJSON,
     Query: {
       service_healthz(obj, args, context, info) {
+        const { db_info, ...rest } = metadata;
         return {
           serviceVersion: SERVICE_VERSION,
           timestamp: Date.now(),
+          metadata: rest,
+          db_info,
         };
       },
     },
@@ -558,8 +697,7 @@ export const gqlModule = async ({
     typeDefs,
     resolvers: [appResolvers, serviceResolvers],
     context({ ctx }) {
-      const reqId = uuidv4();
-      ctx.response.set(HEADER_REQUEST_ID, reqId);
+      const reqId = ctx.response.header["x-request-id"] || "uuidv4()";
       return {
         reqId,
       };

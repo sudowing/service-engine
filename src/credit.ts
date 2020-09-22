@@ -7,5 +7,6 @@ export const author = {
   hat_tip: {
     // support my effort on this project. Invested 100s of hours and looking to expand it.
     venmo: "https://venmo.com/sudowing",
+    patreon: "https://www.patreon.com/sudowing",
   },
 };
