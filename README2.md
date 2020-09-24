@@ -100,10 +100,29 @@ const resourceSearchMiddleware = {
   public_accounts: item => ({...item, email: 'clark.kent@dailyplanet.com'}),
 }
 
-// ...
-
 const { App, apolloServer, logger } = await ignite({ db, metadata, resourceSearchMiddleware });
 ```
+
+
+need to stringify graphql input so standardized for middleware manupulations
+
+## REST Call
+
+```sh
+resourceSearchMiddleware.public_gis_osm_places_free_1
+{ 'geom.geo_bbox': '-82.140999,28.133155,-81.612282,28.369954' }
+```
+
+## GraphQL Call
+```sh
+resourceSearchMiddleware.public_gis_osm_places_free_1
+{
+  'fclass.like': 'cit%',
+  'gid.range': [ 350, 1359 ],
+  'geom.geo_radius': [ -82.437973, 27.969388, 1111000 ]
+}
+```
+
 
 ### Complex Resources (subqueries)
 
