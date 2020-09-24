@@ -1,5 +1,7 @@
 # Service-Engine
 
+[![Alt text](https://i3.ytimg.com/vi/ZeFpweKpIHo/maxresdefault.jpg)](https://www.youtube.com/watch?v=ZeFpweKpIHo)
+
 Service-Engine is an opinionated framework 
 for publishing **REST** Endpoints & **GraphQL** Resolvers for database resources (tables, views and materialized views).
 The goal is to provide a generalized method for quickly standing up a data access layer, providing **CRUD** functionality to commonly used SQL databases -- with a few bells and whistles thrown in.
@@ -183,12 +185,14 @@ Context = additional information to be used in - query
 
 
 
-## Foundational dependencies
- - knex
- - @sideways/joi
- - apollo
+# Foundational dependencies
 
+- knex: blah blah blah
+- @sideways/joi: blah blah blah
+- apollo: blah blah blah
+- shin docs & mershin
 
+--- 
 header sql reqId count
 returning Create and Update for supporting dbs
 
