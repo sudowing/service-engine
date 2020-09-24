@@ -360,3 +360,13 @@ Either update the field names or use the permissions to prohibit publication of 
 
 migrations will require write permissions.
 
+# Design & Development
+
+## Patreon
+
+This documention provides an overview of how to use this service, detailing all features and configuration options.
+
+Anyone intested is free to inspect the source.
+
+For engineers looking to learn how I've designed and implemented specific patterns, I've published a set of videos where I go in depth to each component and discuss the various decision made and show implementation patterns.
+
