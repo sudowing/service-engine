@@ -237,11 +237,6 @@ const { App, logger } = await ignite({
 
 
 
-https://medium.com/the-andela-way/scaling-out-with-node-clusters-1dca4a39a2a
-
-
-npm bundleDependencies
-
 
 ```
 2
@@ -403,3 +398,17 @@ const { App, logger } = await ignite({
     resourcePermissions,
 });
 ```
+
+
+need to stringify graphql input so standardized for middleware manupulations
+resourceSearchMiddleware.public_gis_osm_places_free_1
+{ 'geom.geo_bbox': '-82.140999,28.133155,-81.612282,28.369954' }
+---------
+
+{
+  'fclass.like': 'cit%',
+  'gid.range': [ 350, 1359 ],
+  'geom.geo_radius': [ -82.437973, 27.969388, 1111000 ]
+}
+
+public_gis_osm_places_free_1
