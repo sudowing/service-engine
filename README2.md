@@ -1,12 +1,13 @@
 # Service-Engine
 
-[![Alt text](https://i3.ytimg.com/vi/ZeFpweKpIHo/maxresdefault.jpg)](https://www.youtube.com/watch?v=ZeFpweKpIHo)
-
 Service-Engine is an opinionated framework 
 for publishing **REST** Endpoints & **GraphQL** Resolvers for database resources (tables, views and materialized views).
 The goal is to provide a generalized method for quickly standing up a data access layer, providing **CRUD** functionality to commonly used SQL databases -- with a few bells and whistles thrown in.
 
+[![Alt text](https://i3.ytimg.com/vi/ZeFpweKpIHo/maxresdefault.jpg)](https://www.youtube.com/watch?v=ZeFpweKpIHo)
+
 On start,
+- run migrations (if configured to do so)
 - autodetect db resources (via inspection)
 - builds validators for CREATE, READ, UPDATE, DELETE & SEARCH methods
 - publishes REST endpoints & GraphQL resolvers 
@@ -242,3 +243,14 @@ removing user data is bad. I'd prefer do with via an active flag. Even to suppor
 - clonable project that implements the public docker image, containing only the resources unique to an implementation (metadata, migration files, middleware, complex resources, permissions and env vars)
 - demo project, complete with insomnia export that shows multiple CRUD calls via REST & GraphQL against all currenly supported DBs (postgres, mysql and sqlite3)
 - local db quide, which shows you how to quickly setup and load demo postgres, postgis and mysql databases -- used for the demo project and your exploration of this framework
+
+
+## unsupported characters
+
+The schema name, resource name or field name. GraphQL SDL supports a limited set of ascii chars. It's possible your db uses unsupported characters and this will need to be resolved before you can get this service to run.
+Either update the field names or use the permissions to prohibit publication of resources.
+
+## DB write permissions
+
+migrations will require write permissions.
+
