@@ -87,7 +87,94 @@ This way -- you can choose to request the count for the first page, which does r
 
 Every resource can be called in a normal mode, which submits valid queries to the DB and debug mode -- which stops at the DB's door. If you are interested in seeing how a given REST/GraphQL query was parsed, validation responses and the SQL query built (before it's executed) -- you can do so via debug mode in REST & GraphQL.
 
+# Optional Configurations
 
+### Middleware
+
+Middleware can be defined that is applied to any search resources. This middleware takes as `input` an object comprised of qs args and returns a new object (that will still pass the validation). This can be useful for deriving additional search criteria from submitted queries. Think adding a partition key to a query by taking the first `n` chars from a handle -- or by appending a max bbox for a query using a point.
+
+example:
+```js
+// object keys are resource endpoints `${schema}_${table/view/materialized-view}`
+const resourceSearchMiddleware = {
+  public_accounts: item => ({...item, email: 'clark.kent@dailyplanet.com'}),
+}
+
+// ...
+
+const { App, apolloServer, logger } = await ignite({ db, metadata, resourceSearchMiddleware });
+```
+
+### Complex Resources (subqueries)
+
+blah blah blah
+
+example:
+```js
+const complexResources = [
+  {
+    topResourceName: 'public_i001_city_state_entity_provider_n',
+    subResourceName: 'cms_providers',
+    group_by: ['address_city','address_state','entity_type','provider_type'],
+    calculated_fields: {
+      n: 'count(npi)'
+    },
+  },
+  {
+    topResourceName: 'cms_providers',
+    subResourceName: 'cms_providers',
+    calculated_fields: {
+      address_city: 'LOWER(address_city)'
+    },
+  }
+]
+
+const { App, logger } = await ignite({
+  db,
+  metadata,
+  resourceSearchMiddleware,
+  complexResources
+});
+
+
+```
+
+
+
+
+### Permissions
+
+permissions for db resources are managed via permissions objects.
+
+```js
+import { ignite, initPostProcessing, permit } from "service-engine";
+
+// set system & resource. bitwise `OR` used to set resource level permissions
+const systemPermissions = permit().none();
+const resourcePermissions = {
+  'schema.r': permit().read(),
+  'schema.table.u': permit().update(),
+  'schema.view.d': permit().delete(),
+  'public.gis_osm_places_free_1': permit().create().read(),
+  'schema.matView.cru': permit().create().read().update(),
+  'schema.matView.c-r-u-d': permit().create().read().update().delete(),
+  'schema.matView.crud': permit().crud(),
+  'schema.matView.none': permit().none(),
+  // sqlite3 has no schemas
+  'table': permit().create().read().update().delete(),
+  'view': permit().create().read().update().delete(),
+}
+
+const { App, logger } = await ignite({
+    db, metadata, resourceSearchMiddleware, complexResources,
+    systemPermissions,
+    resourcePermissions,
+});
+```
+
+
+
+### default page limit
 
 # SQL -- from afar
 
