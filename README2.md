@@ -6,7 +6,7 @@ The goal is to provide a generalized method for quickly standing up a data acces
 
 On start,
 - autodetect db resources (via inspection)
-- builds validators for all db resources
+- builds validators for CREATE, READ, UPDATE, DELETE & SEARCH methods
 - publishes REST endpoints & GraphQL resolvers 
 - autogenerate OpenAPI3 documentation
 
@@ -15,11 +15,13 @@ On start,
 
 ### REST **_and_** GraphQL.
 
-I've worked in multiple shops where some subset of engineers had an interest in utilizing GraphQL -- but others were hesitent as REST was the office standard and learning any new tech takes time. This project is to support both so that the REST needs of today are satisfied, while also enabling those interested to explore GraphQL adoption.
+I've worked in multiple shops where some subset of engineers had an interest in utilizing GraphQL -- but others were hesitent as REST was the office standard and learning any new tech takes time. A primary goal of this project is to support both so that the REST needs of today are satisfied, while enabling GraphQL evaluation/adoption.
 
 ### Validation at the Source
 
 JOI validators are created for each resource -- or more acurately each CRUD method for each resource.
+
+These validators prevent invalid db queries from reaching the database and also offloading validation requirements from clients.
 
 ### Database Migrations
 
@@ -28,21 +30,74 @@ Migrations are an awesome way for managing changes to db state. Since this proje
 
 ### Most CRUD is Generic
 
+Do you really _want_ to build individual REST endpoints? Why reinvent the wheel if this provides what you need?
 
+### Prebuilt Docker Container
 
+use the prebuilt docker app that implements the framework. don't even need to implement it in node yourself.
 
+Docker container & clonable template for migrations, configs and specifics
+
+### facilitate future migration of backing services
+Abstraction at DB, enabled easier migration of db in future as limits callers to a single app, enabled automagic handling of parititons via middleware (which the service's callers will not be aware of)
+
+If you haven't been a part of a db to db migration - you haven't lived. These are complicated projects requiring a fair amount of planning and coordination before finally flipping the switch.
 
 --- 
 ## what about joins
 Joins are supported in views.
 
 ## how about subqueries
-Supported -- al beit a little clunky.
+Supported -- al beit a little clunky. I'll buy a beer for the person who comes up with something more elegant.
+
+see: complex queries
+## Explain automagic partition handling!
+
+There exists a middleware method that allows you to intercept & manipulate inbound service queries **before** they get submitted for processing (validation & db query). Think hard coding some search param, appending a search param based on the query or other related things.
+
+see: middleware
+
+## horitonatlly scalable data stores
+
+horitonatlly scalable data stores
+sibling project provides hub-and-spoke access to multiple implementations, providing single service to port-forward from k8s for easier dev-experience (while deployed apps can call the individual services directly)
+
+# Interface Components
+
+## Query Metadata
+
+### Request Id
+
+Each request get's a Request ID (uuid) assign, which get's attached to the response header and also injected into any log statements during the fulfillment of the request. This reqId should make searching for events related to a single call in your logs trivial.
+
+### SQL
+
+Each call (REST & GraphQL) ends up building a SQL query that in most cases get's executed. The actual SQL query is always available via a response header on REST calls (and available another way via GraphQL -- more to follow).
+
+## Search Counts
+
+Executing a paginated search is a standard operation, and in order to save an additional service call to request the count for a search query (in addition to the actual search providing results) -- the unpaginated count is available via the response header.
+
+This way -- you can choose to request the count for the first page, which does result in 2 DB calls -- but then omit that flag for subsequent pages. GraphQL handles this a bit differently as there is a specific resolver for counts.
+
+## Debug Mode
+
+Every resource can be called in a normal mode, which submits valid queries to the DB and debug mode -- which stops at the DB's door. If you are interested in seeing how a given REST/GraphQL query was parsed, validation responses and the SQL query built (before it's executed) -- you can do so via debug mode in REST & GraphQL.
 
 
 
+# SQL -- from afar
 
+Both REST calls and GraphQL calls end up building SQL queries. Some components of the 
+service request are related to 
 
+return fields, pagination, ordering, and a few other things -- these are defined a `context`
+
+the comparison, logical and spacial type operators that are all supported are defined as the request `query`
+
+a single REST call will have a `query` + `context` regardless of what CRUD method is being triggered.
+
+The same concepts are used in the GraphQL calls -- although the format is slightly different as the inputs can be submitted as their json type instead of strings via query string.
 
 
 
@@ -62,12 +117,8 @@ Any supported by Knex -- 3 currently implemented (more to come)
    - soft delete single/multiple/batch by search
    - hard delete single/multiple/batch by search
    - read single/search
- - remove db drivers from apps. use standard http request methods to CRUD records to your dbs via REST + GraphQL
-  - Abstraction at DB, enabled easier migration of db in future as limits callers to a single app, enabled automagic handling of parititons via middleware (which the service's callers will not be aware of)
-- uuid per service call (reqId injected into each log and attached to each response header)
+
 - verbose error messages in `response.body`
-- horitonatlly scalable organization store
-  - sibling project provides hub-and-spoke access to multiple implementations, providing single service to port-forward from k8s for easier dev-experience (while deployed apps can call the individual services directly)
 
 
 SQL via REST & GraphQL
@@ -137,3 +188,38 @@ Context = additional information to be used in - query
  - @sideways/joi
  - apollo
 
+
+header sql reqId count
+returning Create and Update for supporting dbs
+
+
+### existing dbs:
+- service account that can execute inspection queries
+- spaces in fields
+- supported dbs
+- migrations need write access
+### greenfield projects:
+postgres. go nuts.
+
+
+## code coverage
+
+Needs some work -- I know.
+
+project is configured to produce NYC/Istanbul coverage reports.
+
+## js docs
+
+When time permitted -- I added js docs throughout. I'm pretty new to using them, so it's likely I missed something you may consider obvious.
+
+As they say in NYC -- if you see something, patch something
+
+
+## 
+
+
+Related projects:
+- source for public dockerfile that implements this node lib
+- clonable project that implements the public docker image, containing only the resources unique to an implementation (metadata, migration files, middleware, complex resources, permissions and env vars)
+- demo project, complete with insomnia export that shows multiple CRUD calls via REST & GraphQL against all currenly supported DBs (postgres, mysql and sqlite3)
+- local db quide, which shows you how to quickly setup and load demo postgres, postgis and mysql databases -- used for the demo project and your exploration of this framework
