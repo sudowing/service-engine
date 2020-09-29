@@ -552,11 +552,7 @@ While this service implements [knex.js](http://knexjs.org/), which supports a gr
 
 
 
-
---- 
-# Premium Content
-
-## Design & Development @ Patreon
+# Design & Development Walkthroughs
 
 This documention provides an overview of how to use this service, detailing all features and configuration options. Anyone intested in exploring how this all works is free to inspect the source.
 
