@@ -62,6 +62,11 @@ horitonatlly scalable data stores
 sibling project provides hub-and-spoke access to multiple implementations, providing single service to port-forward from k8s for easier dev-experience (while deployed apps can call the individual services directly)
 
 
+## geoqueries serving GeoJSON
+
+Self host GIS systems
+
+
 
 
 
@@ -312,16 +317,7 @@ const { App, apolloServer, logger } = await ignite({
 });
 ```
 
-
-
-
-
-
-
-
-
-
-### Middleware Functionality
+### Examples of Middleware Functionality
 ```sh
 # REST call to /public_accounts or
 # GRAPHQL query SearchPublicAccounts
@@ -357,8 +353,11 @@ const { App, apolloServer, logger } = await ignite({
 
 ## Complex Resources (subqueries)
 
-blah blah blah
-Supported -- al beit a little clunky. I'll buy a beer for the person who comes up with something more elegant.
+Subqueries & Aggregate functions in SQL are fully supported in this framework. The configuration of these features are a little clunky, but once setup they support the same common interfaces as all other resources (full validation, middleware support, REST query standards, OpenAPI generation, GraphqL support, etc).
+
+
+
+. I'll buy a beer for the person who comes up with something more elegant.
 
 example:
 ```js
@@ -366,15 +365,15 @@ const complexResources = [
   {
     topResourceName: 'public_i001_city_state_entity_provider_n',
     subResourceName: 'cms_providers',
-    group_by: ['address_city','address_state','entity_type','provider_type'],
-    calculated_fields: {
+    groupBy: ['address_city','address_state','entity_type','provider_type'],
+    calculatedFields: {
       n: 'count(npi)'
     },
   },
   {
     topResourceName: 'cms_providers',
     subResourceName: 'cms_providers',
-    calculated_fields: {
+    calculatedFields: {
       address_city: 'LOWER(address_city)'
     },
   }
@@ -415,8 +414,6 @@ const { App, logger } = await ignite({
 # service_call
 # debug mode (no db call)
 
-### resource search middleware
-### complexResources (subqueries & aggregation)
 
 
 
@@ -427,16 +424,11 @@ const { App, logger } = await ignite({
 - apollo: blah blah blah
 - shin docs & mershin
 
---- 
-header sql reqId count
-returning Create and Update for supporting dbs
 
 
 ### existing dbs:
 - service account that can execute inspection queries
 - supported dbs
-### greenfield projects:
-postgres. go nuts.
 
 
 
@@ -562,13 +554,15 @@ While this service implements [knex.js](http://knexjs.org/), which supports a gr
 
 
 --- 
-# Design & Development
+# Premium Content
 
-## Patreon
+## Design & Development @ Patreon
 
-This documention provides an overview of how to use this service, detailing all features and configuration options.
+This documention provides an overview of how to use this service, detailing all features and configuration options. Anyone intested in exploring how this all works is free to inspect the source.
 
-Anyone intested is free to inspect the source.
+That being said, there are a great many people who would benefit from a guided overview of this project.
 
-For engineers looking to learn how I've designed and implemented specific patterns, I've published a set of videos where I go in depth to each component and discuss the various decision made and show implementation patterns.
-
+To support this, I've produced a series of videos
+where I provide a detailed overview as to how this system works, detail each component and explain the requirements and various considerations that went into each and discuss the various decision made throughout the development.
+ 
+Any engineers interested in such content, can find it available via subscription via [Patreon](https://www.patreon.com/sudowing).
