@@ -202,13 +202,13 @@ export const toDeleteQuery = (keys: string[]) => ({
 };
 
 export const aggregationFnBuilder = (db: Knex) => (
-  calculated_fields: any,
-  group_by?: string[]
+  calculatedFields: any,
+  groupBy?: string[]
 ) => (knex_query: Knex.QueryBuilder): Knex.QueryBuilder => {
   const defineCalculatedFields = (arr: string[]): (string | Knex.Raw)[] =>
     arr.map((item) =>
-      calculated_fields[item]
-        ? db.raw(`${calculated_fields[item]} as ${item}`)
+      calculatedFields[item]
+        ? db.raw(`${calculatedFields[item]} as ${item}`)
         : item
     );
 
@@ -219,7 +219,7 @@ export const aggregationFnBuilder = (db: Knex) => (
       value: grouping !== "columns" ? value : defineCalculatedFields(value),
     })
   );
-  return group_by ? knex_query.groupBy(group_by) : knex_query;
+  return groupBy ? knex_query.groupBy(groupBy) : knex_query;
 };
 
 export const genCountQuery = (

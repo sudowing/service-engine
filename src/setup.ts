@@ -129,7 +129,7 @@ export const prepare = async ({
 
   // build the complex resources based on the provided configs
   (complexResources || []).forEach(
-    ({ topResourceName, subResourceName, calculated_fields, group_by }) => {
+    ({ topResourceName, subResourceName, calculatedFields, groupBy }) => {
       // confirm they exist else
       if (!dbResources[topResourceName] || !dbResources[subResourceName]) {
         logger.fatal(
@@ -156,7 +156,7 @@ export const prepare = async ({
           middlewareFn:
             middleware && middleware[name] ? middleware[name] : undefined,
           subResourceName,
-          aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
+          aggregationFn: aggregationFnBuilder(db)(calculatedFields, groupBy),
           geoFields: geoFields[name] || undefined,
           supportsReturn,
         }),
