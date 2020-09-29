@@ -281,41 +281,79 @@ const { App, logger } = await ignite({
 ```
 
 
+
+
+
+
+
+
+
+
 ## Middleware
 
-Middleware can be defined that is applied to any search resources. This middleware takes as `input` an object comprised of qs args and returns a new object (that will still pass the validation). This can be useful for deriving additional search criteria from submitted queries. Think adding a partition key to a query by taking the first `n` chars from a handle -- or by appending a max bbox for a query using a point.
+Sometimes it can be useful to intercept an inbound query before submitting for processing. In order to support this, this framework supports a concept of middleware, which are a set of functions that take as `input` an object comprised of qs args (or GraphQL input) and returns a new object (that will still pass the validation).
+
+This can be useful for appending submitted queries with additional search criteria deriving from the request on-the-fly -- like adding a partition key to a query or by appending a max bbox for a query using a geo point & zoom level.
 
 example:
 ```js
-// object keys are resource endpoints `${schema}_${table/view/materialized-view}`
+// object keys are resource endpoints `${schema}_${db_resource}` that are listed in the OpenAPI3 docs at `/openapi`
 const resourceSearchMiddleware = {
-  public_accounts: item => ({...item, email: 'clark.kent@dailyplanet.com'}),
+  public_accounts: item => ({
+    ...item,
+    partition_key: !!item.email ? item.email.toLowerCase()[0] : '',
+  }),
 }
 
-const { App, apolloServer, logger } = await ignite({ db, metadata, resourceSearchMiddleware });
+const { App, apolloServer, logger } = await ignite({
+  db,
+  metadata,
+  resourceSearchMiddleware
+});
 ```
 
 
-need to stringify graphql input so standardized for middleware manupulations
 
-### REST Call
 
+
+
+
+
+
+
+### Middleware Functionality
 ```sh
-resourceSearchMiddleware.public_gis_osm_places_free_1
-{ 'geom.geo_bbox': '-82.140999,28.133155,-81.612282,28.369954' }
-```
+# REST call to /public_accounts or
+# GRAPHQL query SearchPublicAccounts
 
-### GraphQL Call
-```sh
-resourceSearchMiddleware.public_gis_osm_places_free_1
+# before middleware applied (raw query)
 {
-  'fclass.like': 'cit%',
-  'gid.range': '1111,222',
-  'geom.geo_radius': '-82.437973,27.969388,1111000'
+  'email': 'clark.kent@dailyplanet.com'
+}
+# after middleware applied (transformed query)
+{
+  'email': 'clark.kent@dailyplanet.com',
+  'partition_key': 'c'
 }
 ```
 
----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Complex Resources (subqueries)
 
@@ -345,7 +383,6 @@ const complexResources = [
 const { App, logger } = await ignite({
   db,
   metadata,
-  resourceSearchMiddleware,
   complexResources
 });
 
