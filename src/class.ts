@@ -276,6 +276,8 @@ export class Resource implements ts.IClassResource {
       return util.rejectResource(parsed.errorType, parsed.error);
     }
 
+    const stringValues = util.stringValues(context.seperator);
+
     // if subqueryContext -- delete most the context keys
     if (subqueryContext) {
       delete context.seperator;
@@ -285,7 +287,10 @@ export class Resource implements ts.IClassResource {
     }
 
     const { errors, components } = await this.meta.searchQueryParser(
-      this.middlewareFn ? this.middlewareFn(input.payload) : input.payload,
+      // if middlewareFn -- serialize the Object.values to all be strings
+      this.middlewareFn
+        ? this.middlewareFn(stringValues(input.payload))
+        : input.payload,
       input.apiType,
       context
     );

@@ -332,11 +332,7 @@ export const searchQueryParser = async (
     const typecast: any = typecastFn(type);
 
     if (schema && supportMultipleValues(operation)) {
-      // if GRAPHQL must convert to string to pass validation
-      const values =
-        apiType === "GRAPHQL"
-          ? (rawValue.map(String) as any[])
-          : rawValue.split(sep).map(typecast);
+      const values = rawValue.split(sep).map(typecast);
 
       if (!validArgsforOperation(operation, values))
         errors.push({ field, error: badArgsLengthError(operation, values) });
@@ -767,6 +763,7 @@ export const operationFlag = (operation: string) => {
 };
 
 // | because we are applying fine grain to higher policy
+// TODO: the application of sysPerms and resourcePerms is wrong. Fix before release
 export const permitted = (permissions: ts.IConfigServicePermission) => (
   resource: string,
   operation: string
@@ -774,4 +771,14 @@ export const permitted = (permissions: ts.IConfigServicePermission) => (
   !!(
     operationFlag(operation) &
     (permissions.systemPermissions | permissions.resourcePermissions[resource])
+  );
+
+export const stringValues = (sep: string) => (obj: object) =>
+  Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [
+      key,
+      Array.isArray(value)
+        ? value.join(sep || cnst.SEARCH_QUERY_CONTEXT.seperator)
+        : value,
+    ])
   );
