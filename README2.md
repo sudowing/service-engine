@@ -14,6 +14,16 @@ On start,
 - autogenerate OpenAPI3 documentation
 
 
+# Table of Contents
+
+asdasd
+
+sadf
+
+sadf
+
+# Benefits
+
 ## What's the value here?
 
 ### REST **_and_** GraphQL.
@@ -46,36 +56,37 @@ Abstraction at DB, enabled easier migration of db in future as limits callers to
 
 If you haven't been a part of a db to db migration - you haven't lived. These are complicated projects requiring a fair amount of planning and coordination before finally flipping the switch.
 
---- 
-## what about joins
-Joins are supported in views.
-
-## how about subqueries
-Supported -- al beit a little clunky. I'll buy a beer for the person who comes up with something more elegant.
-
-see: complex queries
-## Explain automagic partition handling!
-
-There exists a middleware method that allows you to intercept & manipulate inbound service queries **before** they get submitted for processing (validation & db query). Think hard coding some search param, appending a search param based on the query or other related things.
-
-see: middleware
-
 ## horitonatlly scalable data stores
 
 horitonatlly scalable data stores
 sibling project provides hub-and-spoke access to multiple implementations, providing single service to port-forward from k8s for easier dev-experience (while deployed apps can call the individual services directly)
 
-# Interface Components
 
-## Query Metadata
 
-### Request Id
+
+
+
+
+
+
+
+
+
+
+# Interface Components (Query Metadata)
+
+There are several standardized components that exist in both REST & GraphQL interfaces.
+REST data returns in Response Headers, while GraphQL data is returned in response types.
+
+
+## Request Id
 
 Each request get's a Request ID (uuid) assign, which get's attached to the response header and also injected into any log statements during the fulfillment of the request. This reqId should make searching for events related to a single call in your logs trivial.
 
-### SQL
+## SQL
 
 Each call (REST & GraphQL) ends up building a SQL query that in most cases get's executed. The actual SQL query is always available via a response header on REST calls (and available another way via GraphQL -- more to follow).
+
 
 ## Search Counts
 
@@ -83,117 +94,11 @@ Executing a paginated search is a standard operation, and in order to save an ad
 
 This way -- you can choose to request the count for the first page, which does result in 2 DB calls -- but then omit that flag for subsequent pages. GraphQL handles this a bit differently as there is a specific resolver for counts.
 
-## Debug Mode
-
-Every resource can be called in a normal mode, which submits valid queries to the DB and debug mode -- which stops at the DB's door. If you are interested in seeing how a given REST/GraphQL query was parsed, validation responses and the SQL query built (before it's executed) -- you can do so via debug mode in REST & GraphQL.
-
-# Optional Configurations
-
-### Middleware
-
-Middleware can be defined that is applied to any search resources. This middleware takes as `input` an object comprised of qs args and returns a new object (that will still pass the validation). This can be useful for deriving additional search criteria from submitted queries. Think adding a partition key to a query by taking the first `n` chars from a handle -- or by appending a max bbox for a query using a point.
-
-example:
-```js
-// object keys are resource endpoints `${schema}_${table/view/materialized-view}`
-const resourceSearchMiddleware = {
-  public_accounts: item => ({...item, email: 'clark.kent@dailyplanet.com'}),
-}
-
-const { App, apolloServer, logger } = await ignite({ db, metadata, resourceSearchMiddleware });
-```
-
-
-need to stringify graphql input so standardized for middleware manupulations
-
-## REST Call
-
-```sh
-resourceSearchMiddleware.public_gis_osm_places_free_1
-{ 'geom.geo_bbox': '-82.140999,28.133155,-81.612282,28.369954' }
-```
-
-## GraphQL Call
-```sh
-resourceSearchMiddleware.public_gis_osm_places_free_1
-{
-  'fclass.like': 'cit%',
-  'gid.range': [ 350, 1359 ],
-  'geom.geo_radius': [ -82.437973, 27.969388, 1111000 ]
-}
-```
-
-
-### Complex Resources (subqueries)
-
-blah blah blah
-
-example:
-```js
-const complexResources = [
-  {
-    topResourceName: 'public_i001_city_state_entity_provider_n',
-    subResourceName: 'cms_providers',
-    group_by: ['address_city','address_state','entity_type','provider_type'],
-    calculated_fields: {
-      n: 'count(npi)'
-    },
-  },
-  {
-    topResourceName: 'cms_providers',
-    subResourceName: 'cms_providers',
-    calculated_fields: {
-      address_city: 'LOWER(address_city)'
-    },
-  }
-]
-
-const { App, logger } = await ignite({
-  db,
-  metadata,
-  resourceSearchMiddleware,
-  complexResources
-});
-
-
-```
 
 
 
+------
 
-### Permissions
-
-permissions for db resources are managed via permissions objects.
-
-```js
-import { ignite, initPostProcessing, permit } from "service-engine";
-
-// set system & resource. bitwise `OR` used to set resource level permissions
-const systemPermissions = permit().none();
-const resourcePermissions = {
-  'schema.r': permit().read(),
-  'schema.table.u': permit().update(),
-  'schema.view.d': permit().delete(),
-  'public.gis_osm_places_free_1': permit().create().read(),
-  'schema.matView.cru': permit().create().read().update(),
-  'schema.matView.c-r-u-d': permit().create().read().update().delete(),
-  'schema.matView.crud': permit().crud(),
-  'schema.matView.none': permit().none(),
-  // sqlite3 has no schemas
-  'table': permit().create().read().update().delete(),
-  'view': permit().create().read().update().delete(),
-}
-
-const { App, logger } = await ignite({
-    db, metadata, resourceSearchMiddleware, complexResources,
-    systemPermissions,
-    resourcePermissions,
-});
-```
-
-
-
-### default page limit
 
 # SQL -- from afar
 
@@ -284,6 +189,192 @@ Context = additional information to be used in - query
 ### example query
 ### example urls
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--- 
+## what about joins
+Joins are supported in views.
+
+## how about subqueries
+Supported -- al beit a little clunky. I'll buy a beer for the person who comes up with something more elegant.
+
+see: complex queries
+## Explain automagic partition handling!
+
+There exists a middleware method that allows you to intercept & manipulate inbound service queries **before** they get submitted for processing (validation & db query). Think hard coding some search param, appending a search param based on the query or other related things.
+
+see: middleware
+
+
+
+
+---
+
+
+
+sdasdf
+
+## Debug Mode
+
+Every resource can be called in a normal mode, which submits valid queries to the DB and debug mode -- which stops at the DB's door. If you are interested in seeing how a given REST/GraphQL query was parsed, validation responses and the SQL query built (before it's executed) -- you can do so via debug mode in REST & GraphQL.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Optional Configurations
+
+## Permissions
+
+Permissions for db resources are managed via permissions objects defined at the system & resource levels:
+
+- `systemPermissions` apply to all db resources published on service (REST & GraphQL).
+- `resourcePermissions` can be used to modify/overide permissions set for system.
+
+```js
+import { ignite, initPostProcessing, permit } from "service-engine";
+
+const systemPermissions = permit().none();
+
+const resourcePermissions = {
+  'public.some_table': permit().create().read().update().delete(),
+  'some_schema.some_view_name': permit().read(),
+  'some_schema.some_mat_view': permit().read(),
+  // sqlite3 has no schemas
+  'some_table': permit().create().read().update().delete(),
+  'some_view_name': permit().read(),
+}
+
+const { App, logger } = await ignite({
+    db, metadata,
+    systemPermissions,
+    resourcePermissions,
+});
+```
+
+
+## Middleware
+
+Middleware can be defined that is applied to any search resources. This middleware takes as `input` an object comprised of qs args and returns a new object (that will still pass the validation). This can be useful for deriving additional search criteria from submitted queries. Think adding a partition key to a query by taking the first `n` chars from a handle -- or by appending a max bbox for a query using a point.
+
+example:
+```js
+// object keys are resource endpoints `${schema}_${table/view/materialized-view}`
+const resourceSearchMiddleware = {
+  public_accounts: item => ({...item, email: 'clark.kent@dailyplanet.com'}),
+}
+
+const { App, apolloServer, logger } = await ignite({ db, metadata, resourceSearchMiddleware });
+```
+
+
+need to stringify graphql input so standardized for middleware manupulations
+
+### REST Call
+
+```sh
+resourceSearchMiddleware.public_gis_osm_places_free_1
+{ 'geom.geo_bbox': '-82.140999,28.133155,-81.612282,28.369954' }
+```
+
+### GraphQL Call
+```sh
+resourceSearchMiddleware.public_gis_osm_places_free_1
+{
+  'fclass.like': 'cit%',
+  'gid.range': '1111,222',
+  'geom.geo_radius': '-82.437973,27.969388,1111000'
+}
+```
+
+---
+
+## Complex Resources (subqueries)
+
+blah blah blah
+Supported -- al beit a little clunky. I'll buy a beer for the person who comes up with something more elegant.
+
+example:
+```js
+const complexResources = [
+  {
+    topResourceName: 'public_i001_city_state_entity_provider_n',
+    subResourceName: 'cms_providers',
+    group_by: ['address_city','address_state','entity_type','provider_type'],
+    calculated_fields: {
+      n: 'count(npi)'
+    },
+  },
+  {
+    topResourceName: 'cms_providers',
+    subResourceName: 'cms_providers',
+    calculated_fields: {
+      address_city: 'LOWER(address_city)'
+    },
+  }
+]
+
+const { App, logger } = await ignite({
+  db,
+  metadata,
+  resourceSearchMiddleware,
+  complexResources
+});
+
+
+```
+
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### default page limit
+
 # service_call
 # debug mode (no db call)
 
@@ -306,12 +397,24 @@ returning Create and Update for supporting dbs
 
 ### existing dbs:
 - service account that can execute inspection queries
-- spaces in fields
 - supported dbs
-- migrations need write access
 ### greenfield projects:
 postgres. go nuts.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Project Quality
 
 ## code coverage
 
@@ -324,6 +427,23 @@ project is configured to produce NYC/Istanbul coverage reports.
 When time permitted -- I added js docs throughout. I'm pretty new to using them, so it's likely I missed something you may consider obvious.
 
 As they say in NYC -- if you see something, patch something
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Recommendations
@@ -344,22 +464,67 @@ If engineers want to hack or iterate through some ideas, local is the place to d
 removing user data is bad. I'd prefer do with via an active flag. Even to support with GDPR or CCPA requirements, I'd not support deleting via this service. instead -- this service should flip flags and an async worker should connect to the to this service via a special method to handle the user requested (and gov mandated) purge
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Related projects:
-- source for public dockerfile that implements this node lib
-- clonable project that implements the public docker image, containing only the resources unique to an implementation (metadata, migration files, middleware, complex resources, permissions and env vars)
-- demo project, complete with insomnia export that shows multiple CRUD calls via REST & GraphQL against all currenly supported DBs (postgres, mysql and sqlite3)
-- local db quide, which shows you how to quickly setup and load demo postgres, postgis and mysql databases -- used for the demo project and your exploration of this framework
+## Public Docker Image 
+Source for [public dockerfile](https://github.com/sudowing/service-engine-docker) that implements this node lib
+## Forkable Service Template 
+[Clonable project](https://github.com/sudowing/service-engine-template) that implements the public docker image, containing only the resources unique to an implementation (metadata, migration files, middleware, complex resources, permissions and env vars)
+## Demo Project 
+demo project, complete with insomnia export that shows multiple CRUD calls via REST & GraphQL against all currenly supported DBs (postgres, mysql and sqlite3)
+## Local DB Guide 
+[Local DB Guide](https://github.com/sudowing/guide-local-databases), which shows you how to quickly setup and load demo postgres, postgis and mysql databases -- used for the demo project and your exploration of this framework.
+Much of that guide is built on prior-art, but it aggregates step-by-step instructions required for the running (and populating) of various db engines, mostly within docker containers with persistant data.
 
 
-## unsupported characters
 
-The schema name, resource name or field name. GraphQL SDL supports a limited set of ascii chars. It's possible your db uses unsupported characters and this will need to be resolved before you can get this service to run.
-Either update the field names or use the permissions to prohibit publication of resources.
 
-## DB write permissions
 
-migrations will require write permissions.
 
+# Important Considerations
+The service _should_ work out-of-the-box with minimal configuration. There are however a couple key requirements that must be satisfied before this service will function.
+
+## Unsupported Characters in GraphQL
+All schema names, resource names and field names must adhear to GraphQL SDL -- which limits supported characters to a very small subset of ascii chars (`[a-zA-Z0-9]`). It iss possible your db uses unsupported characters and any differences will need to be resolved before you can get this service to run.
+
+Either update the field names or use the permissions to prohibit publication of resources (as setting a permission to `.none()` prohibits the addition of the resource into the GraphQL schema).
+
+## DB Permissions
+Migration support is optional -- however if you want to use it you'll need to ensure the service account being used by the app has appropriate permissions to create objects and write records.
+
+Additionally -- if the service account lacks permissions to CRUD to specific objects, the endpoints & resolvers *will* get created -- but calls to the db will result in 500 level errors.
+The supported method for resolving this is to define service permissions in the *permissions configuration object*, which will prevent the publication of REST endpoints &* resolvers.
+
+## Returning Fields with CREATE & UPDATE
+While this service implements [knex.js](http://knexjs.org/), which supports a great many popular DBs, not all DBs support returning fields on INSERT & UPDATE queries. Postgres does and it's the recommended engine for new projects implementing this library.
+
+###### **NOTE**: MySQL & Sqlite3 return 201s with no-body responses.
+
+
+
+
+
+
+
+
+
+
+
+
+
+--- 
 # Design & Development
 
 ## Patreon
