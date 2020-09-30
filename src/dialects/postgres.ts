@@ -435,7 +435,7 @@ export const dialect = ({ migrationTable }) => {
     versionQuery,
     joiBase,
     toSchemaScalar,
-    toProtoScalar,
+    toProtoScalar: null,
     dbGeometryColumns,
   };
 };

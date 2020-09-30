@@ -150,5 +150,11 @@ export const dialect = ({ migrationTable }) => {
 
   const versionQuery = `select sqlite_version() as db_version;`;
 
-  return { dbSurveyQuery, versionQuery, joiBase, toSchemaScalar, toProtoScalar };
+  return {
+    dbSurveyQuery,
+    versionQuery,
+    joiBase,
+    toSchemaScalar,
+    toProtoScalar: null,
+  };
 };
