@@ -6,7 +6,7 @@ import {
 } from "./const";
 import { aggregationFnBuilder } from "./database";
 import { gqlModule } from "./graphql";
-import { getDatabaseResources } from "./integration";
+import { getDatabaseResources } from "./dialects";
 import { TDatabaseResources } from "./interfaces";
 import { serviceRouters } from "./routers";
 import { genDatabaseResourceValidators } from "./utils";
