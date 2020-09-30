@@ -231,5 +231,5 @@ export const dialect = ({ migrationTable }) => {
     `;
 
   const versionQuery = `select version() as db_version;`;
-  return { dbSurveyQuery, versionQuery, joiBase, toSchemaScalar };
+  return { dbSurveyQuery, versionQuery, joiBase, toSchemaScalar, toProtoScalar };
 };
