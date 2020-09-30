@@ -769,8 +769,10 @@ export const permitted = (permissions: ts.IConfigServicePermission) => (
   operation: string
 ) =>
   !!(
-    operationFlag(operation) & (permissions.systemPermissions | permissions.resourcePermissions[resource])
-    || operationFlag(operation) & permissions.resourcePermissions[resource]
+    operationFlag(operation) &
+      (permissions.systemPermissions |
+        permissions.resourcePermissions[resource]) ||
+    operationFlag(operation) & permissions.resourcePermissions[resource]
   );
 
 export const stringValues = (sep: string) => (obj: object) =>
