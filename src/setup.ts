@@ -28,6 +28,7 @@ export const prepare = async ({
     versionQuery,
     joiBase,
     toSchemaScalar,
+    toProtoScalar,
     dbGeometryColumns,
   } = getDatabaseResources({
     db,
@@ -176,6 +177,7 @@ export const prepare = async ({
     permissions,
   });
 
+  
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
     st,
