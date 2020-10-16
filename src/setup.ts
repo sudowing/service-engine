@@ -177,7 +177,6 @@ export const prepare = async ({
     permissions,
   });
 
-  
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
     st,
@@ -188,6 +187,7 @@ export const prepare = async ({
     dbResourceRawRows,
     Resources,
     toSchemaScalar,
+    toProtoScalar,
     hardDelete,
     supportsReturn,
     permissions,

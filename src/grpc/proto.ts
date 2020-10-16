@@ -1,17 +1,11 @@
-import gql from "graphql-tag";
-
-import * as fs from "fs";
-
-import { COMPLEX_RESOLVER_SEPERATOR } from "../const";
+import { COMPLEX_RESOLVER_SEPERATOR, NEW_LINE } from "../const";
 import { IClassResource } from "../interfaces";
 import {
+  appendIndex,
   getFirstIfSeperated,
   transformNameforResolver,
   permitted,
 } from "../utils";
-
-const ln = `
-`;
 
 export const grpcTypes = ({
   dbResources,
@@ -21,8 +15,7 @@ export const grpcTypes = ({
   permissions,
 }) => {
   const resources = Object.fromEntries(Resources);
-  
-  const messages = {};
+  const messages: any = {};
   const services = [];
 
   for (const name of Object.keys(dbResources)) {
@@ -75,27 +68,20 @@ export const grpcTypes = ({
           `optional st_bbox bbox_${field}`,
           `optional string polygon_${field}`,
         ];
-
       }
 
       messages[`${ResourceName}`].push(
         `${notnull ? "required" : "optional"} ${schemaScalar} ${field}`
       );
 
-      messages[`input${ResourceName}`].push(`optional ${schemaScalar} ${field}`);
+      messages[`input${ResourceName}`].push(
+        `optional ${schemaScalar} ${field}`
+      );
       if (primarykey) {
-        messages[`keys${ResourceName}`].push(`required ${schemaScalar} ${field}`);
+        messages[`keys${ResourceName}`].push(
+          `required ${schemaScalar} ${field}`
+        );
       }
-    }
-
-    const subResourceName = ResourceName.includes(COMPLEX_RESOLVER_SEPERATOR)
-      ? ResourceName.split(COMPLEX_RESOLVER_SEPERATOR)[1]
-      : undefined;
-    if (subResourceName) {
-      messages[`in_subquery_${subResourceName}`] = [
-        `optional in${subResourceName} payload`,
-        `optional inputContext context`,
-      ];
     }
 
     const spacialType = (st: boolean) => (str: string) =>
@@ -123,17 +109,24 @@ export const grpcTypes = ({
 
     messages[`search${ResourceName}`] = searchInterfaces;
 
-    messages[`args_search_${subResourceName}`] = [
-      `optional search${ResourceName} payload`,
-      `optional inputContext context`,
-      `optional serviceInputOptions options`,
-    ];
-    if (permit.read) {
-      messages[`args_search_${subResourceName}`]
-        .push(`optional in_subquery_${subResourceName} subquery`);
+    const subResourceName = ResourceName.includes(COMPLEX_RESOLVER_SEPERATOR)
+      ? ResourceName.split(COMPLEX_RESOLVER_SEPERATOR)[1]
+      : undefined;
+    if (subResourceName) {
+      messages[`args_search_${subResourceName}`] = [
+        `optional search${ResourceName} payload`,
+        `optional inputContext context`,
+        `optional serviceInputOptions options`,
+      ];
+      if (permit.read) {
+        messages[`args_search_${subResourceName}`].push(
+          `optional in_subquery_${subResourceName} subquery`
+        );
+      }
+      services.push(
+        `rpc Search${ResourceName}(args_search_${subResourceName}) returns (stream resSearch${ResourceName})`
+      );
     }
-
-    services.push(`rpc Search${ResourceName}(args_search_${subResourceName}) returns (stream resSearch${ResourceName})`)
 
     if (permit.create) {
       // TODO: can also skip defining the response since it wont be used
@@ -141,8 +134,9 @@ export const grpcTypes = ({
         ? `NonReturningSuccessResponse`
         : `${ResourceName}`;
 
-      services.push(`rpc Create${ResourceName}(input${ResourceName}) returns (${createResponse})`)
-
+      services.push(
+        `rpc Create${ResourceName}(input${ResourceName}) returns (${createResponse})`
+      );
     }
 
     const keys = Object.values(dbResources[name]).filter(
@@ -152,7 +146,9 @@ export const grpcTypes = ({
     // these types if resource is keyed. else delete related defined types
     if (keys.length) {
       if (permit.read) {
-        services.push(`rpc Read${ResourceName}(keys${ResourceName}) returns (${ResourceName})`)
+        services.push(
+          `rpc Read${ResourceName}(keys${ResourceName}) returns (${ResourceName})`
+        );
       }
 
       if (permit.update) {
@@ -161,16 +157,20 @@ export const grpcTypes = ({
           ? `NonReturningSuccessResponse`
           : `${ResourceName}`;
 
-        messages[`args_update_${subResourceName}`] = [
+        messages[`args_update_${ResourceName}`] = [
           `required search${ResourceName} keys`,
           `required in${ResourceName} payload`,
         ];
 
-        services.push(`rpc Update${ResourceName}(args_update_${subResourceName}) returns (${updateResponse})`);
+        services.push(
+          `rpc Update${ResourceName}(args_update_${ResourceName}) returns (${updateResponse})`
+        );
       }
 
       if (permit.delete) {
-        services.push(`rpc Delete${ResourceName}(keys${ResourceName}) returns (double)`);
+        services.push(
+          `rpc Delete${ResourceName}(keys${ResourceName}) returns (double)`
+        );
       }
     } else {
       delete messages[`keys${ResourceName}`];
@@ -184,79 +184,7 @@ export const grpcTypes = ({
   };
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export const gqlSchema = async ({
+export const grpcSchema = ({
   validators,
   dbResources,
   dbResourceRawRows,
@@ -284,15 +212,17 @@ export const gqlSchema = async ({
 
   const items = Object.entries(messages).map(
     ([name, definition]) => `
-      ${name} {
-          ${Array.isArray(definition) ? definition.join(ln) : definition}
+      message ${name} {
+          ${
+            Array.isArray(definition)
+              ? definition.map(appendIndex).join(NEW_LINE)
+              : definition
+          }
       }
     `
   );
 
-
-
-  messages['serviceAppMetadata'] = [
+  messages.serviceAppMetadata = [
     `required string appShortName`,
     `required string title`,
     `required string description`,
@@ -303,112 +233,70 @@ export const gqlSchema = async ({
     `repeating string servers`,
     `required string appName`,
     `required string routerPrefix`,
-  ]
+  ];
 
-  messages['serviceAppDataBaseInfo'] = [
+  messages.serviceAppDataBaseInfo = [
     `required string dialect`,
     `required string version`,
-  ]
+  ];
 
-  messages['NonReturningSuccessResponseData'] = [
-    `required bool success`,
-  ]
+  messages.NonReturningSuccessResponse = [`required bool success`];
 
-  messages['serviceAppDataBaseInfo'] = [
+  messages.serviceAppDataBaseInfo = [
     `required string dialect`,
     `required string version`,
-  ]
+  ];
 
-  messages['NonReturningSuccessResponse'] = [
-    `required string sql`,
-    `required JSONB debug`,
-    `required NonReturningSuccessResponseData data`,
-  ]
-
-  messages['serviceAppHealthz'] = [
+  messages.serviceAppHealthz = [
     `required string serviceVersion`,
     `required double timestamp`,
     `required serviceAppMetadata metadata`,
     `required serviceAppDataBaseInfo db_info`,
-  ]
+  ];
 
-  messages['in_range_string'] = [
-    `required string min`,
-    `required string max`,
-  ]
+  messages.in_range_string = [`required string min`, `required string max`];
 
-  messages['in_range_double'] = [
-    `required double min`,
-    `required double max`,
-  ]
+  messages.in_range_double = [`required double min`, `required double max`];
 
-  messages['st_radius'] = [
+  messages.st_radius = [
     `required double long`,
     `required double lat`,
     `required double meters`,
-  ]
+  ];
 
-  messages['st_bbox'] = [
+  messages.st_bbox = [
     `required double xMin`,
     `required double yMin`,
     `required double xMax`,
     `required double yMax`,
-  ]
+  ];
 
-  messages['inputContext'] = [
+  messages.inputContext = [
     `required string seperator`,
     `required bool notWhere`,
     `required string statementContext`,
     `required string orderBy`,
     `required double page`,
     `required double limit`,
-  ]
+  ];
 
+  messages.serviceInputOptions = [`required bool count`];
 
-  messages['serviceInputOptions'] = [
-    `required bool count`,
-  ]
-  messages['serviceResponseBase'] = [
-    `required double count`,
-    `required string sql`,
-    `required JSONB debug`,
-  ]
+  messages.servicePointGeometry = [
+    `required string type`,
+    `required string coordinates`,
+  ];
 
-  scalar serviceCoordinates
+  services.push(`rpc service_healthz() returns (serviceAppHealthz)`);
 
-  messages['servicePointGeometry'] = [
-    `required string! type`,
-    `required serviceCoordinates! coordinates`,
-  ]
+  const protoString = `
 
-
-
-  const typeDefsString = `
-        type Query {
-            service_healthz: serviceAppHealthz
-            ${query.join(ln)}
-        }
-
-        
-        # these are for jsonb cases where you do not care to fully type
-        scalar JSONB
-
-
-        ${items.join(ln)}
+        ${services.join(NEW_LINE)}
+        ${items.join(NEW_LINE)}
 
     `;
 
-  let typeDefs = null;
-  try {
-    typeDefs = gql(typeDefsString);
-  } catch (err) {
-    fs.writeFileSync("schema.error.typeDefsString.txt", typeDefsString);
-    fs.writeFileSync("schema.error.json", JSON.stringify({ err }));
-    throw err;
-  }
-
   return {
-    typeDefsString,
-    typeDefs,
+    protoString,
   };
 };

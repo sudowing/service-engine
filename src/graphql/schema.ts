@@ -2,7 +2,7 @@ import gql from "graphql-tag";
 
 import * as fs from "fs";
 
-import { COMPLEX_RESOLVER_SEPERATOR } from "../const";
+import { COMPLEX_RESOLVER_SEPERATOR, NEW_LINE } from "../const";
 import { IClassResource } from "../interfaces";
 import {
   getFirstIfSeperated,
@@ -240,8 +240,6 @@ export const gqlTypes = ({
   }
   return schema;
 };
-const ln = `
-`;
 
 export const gqlSchema = async ({
   validators,
@@ -272,7 +270,7 @@ export const gqlSchema = async ({
   const items = Object.entries(other).map(
     ([name, definition]) => `
       ${name} {
-          ${Array.isArray(definition) ? definition.join(ln) : definition}
+          ${Array.isArray(definition) ? definition.join(NEW_LINE) : definition}
       }
     `
   );
@@ -280,10 +278,10 @@ export const gqlSchema = async ({
   const typeDefsString = `
         type Query {
             service_healthz: serviceAppHealthz
-            ${query.join(ln)}
+            ${query.join(NEW_LINE)}
         }
         type Mutation {
-            ${mutation.join(ln)}
+            ${mutation.join(NEW_LINE)}
         }
 
         type serviceAppMetadata {
@@ -379,7 +377,7 @@ export const gqlSchema = async ({
         scalar JSONB
 
 
-        ${items.join(ln)}
+        ${items.join(NEW_LINE)}
 
     `;
 

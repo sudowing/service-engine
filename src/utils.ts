@@ -784,3 +784,5 @@ export const stringValues = (sep: string) => (obj: object) =>
         : value,
     ])
   );
+
+export const appendIndex = (el, i) => `${el} = ${++i}`;
