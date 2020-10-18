@@ -1,3 +1,9 @@
+import { writeFileSync } from 'fs'
+
+import * as protoLoader from "@grpc/proto-loader";
+import { pascalCase } from "change-case";
+import * as grpc from "grpc";
+
 import { Resource } from "./class";
 import {
   STARTUP_FAILED,
@@ -10,6 +16,11 @@ import { getDatabaseResources } from "./dialects";
 import { TDatabaseResources } from "./interfaces";
 import { serviceRouters } from "./routers";
 import { genDatabaseResourceValidators } from "./utils";
+
+import { grpcModule } from "./grpc";
+
+
+const PROTO_PATH = __dirname + '/service.proto';
 
 export const prepare = async ({
   db,
@@ -177,6 +188,26 @@ export const prepare = async ({
     permissions,
   });
 
+
+  const AppShortName = pascalCase(metadata.appShortName);
+
+
+
+
+  const { protoString, grpcMethods } = await grpcModule({
+    validators,
+    dbResources,
+    dbResourceRawRows,
+    Resources,
+    toProtoScalar,
+    hardDelete,
+    metadata,
+    supportsReturn,
+    permissions,
+    AppShortName,
+    logger,
+  });
+
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
     st,
@@ -187,11 +218,36 @@ export const prepare = async ({
     dbResourceRawRows,
     Resources,
     toSchemaScalar,
-    toProtoScalar,
+    protoString,
     hardDelete,
     supportsReturn,
     permissions,
   });
 
-  return { appRouter, serviceRouter, AppModule };
+
+
+
+
+  // setup grpc service
+
+  // write schema to proto file with specific path
+  writeFileSync(PROTO_PATH, protoString)
+  const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+      keepCase: true,
+      longs: String,
+      enums: String,
+      bytes: Array,
+  });
+  const protoService = grpc.loadPackageDefinition(packageDefinition).service;
+  const grpcService = new grpc.Server();
+  grpcService.addService(protoService[AppShortName].service, grpcMethods);
+  grpcService.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
+
+
+
+
+
+
+
+  return { appRouter, serviceRouter, AppModule, AppShortName, grpcService };
 };

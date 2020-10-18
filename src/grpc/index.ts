@@ -1,4 +1,5 @@
 import { grpcSchema } from "./proto";
+import { grpcMethodGenerator } from "./methods";
 
 export const grpcModule = ({
   validators,
@@ -10,6 +11,8 @@ export const grpcModule = ({
   metadata,
   supportsReturn,
   permissions,
+  AppShortName,
+  logger,
 }: any) => {
   const { protoString } = grpcSchema({
     validators,
@@ -20,8 +23,14 @@ export const grpcModule = ({
     metadata,
     supportsReturn,
     permissions,
+    AppShortName,
   });
+
+  const grpcMethods = grpcMethodGenerator({logger});
+
+
   return {
     protoString,
+    grpcMethods
   };
 };

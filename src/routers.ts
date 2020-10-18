@@ -3,7 +3,6 @@ import * as Router from "@koa/router";
 import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import * as cnst from "./const";
 import { gqlModule } from "./graphql";
-import { grpcModule } from "./grpc";
 
 import { genResourcesMap } from "./utils";
 import { serviceView } from "./views";
@@ -26,7 +25,7 @@ export const serviceRouters = async ({
   dbResourceRawRows,
   Resources,
   toSchemaScalar,
-  toProtoScalar,
+  protoString,
   hardDelete,
   supportsReturn,
   permissions,
@@ -88,17 +87,7 @@ export const serviceRouters = async ({
     permissions,
   });
 
-  const { protoString } = await grpcModule({
-    validators,
-    dbResources,
-    dbResourceRawRows,
-    Resources,
-    toProtoScalar,
-    hardDelete,
-    metadata,
-    supportsReturn,
-    permissions,
-  });
+
 
   appRouter.get("/proto", async (ctx) => {
     ctx.response.body = protoString;

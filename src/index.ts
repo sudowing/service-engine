@@ -69,7 +69,7 @@ export const ignite = async ({
     level: 0,
   });
 
-  const { appRouter, serviceRouter, AppModule } = await prepare({
+  const { appRouter, serviceRouter, AppModule, AppShortName, grpcService } = await prepare({
     db,
     st,
     metadata,
@@ -121,5 +121,5 @@ export const ignite = async ({
   // little self promotion for all my effort :+1:
   logger.info(author, `🤝 Let's do some work together!`);
 
-  return { App, logger, apolloServer };
+  return { App, logger, apolloServer, AppShortName, grpcService };
 };

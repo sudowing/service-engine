@@ -217,4 +217,4 @@ export const PERMIT_CRUD =
   PERMIT_CREATE | PERMIT_READ | PERMIT_UPDATE | PERMIT_DELETE;
 
 export const NEW_LINE = `
-          `;
+        `;

@@ -761,3 +761,8 @@ blah blah blah
 |bool||bool|
 |string|A string must always contain UTF-8 encoded or 7-bit ASCII text, and cannot be longer than 232.|string|
 |bytes|May contain any arbitrary sequence of bytes no longer than 232.|string|
+
+
+
+
+https://medium.com/@dwdraju/grpc-101-with-docker-nodejs-and-express-4c84ed00e88f
