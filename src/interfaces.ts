@@ -353,13 +353,15 @@ export interface IDatabaseBootstrapRaw extends IDatabaseBootstrap {
 
 export type TDatabaseResources = [string, Joi.Schema];
 
-export interface IServiceResolverResponse {
+export interface IServiceResolverResponseBase {
   data: any | any[] | null;
-  sql: string;
   count?: number;
+}
+export interface IServiceResolverResponse extends IServiceResolverResponseBase {
+  sql: string;
   debug: {
     now: number;
-    reqId: any;
+    reqId: string;
     input: {
       payload: any;
       context: any;

@@ -1,5 +1,5 @@
 import { grpcSchema } from "./proto";
-import { grpcMethodGenerator } from "./methods";
+import { grpcMethodFactory } from "./methods";
 
 export const grpcModule = ({
   validators,
@@ -26,7 +26,14 @@ export const grpcModule = ({
     AppShortName,
   });
 
-  const grpcMethods = grpcMethodGenerator({logger});
+  const grpcMethods = grpcMethodFactory({
+    dbResources,
+    Resources,
+    hardDelete,
+    metadata,
+    permissions,
+    logger,
+  });
 
 
   return {
