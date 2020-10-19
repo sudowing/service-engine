@@ -87,8 +87,6 @@ export const serviceRouters = async ({
     permissions,
   });
 
-
-
   appRouter.get("/proto", async (ctx) => {
     ctx.response.body = protoString;
   });

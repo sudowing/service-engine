@@ -27,17 +27,14 @@ export const grpcModule = ({
   });
 
   const grpcMethods = grpcMethodFactory({
-    dbResources,
     Resources,
+    dbResources,
     hardDelete,
-    metadata,
     permissions,
-    logger,
   });
-
 
   return {
     protoString,
-    grpcMethods
+    grpcMethods,
   };
 };

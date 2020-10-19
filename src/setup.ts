@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs'
+import { writeFileSync } from "fs";
 
 import * as protoLoader from "@grpc/proto-loader";
 import { pascalCase } from "change-case";
@@ -19,8 +19,7 @@ import { genDatabaseResourceValidators } from "./utils";
 
 import { grpcModule } from "./grpc";
 
-
-const PROTO_PATH = __dirname + '/service.proto';
+const PROTO_PATH = __dirname + "/service.proto";
 
 export const prepare = async ({
   db,
@@ -188,11 +187,7 @@ export const prepare = async ({
     permissions,
   });
 
-
   const AppShortName = pascalCase(metadata.appShortName);
-
-
-
 
   const { protoString, grpcMethods } = await grpcModule({
     validators,
@@ -207,6 +202,9 @@ export const prepare = async ({
     AppShortName,
     logger,
   });
+
+  console.log(Object.keys(grpcMethods))
+  writeFileSync('./test.txt', protoString);
 
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
@@ -224,30 +222,20 @@ export const prepare = async ({
     permissions,
   });
 
-
-
-
-
   // setup grpc service
 
   // write schema to proto file with specific path
-  writeFileSync(PROTO_PATH, protoString)
+  writeFileSync(PROTO_PATH, protoString);
   const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-      keepCase: true,
-      longs: String,
-      enums: String,
-      bytes: Array,
+    keepCase: true,
+    longs: String,
+    enums: String,
+    bytes: Array,
   });
   const protoService = grpc.loadPackageDefinition(packageDefinition).service;
   const grpcService = new grpc.Server();
   grpcService.addService(protoService[AppShortName].service, grpcMethods);
-  grpcService.bind('0.0.0.0:50051', grpc.ServerCredentials.createInsecure());
-
-
-
-
-
-
+  grpcService.bind("0.0.0.0:50051", grpc.ServerCredentials.createInsecure());
 
   return { appRouter, serviceRouter, AppModule, AppShortName, grpcService };
 };

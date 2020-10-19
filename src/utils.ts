@@ -786,3 +786,6 @@ export const stringValues = (sep: string) => (obj: object) =>
   );
 
 export const appendIndex = (el, i) => `${el} = ${++i}`;
+export const appendSemicolon = (el) => `${el};`;
+
+

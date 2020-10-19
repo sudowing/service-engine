@@ -5,7 +5,17 @@ import {
   getFirstIfSeperated,
   transformNameforResolver,
   permitted,
+  appendSemicolon
 } from "../utils";
+
+
+export const searchMessage = (ResourceName: string) => [
+  `repeated ${ResourceName} data`,
+  `optional int32 count`
+]
+
+
+
 
 export const grpcTypes = ({
   dbResources,
@@ -38,6 +48,9 @@ export const grpcTypes = ({
 
     const ResourceName = transformNameforResolver(name);
 
+
+    messages[`resSearch${ResourceName}`] = searchMessage(ResourceName);
+    
     messages[`${ResourceName}`] = [];
     messages[`keys${ResourceName}`] = [];
     messages[`in${ResourceName}`] = [];
@@ -57,7 +70,7 @@ export const grpcTypes = ({
       messages[`in${ResourceName}`].push(`optional ${schemaScalar} ${field}`);
       if (schemaScalar !== "Boolean") {
         messages[`in_range${ResourceName}`].push(
-          `repeated ${schemaScalar === "string" ? "string" : "double"} ${field}`
+          `repeated ${schemaScalar === "string" ? "string" : "float"} ${field}`
         );
       }
 
@@ -109,14 +122,7 @@ export const grpcTypes = ({
 
     messages[`search${ResourceName}`] = searchInterfaces;
 
-
-
-
-
-
     if (permit.read) {
-
-
       messages[`args_search_${ResourceName}`] = [
         `optional search${ResourceName} payload`,
         `optional inputContext context`,
@@ -124,11 +130,10 @@ export const grpcTypes = ({
       ];
 
       const subResourceName = ResourceName.includes(COMPLEX_RESOLVER_SEPERATOR)
-      ? ResourceName.split(COMPLEX_RESOLVER_SEPERATOR)[1]
-      : undefined;
+        ? ResourceName.split(COMPLEX_RESOLVER_SEPERATOR)[1]
+        : undefined;
 
       if (subResourceName) {
-
         messages[`args_search_${ResourceName}`].push(
           `optional in_subquery_${subResourceName} subquery`
         );
@@ -137,18 +142,7 @@ export const grpcTypes = ({
       services.push(
         `rpc Search${ResourceName}(args_search_${ResourceName}) returns (resSearch${ResourceName})`
       );
-
     }
-
-
-
-
-
-
-
-
-
-
 
     if (permit.create) {
       // TODO: can also skip defining the response since it wont be used
@@ -191,7 +185,7 @@ export const grpcTypes = ({
 
       if (permit.delete) {
         services.push(
-          `rpc Delete${ResourceName}(keys${ResourceName}) returns (double)`
+          `rpc Delete${ResourceName}(keys${ResourceName}) returns (res_float)`
         );
       }
     } else {
@@ -215,6 +209,7 @@ export const grpcSchema = ({
   metadata,
   supportsReturn,
   permissions,
+  AppShortName,
 }) => {
   // append the complexQueries to the dbResources -- may need to move upstream. or maybe not as its just for the graphql
   Resources.forEach(([name, Resource]: [string, IClassResource]) => {
@@ -237,8 +232,8 @@ export const grpcSchema = ({
       message ${name} {
           ${
             Array.isArray(definition)
-              ? definition.map(appendIndex).join(NEW_LINE)
-              : definition
+              ? definition.map(appendIndex).map(appendSemicolon).join(NEW_LINE)
+              : appendSemicolon(definition)
           }
       }
     `
@@ -271,26 +266,26 @@ export const grpcSchema = ({
 
   messages.serviceAppHealthz = [
     `required string serviceVersion`,
-    `required double timestamp`,
+    `required float timestamp`,
     `required serviceAppMetadata metadata`,
     `required serviceAppDataBaseInfo db_info`,
   ];
 
   messages.in_range_string = [`required string min`, `required string max`];
 
-  messages.in_range_double = [`required double min`, `required double max`];
+  messages.in_range_float = [`required float min`, `required float max`];
 
   messages.st_radius = [
-    `required double long`,
-    `required double lat`,
-    `required double meters`,
+    `required float long`,
+    `required float lat`,
+    `required float meters`,
   ];
 
   messages.st_bbox = [
-    `required double xMin`,
-    `required double yMin`,
-    `required double xMax`,
-    `required double yMax`,
+    `required float xMin`,
+    `required float yMin`,
+    `required float xMax`,
+    `required float yMax`,
   ];
 
   messages.inputContext = [
@@ -298,8 +293,8 @@ export const grpcSchema = ({
     `required bool notWhere`,
     `required string statementContext`,
     `required string orderBy`,
-    `required double page`,
-    `required double limit`,
+    `required float page`,
+    `required float limit`,
   ];
 
   // count
@@ -311,12 +306,96 @@ export const grpcSchema = ({
     `required string coordinates`,
   ];
 
-  services.push(`rpc service_healthz() returns (serviceAppHealthz)`);
+  services.push(`rpc service_healthz(no_args) returns (serviceAppHealthz)`);
 
   const protoString = `
 
-        ${services.join(NEW_LINE)}
-        ${items.join(NEW_LINE)}
+      syntax = "proto3";
+
+      package service;
+
+      service ${AppShortName} {
+        ${services.map(appendSemicolon).join(NEW_LINE)}
+      }
+
+      message no_args {
+
+      }
+
+      message res_float {
+        required float number = 1;
+      }
+
+
+      message serviceAppMetadata {
+        string appShortName = 1;
+        string title = 2;
+        string description = 3;
+        string termsOfService = 4;
+        string name = 5;
+        string email = 6;
+        string url = 7;
+        repeated string servers = 8;
+        string appName = 9;
+        string routerPrefix = 10;
+      }
+
+      message serviceAppDataBaseInfo {
+        string dialect = 1;
+        string version = 2;
+      }
+
+
+      message serviceAppHealthz {
+        required string serviceVersion = 1;
+        required float timestamp = 2;
+        required serviceAppMetadata metadata = 3;
+        required serviceAppDataBaseInfo db_info = 4;
+      }
+
+
+
+
+
+      message in_range_string {
+        required string min = 1;
+        required string max = 2;
+      }
+
+      message in_range_float {
+        required float min = 1;
+        required float max = 2;
+      }
+
+      message st_radius {
+        required float long = 1;
+        required float lat = 2;
+        required float meters = 3;
+      }
+
+      message st_bbox {
+        required float xMin = 1;
+        required float yMin = 2;
+        required float xMax = 3;
+        required float yMax = 4;
+      }
+
+      message inputContext {
+        optional string seperator = 1;
+        optional bool notWhere = 2;
+        optional string statementContext = 3;
+        optional string orderBy = 4;
+        optional float page = 5;
+        optional float limit = 6;
+      }
+
+
+      message serviceInputOptions {
+        optional bool count = 1;
+      }
+
+
+      ${items.join(NEW_LINE)}
 
     `;
 

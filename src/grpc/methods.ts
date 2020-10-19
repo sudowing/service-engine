@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from "uuid";
 
 import { NON_RETURNING_SUCCESS_RESPONSE } from "../const";
@@ -10,14 +9,14 @@ import {
   transformNameforResolver,
   permitted,
   genResourcesMap,
+  getFirstIfSeperated,
 } from "../utils";
 
 const apiType = "GRPC";
 export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   resource,
-  hardDelete: boolean,
+  hardDelete: boolean
 ) => (operation: string) => async (args, callback) => {
-
   const reqId = uuidv4();
 
   const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
@@ -93,11 +92,10 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   const serviceResponse = await _serviceResponse;
 
   if (serviceResponse.result) {
-
     try {
       const _records = await serviceResponse.result.sql;
       const data =
-        !supportsReturn && ["create", "update"].includes(operation)
+        !resource.supportsReturn && ["create", "update"].includes(operation)
           ? operation === "update"
             ? [NON_RETURNING_SUCCESS_RESPONSE]
             : NON_RETURNING_SUCCESS_RESPONSE
@@ -109,7 +107,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
 
       delete serviceResponse.result.sql;
-
 
       if (subquery) {
         // @ts-ignore
@@ -153,128 +150,96 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 
       // if single record searched and not returned -- 404
       // if ([null, undefined].includes(output)) {
-
     } catch (err) {
       // log error && // not a user input error
-      callback(new Error({
+      callback(
+        new Error(
+          {
             message: "cnst.INTERNAL_SERVER_ERROR",
             detail: serviceResponse,
             reqId,
-      }.toString()));
+          }.toString()
+        )
+      );
     }
   } else {
-    callback(new Error({
-        message: "HTTP_STATUS.BAD_REQUEST",
-        detail: serviceResponse,
-        reqId,
-    }.toString()));
+    callback(
+      new Error(
+        {
+          message: "HTTP_STATUS.BAD_REQUEST",
+          detail: serviceResponse,
+          reqId,
+        }.toString()
+      )
+    );
   }
 };
 
-
-
 export const grpcMethodFactory = ({
-    Resources,
-    permissions,
+  Resources,
+  dbResources,
+  hardDelete,
+  permissions,
 }) => {
+  // export const grpcMethodGenerator = (resourcesMap: IClassResourceMap, logger) => (
+  //     resource,
+  //     hardDelete: boolean,
+  //     supportsReturn: boolean
+  //   ) => (operation: string) => async (args, callback) => {
 
-    // export const grpcMethodGenerator = (resourcesMap: IClassResourceMap, logger) => (
-    //     resource,
-    //     hardDelete: boolean,
-    //     supportsReturn: boolean
-    //   ) => (operation: string) => async (args, callback) => {
+  const grpcMethods = Resources.reduce((methods, [name, resource]) => {
+    const allow = permitted(permissions);
+    const permit = {
+      create: allow(name, "create"),
+      read: allow(name, "read"),
+      update: allow(name, "update"),
+      delete: allow(name, "delete"),
+      any: true,
+    };
+    permit.any = permit.create || permit.read || permit.update || permit.delete;
 
+    const ResourceName = transformNameforResolver(name);
+    const resourcesMap = genResourcesMap(Resources);
 
+    const resolver = grpcMethodGenerator(resourcesMap)(resource, hardDelete);
 
+    const output = {
+      ...methods,
+      [`Read${ResourceName}`]: resolver("read"),
+      [`Search${ResourceName}`]: resolver("search"),
+      [`Create${ResourceName}`]: resolver("create"),
+      [`Update${ResourceName}`]: resolver("update"),
+      [`Delete${ResourceName}`]: resolver("delete"),
+    };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    const grpcMethods = Resources
-    .reduce(
-      (methods, [name, resource]) => {
-        const allow = permitted(permissions);
-        const permit = {
-          create: allow(name, "create"),
-          read: allow(name, "read"),
-          update: allow(name, "update"),
-          delete: allow(name, "delete"),
-          any: true,
-        };
-        permit.any =
-          permit.create || permit.read || permit.update || permit.delete;
-
-        const ResourceName = transformNameforResolver(name);
-        const resourcesMap = genResourcesMap(Resources);
-
-        const resolver = makeServiceResolver(resourcesMap)(
-          resource,
-          hardDelete,
-          resource.supportsReturn
-        );
-
-        const output = {
-            ...methods,
-            [`Read${ResourceName}`]: resolver("read"),
-            [`Search${ResourceName}`]: resolver("search"),
-            [`Create${ResourceName}`]: resolver("create"),
-            [`Update${ResourceName}`]: resolver("update"),
-            [`Delete${ResourceName}`]: resolver("delete"),
-        };
-
-        const keys = Object.values(
-          dbResources[getFirstIfSeperated(name)]
-        ).filter((item: any) => item.primarykey);
-
-        // if resource lacks keys -- delete resolvers for unique records
-        if (!keys.length) {
-          delete output[`Read${ResourceName}`];
-          delete output[`Update${ResourceName}`];
-          delete output[`Delete${ResourceName}`];
-        } else {
-          if (!permit.read) {
-            delete output[`Read${ResourceName}`];
-          }
-          if (!permit.update) {
-            delete output[`Update${ResourceName}`];
-          }
-          if (!permit.delete) {
-            delete output[`Delete${ResourceName}`];
-          }
-        }
-        if (!permit.create) {
-          delete output[`Create${ResourceName}`];
-        }
-        if (!permit.read) {
-          delete output[`Search${ResourceName}`];
-        }
-        return output;
-      },
-      {}
+    const keys = Object.values(dbResources[getFirstIfSeperated(name)]).filter(
+      (item: any) => item.primarykey
     );
 
-    return grpcMethods;
-}
+    // if resource lacks keys -- delete resolvers for unique records
+    if (!keys.length) {
+      delete output[`Read${ResourceName}`];
+      delete output[`Update${ResourceName}`];
+      delete output[`Delete${ResourceName}`];
+    } else {
+      if (!permit.read) {
+        delete output[`Read${ResourceName}`];
+      }
+      if (!permit.update) {
+        delete output[`Update${ResourceName}`];
+      }
+      if (!permit.delete) {
+        delete output[`Delete${ResourceName}`];
+      }
+    }
+    if (!permit.create) {
+      delete output[`Create${ResourceName}`];
+    }
+    if (!permit.read) {
+      delete output[`Search${ResourceName}`];
+    }
+    return output;
+  }, {});
 
-
-
+  return grpcMethods;
+};

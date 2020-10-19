@@ -69,7 +69,13 @@ export const ignite = async ({
     level: 0,
   });
 
-  const { appRouter, serviceRouter, AppModule, AppShortName, grpcService } = await prepare({
+  const {
+    appRouter,
+    serviceRouter,
+    AppModule,
+    AppShortName,
+    grpcService,
+  } = await prepare({
     db,
     st,
     metadata,
