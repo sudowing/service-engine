@@ -203,9 +203,6 @@ export const prepare = async ({
     logger,
   });
 
-  console.log(Object.keys(grpcMethods))
-  writeFileSync('./test.txt', protoString);
-
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
     st,
