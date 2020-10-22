@@ -1,3 +1,4 @@
+import { SERVICE_VERSION } from "../const";
 import { grpcSchema } from "./proto";
 import { grpcMethodFactory } from "./methods";
 
@@ -32,6 +33,18 @@ export const grpcModule = ({
     hardDelete,
     permissions,
   });
+
+  grpcMethods.service_healthz = async ({request: args}, callback) => {
+    const { db_info, ...rest } = metadata;
+    const response = {
+      serviceVersion: SERVICE_VERSION,
+      timestamp: Date.now(),
+      metadata: rest,
+      db_info,
+    };
+
+    callback(null, response);
+  }
 
   return {
     protoString,

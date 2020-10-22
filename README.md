@@ -766,3 +766,7 @@ blah blah blah
 
 
 https://medium.com/@dwdraju/grpc-101-with-docker-nodejs-and-express-4c84ed00e88f
+
+https://github.com/grpc/grpc-node/issues/1263
+
+https://medium.com/@waynelpu/how-to-pass-plain-javascript-object-with-gprc-94a91906ab1c

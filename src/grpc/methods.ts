@@ -16,12 +16,19 @@ const apiType = "GRPC";
 export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   resource,
   hardDelete: boolean
-) => (operation: string) => async (args, callback) => {
+) => (operation: string) => async ({request: args}, callback) => {
   const reqId = uuidv4();
+
+  console.log('args')
+  console.log(args)
 
   const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
 
   const input = { ...defaultInput, ...args };
+
+  console.log('input')
+  console.log(input)
+
   const { payload, context, options, keys, subquery } = input;
 
   // TODO: if this works for grpc -- expport from GRAPHQL module and use here and there
@@ -92,14 +99,26 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   const serviceResponse = await _serviceResponse;
 
   if (serviceResponse.result) {
+
+    console.log('serviceResponse.result.sql.toString()')
+    console.log(serviceResponse.result.sql.toString())
+
     try {
       const _records = await serviceResponse.result.sql;
+
+      console.log('_records')
+      console.log(_records)
+    
+
       const data =
         !resource.supportsReturn && ["create", "update"].includes(operation)
           ? operation === "update"
             ? [NON_RETURNING_SUCCESS_RESPONSE]
             : NON_RETURNING_SUCCESS_RESPONSE
           : resource.transformRecords(_records);
+
+      console.log('data')
+      console.log(data)
 
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
 
@@ -108,15 +127,13 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 
       delete serviceResponse.result.sql;
 
-      if (subquery) {
-        // @ts-ignore
-        debug.input.subPayload = subPayload;
-      }
-
       // send count as additional field
       const response: IServiceResolverResponseBase = {
         data: singleRecord ? (data.length ? data[0] : null) : data,
       };
+
+      console.log('JSON.stringify(response)')
+      console.log(JSON.stringify(response, null, 4))
 
       if (operation === "search" && options.count) {
         // later could apply to update & delete

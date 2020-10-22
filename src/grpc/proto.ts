@@ -314,6 +314,8 @@ export const grpcSchema = ({
 
       package service;
 
+      import "google/protobuf/struct.proto";
+
       service ${AppShortName} {
         ${services.map(appendSemicolon).join(NEW_LINE)}
       }
