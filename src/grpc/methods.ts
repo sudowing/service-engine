@@ -15,17 +15,6 @@ import {
 import { encodeStruct } from "../utils";
 
 const apiType = "GRPC";
-export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
-  resource,
-  hardDelete: boolean
-) => (operation: string) => async ({ request: args }, callback) => {
-  const reqId = uuidv4();
-
-  const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
-
-  const input = { ...defaultInput, ...args };
-
-  const { payload, context, options, keys, subquery } = input;
 
   // TODO: if this works for grpc -- expport from GRAPHQL module and use here and there
   const parseGraphQLInput = (field, op, value) => {
@@ -48,17 +37,44 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   };
 
   // TODO: this is copy/paste from the resolvers module. need to unite
-  const gqlParsePayload = (i: object) =>
+  const gqlParsePayload = (obj: object) =>
     Object.fromEntries(
-      Object.entries(i).flatMap(([op, values]) =>
+      Object.entries(obj).flatMap(([op, values]) =>
         Object.entries(values).map(([field, value]) =>
           parseGraphQLInput(field, op, value)
         )
       )
     );
+const DEFAULT_INPUT = () => ({ payload: {}, context: {}, options: {}, subquery: {} });
+
+
+export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
+  resource,
+  hardDelete: boolean
+) => (operation: string) => async ({ request: args }, callback) => {
+  const reqId = uuidv4();
+  const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
+  const argKeys = ["read", "delete"].includes(operation); // used to id if response needs to pluck first item in array
+
+
+  const input = argKeys
+    ? { ...DEFAULT_INPUT(), payload: args }
+    : { ...DEFAULT_INPUT(), ...args };
+
+  console.log('input')
+  console.log(input)
+
+  const { payload, context, options, keys, subquery } = input;
+
+
+
+
 
   context.fields = context.fields ? contextTransformer("fields", context.fields) : []
 
+
+
+  
   if (!resource.supportsReturn && ["create", "update"].includes(operation)) {
     context.fields = [];
   }
@@ -79,8 +95,8 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
     hardDelete,
   };
 
-  console.log('query')
-  console.log(query)
+  console.log('operation, query')
+  console.log(operation, query)
 
   const subPayload = {
     ...subquery, // subquery has `payload` & `context` keys. needs to be typed
@@ -115,7 +131,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
 
       // update & delete will one day support search query for bulk mutation (already supported in the class I think)
-      const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
 
       delete serviceResponse.result.sql;
 
@@ -123,6 +138,8 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       const response: IServiceResolverResponseBase = {
         data: singleRecord ? (data.length ? data[0] : null) : data,
       };
+
+
 
       if (operation === "search" && options.count) {
         // later could apply to update & delete
@@ -176,8 +193,25 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 
         return output;
       };
+      console.log('response')
+      console.log(response)
+      let final;
 
-      callback(null, jsonToStructs(response));
+      if (operation === 'delete') {
+        final = {number: response.data}
+      }
+      else if (singleRecord) {
+        final = transformJson(response.data)
+      }
+      else {
+        // need to check create one-and-many
+        final = jsonToStructs(response)
+      }
+
+      console.log('final')
+      console.log(final)
+      
+      callback(null, final);
 
       // if single record searched and not returned -- 404
       // if ([null, undefined].includes(output)) {
