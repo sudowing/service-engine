@@ -12,6 +12,8 @@ import {
   getFirstIfSeperated,
 } from "../utils";
 
+import { encode } from "./utils";
+
 const apiType = "GRPC";
 export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   resource,
@@ -132,9 +134,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
         data: singleRecord ? (data.length ? data[0] : null) : data,
       };
 
-      console.log('JSON.stringify(response)')
-      console.log(JSON.stringify(response, null, 4))
-
       if (operation === "search" && options.count) {
         // later could apply to update & delete
 
@@ -163,7 +162,40 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
         response.count = count;
       }
 
-      callback(null, response);
+
+
+      const transformJson = (record) => {
+        const report = resource.report[operation]
+        const jsonFields = Object.keys(record).filter(key => !!report[key].geoqueryType)
+        for (const jsonField of jsonFields) {
+          const wip = encode(record[jsonField])
+          console.log('wip')
+          console.log(JSON.stringify(wip))
+          record[jsonField] = wip;
+
+        }
+        // console.log('JSON.stringify(record)')
+        // console.log(JSON.stringify(record, null, 4))
+        return {
+          ...record
+        };
+      }
+
+
+      const jsonToStructs = (resPayload) => {
+        let output = resPayload;
+        if(resPayload.data){
+          output = {
+            ...resPayload,
+            data: resPayload.data.map(transformJson)
+          }
+        }
+
+
+        return output;
+      }
+
+      callback(null, jsonToStructs(response));
 
       // if single record searched and not returned -- 404
       // if ([null, undefined].includes(output)) {

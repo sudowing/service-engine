@@ -770,3 +770,7 @@ https://medium.com/@dwdraju/grpc-101-with-docker-nodejs-and-express-4c84ed00e88f
 https://github.com/grpc/grpc-node/issues/1263
 
 https://medium.com/@waynelpu/how-to-pass-plain-javascript-object-with-gprc-94a91906ab1c
+
+https://github.com/protobufjs/protobuf.js/issues/338
+
+https://github.com/mesg-foundation/mesg-js/blob/238e70e56cc8a35cfc8ffeb1ffa92c3160ff5d87/src/util/encoder.ts

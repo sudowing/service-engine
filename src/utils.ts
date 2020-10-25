@@ -166,6 +166,7 @@ export const reducerValidatorInspector = (
     keyComponent: !!(
       schema._invalids && schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)
     ),
+    // TODO: add json type. will be needed by grpc `jsonToStructs` in grpc.methods
     geoqueryType:
       schema._invalids && schema._invalids.has(cnst.SYMBOL_GEOQUERY)
         ? schema._invalids.has(cnst.SYMBOL_GEOQUERY_POINT)
