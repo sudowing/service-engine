@@ -5,17 +5,13 @@ import {
   getFirstIfSeperated,
   transformNameforResolver,
   permitted,
-  appendSemicolon
+  appendSemicolon,
 } from "../utils";
-
 
 export const searchMessage = (ResourceName: string) => [
   `repeated ${ResourceName} data`,
-  `optional int32 count`
-]
-
-
-
+  `optional int32 count`,
+];
 
 export const grpcTypes = ({
   dbResources,
@@ -48,9 +44,8 @@ export const grpcTypes = ({
 
     const ResourceName = transformNameforResolver(name);
 
-
     messages[`resSearch${ResourceName}`] = searchMessage(ResourceName);
-    
+
     messages[`${ResourceName}`] = [];
     messages[`keys${ResourceName}`] = [];
     messages[`in${ResourceName}`] = [];

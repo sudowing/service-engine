@@ -12,24 +12,24 @@ import {
   getFirstIfSeperated,
 } from "../utils";
 
-import { encode } from "./utils";
+import { encodeStruct } from "../utils";
 
 const apiType = "GRPC";
 export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   resource,
   hardDelete: boolean
-) => (operation: string) => async ({request: args}, callback) => {
+) => (operation: string) => async ({ request: args }, callback) => {
   const reqId = uuidv4();
 
-  console.log('args')
-  console.log(args)
+  console.log("args");
+  console.log(args);
 
   const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
 
   const input = { ...defaultInput, ...args };
 
-  console.log('input')
-  console.log(input)
+  console.log("input");
+  console.log(input);
 
   const { payload, context, options, keys, subquery } = input;
 
@@ -101,16 +101,14 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   const serviceResponse = await _serviceResponse;
 
   if (serviceResponse.result) {
-
-    console.log('serviceResponse.result.sql.toString()')
-    console.log(serviceResponse.result.sql.toString())
+    console.log("serviceResponse.result.sql.toString()");
+    console.log(serviceResponse.result.sql.toString());
 
     try {
       const _records = await serviceResponse.result.sql;
 
-      console.log('_records')
-      console.log(_records)
-    
+      console.log("_records");
+      console.log(_records);
 
       const data =
         !resource.supportsReturn && ["create", "update"].includes(operation)
@@ -119,8 +117,8 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
             : NON_RETURNING_SUCCESS_RESPONSE
           : resource.transformRecords(_records);
 
-      console.log('data')
-      console.log(data)
+      console.log("data");
+      console.log(data);
 
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
 
@@ -162,38 +160,30 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
         response.count = count;
       }
 
-
-
       const transformJson = (record) => {
-        const report = resource.report[operation]
-        const jsonFields = Object.keys(record).filter(key => !!report[key].geoqueryType)
+        const report = resource.report[operation];
+        const jsonFields = Object.keys(record).filter(
+          (key) => !!report[key].geoqueryType
+        );
         for (const jsonField of jsonFields) {
-          const wip = encode(record[jsonField])
-          console.log('wip')
-          console.log(JSON.stringify(wip))
-          record[jsonField] = wip;
-
+          record[jsonField] = encodeStruct(record[jsonField]);
         }
-        // console.log('JSON.stringify(record)')
-        // console.log(JSON.stringify(record, null, 4))
         return {
-          ...record
+          ...record,
         };
-      }
-
+      };
 
       const jsonToStructs = (resPayload) => {
         let output = resPayload;
-        if(resPayload.data){
+        if (resPayload.data) {
           output = {
             ...resPayload,
-            data: resPayload.data.map(transformJson)
-          }
+            data: resPayload.data.map(transformJson),
+          };
         }
 
-
         return output;
-      }
+      };
 
       callback(null, jsonToStructs(response));
 

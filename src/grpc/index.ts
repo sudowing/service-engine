@@ -34,7 +34,7 @@ export const grpcModule = ({
     permissions,
   });
 
-  grpcMethods.service_healthz = async ({request: args}, callback) => {
+  grpcMethods.service_healthz = async ({ request: args }, callback) => {
     const { db_info, ...rest } = metadata;
     const response = {
       serviceVersion: SERVICE_VERSION,
@@ -44,7 +44,7 @@ export const grpcModule = ({
     };
 
     callback(null, response);
-  }
+  };
 
   return {
     protoString,
