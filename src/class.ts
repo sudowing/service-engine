@@ -284,6 +284,7 @@ export class Resource implements ts.IClassResource {
       delete context.orderBy;
       delete context.page;
       delete context.limit;
+      // TODO: what about context.fields? confirm this works correctly
     }
 
     // standardize GRAPHQL & GRPC inputs to REST string input

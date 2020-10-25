@@ -21,35 +21,15 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 ) => (operation: string) => async ({ request: args }, callback) => {
   const reqId = uuidv4();
 
-  console.log("args");
-  console.log(args);
-
   const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
 
   const input = { ...defaultInput, ...args };
-
-  console.log("input");
-  console.log(input);
 
   const { payload, context, options, keys, subquery } = input;
 
   // TODO: if this works for grpc -- expport from GRAPHQL module and use here and there
   const parseGraphQLInput = (field, op, value) => {
     if (op === "geo") {
-      console.log("parseGraphQLInput");
-      console.log({ field, op, value });
-
-      // parseGraphQLInput
-      // {
-      //   field: 'bbox_geom',
-      //   op: 'geo',
-      //   value: {
-      //     xMin: -82.14099884033203,
-      //     yMin: 28.133155822753906,
-      //     xMax: -81.6122817993164,
-      //     yMax: 28.369953155517578
-      //   }
-      // }
       const [_op, ..._field] = field.split("_");
       const _value =
         _op === "polygon"
@@ -77,6 +57,8 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       )
     );
 
+  context.fields = context.fields ? contextTransformer("fields", context.fields) : []
+
   if (!resource.supportsReturn && ["create", "update"].includes(operation)) {
     context.fields = [];
   }
@@ -97,6 +79,9 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
     hardDelete,
   };
 
+  console.log('query')
+  console.log(query)
+
   const subPayload = {
     ...subquery, // subquery has `payload` & `context` keys. needs to be typed
     requestId: reqId,
@@ -116,14 +101,9 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   const serviceResponse = await _serviceResponse;
 
   if (serviceResponse.result) {
-    console.log("serviceResponse.result.sql.toString()");
-    console.log(serviceResponse.result.sql.toString());
 
     try {
       const _records = await serviceResponse.result.sql;
-
-      console.log("_records");
-      console.log(_records);
 
       const data =
         !resource.supportsReturn && ["create", "update"].includes(operation)
@@ -131,9 +111,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
             ? [NON_RETURNING_SUCCESS_RESPONSE]
             : NON_RETURNING_SUCCESS_RESPONSE
           : resource.transformRecords(_records);
-
-      console.log("data");
-      console.log(data);
 
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
 

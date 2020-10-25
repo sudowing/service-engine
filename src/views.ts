@@ -65,6 +65,7 @@ export const serviceView = ({
 
   // TODO: clean this mess up. can be much simplier I think
   const input = seperateQueryAndContext(ctx.request.query);
+
   if (method !== "GET") {
     input.payload =
       method === "POST"

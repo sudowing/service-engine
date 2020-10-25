@@ -384,6 +384,7 @@ export const grpcSchema = ({
         optional string orderBy = 4;
         optional float page = 5;
         optional float limit = 6;
+        optional string fields = 7;
       }
 
 
