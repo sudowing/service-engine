@@ -391,7 +391,7 @@ export const queryContextParser = (
     if (context.hasOwnProperty(key)) {
       let value: any = rawValue;
       if (apiType === "REST") {
-        // NEED TO SKIP THIS FOR GRAPHQL CALLS -- they'll send the arrays & types
+        // NEED TO SKIP THIS FOR GRAPHQL & GRPC CALLS -- they'll send the arrays & types
         value = contextTransformer(key, rawValue);
       }
 

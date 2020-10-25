@@ -36,6 +36,20 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   // TODO: if this works for grpc -- expport from GRAPHQL module and use here and there
   const parseGraphQLInput = (field, op, value) => {
     if (op === "geo") {
+      console.log("parseGraphQLInput");
+      console.log({ field, op, value });
+
+      // parseGraphQLInput
+      // {
+      //   field: 'bbox_geom',
+      //   op: 'geo',
+      //   value: {
+      //     xMin: -82.14099884033203,
+      //     yMin: 28.133155822753906,
+      //     xMax: -81.6122817993164,
+      //     yMax: 28.369953155517578
+      //   }
+      // }
       const [_op, ..._field] = field.split("_");
       const _value =
         _op === "polygon"
@@ -53,6 +67,7 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
     return [`${field}.${op}`, value];
   };
 
+  // TODO: this is copy/paste from the resolvers module. need to unite
   const gqlParsePayload = (i: object) =>
     Object.fromEntries(
       Object.entries(i).flatMap(([op, values]) =>

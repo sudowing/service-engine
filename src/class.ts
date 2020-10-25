@@ -286,11 +286,12 @@ export class Resource implements ts.IClassResource {
       delete context.limit;
     }
 
+    // standardize GRAPHQL & GRPC inputs to REST string input
+    input.payload = stringValues(input.payload);
+
     const { errors, components } = await this.meta.searchQueryParser(
       // if middlewareFn -- serialize the Object.values to all be strings
-      this.middlewareFn
-        ? this.middlewareFn(stringValues(input.payload))
-        : input.payload,
+      this.middlewareFn ? this.middlewareFn(input.payload) : input.payload,
       input.apiType,
       context
     );

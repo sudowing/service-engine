@@ -61,6 +61,7 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
+
   const query = {
     payload:
       operation === "update"
