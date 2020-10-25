@@ -650,8 +650,9 @@ export const transformNameforResolver = (str) =>
     .map((item) => pascalCase(item)) // this is done to prevent collisions with db resources
     .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
 
-export const wktToGeoJSON = (wktString) =>
-  wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON();
+export const wktToGeoJSON = (wktString) => wktString
+  ? wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON()
+  : null;
 
 export const extractSelectedFields = (information: any) => {
   let props = []; // top level fields from GraphQL Type
@@ -832,7 +833,11 @@ export const encodeStructFields = (data) =>
   );
 
 export const encodeStruct = (data: { [key: string]: any }) => {
+  console.log('---------')
+  console.log('encodeStruct.data')
+  console.log(data)
+  console.log('---------')
   return {
-    fields: encodeStructFields(data),
+    fields: data ? encodeStructFields(data) : data,
   };
 };
