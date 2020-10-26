@@ -65,7 +65,7 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   const argKeys = ["read", "delete"].includes(operation); // used to id if response needs to pluck first item in array
 
 
-  const input = argKeys || operation === 'create'
+  const input = argKeys
     ? { ...DEFAULT_INPUT(), payload: args }
     : { ...DEFAULT_INPUT(), ...args };
 
@@ -185,12 +185,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 
       const transformJson = (record) => {
 
-        console.log('transformJson: report')
-        console.log(report)
-        console.log('transformJson: record')
-        console.log(record)
-
-
         const jsonFields = Object.keys(record).filter(
           (key) => !!report[key].geoqueryType
         );
@@ -225,7 +219,7 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       }
       else {
         // need to check create one-and-many
-        final = jsonToStructs(response).data[0]
+        final = Array.isArray(response.data) ? {data: response.data.map(transformJson)} :  jsonToStructs(response).data[0]
       }
 
       console.log('final')

@@ -45,6 +45,7 @@ export const grpcTypes = ({
     const ResourceName = transformNameforResolver(name);
 
     messages[`resSearch${ResourceName}`] = searchMessage(ResourceName);
+    messages[`resCreate${ResourceName}`] = [searchMessage(ResourceName)[0]]; // omit the count
 
     messages[`${ResourceName}`] = [];
     messages[`keys${ResourceName}`] = [];
@@ -143,11 +144,15 @@ export const grpcTypes = ({
       // TODO: can also skip defining the response since it wont be used
       const createResponse = !supportsReturn
         ? `NonReturningSuccessResponse`
-        : `${ResourceName}`;
+        : `resCreate${ResourceName}`;
 
       services.push(
-        `rpc Create${ResourceName}(input${ResourceName}) returns (${createResponse})`
+        `rpc Create${ResourceName}(args_create_${ResourceName}) returns (${createResponse})`
       );
+      messages[`args_create_${ResourceName}`] = [
+        `repeated input${ResourceName} payload`,
+      ];
+
     }
 
     const keys = Object.values(dbResources[name]).filter(
