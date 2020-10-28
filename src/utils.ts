@@ -173,9 +173,7 @@ export const reducerValidatorInspector = (
           ? cnst.POINT
           : cnst.POLYGON
         : null,
-    jsonType: !!(
-      schema._invalids && schema._invalids.has(cnst.SYMBOL_JSON)
-    ),
+    jsonType: !!(schema._invalids && schema._invalids.has(cnst.SYMBOL_JSON)),
     softDeleteFlag: !!(
       schema._invalids && schema._invalids.has(cnst.SYMBOL_SOFT_DELETE)
     ),
@@ -653,9 +651,10 @@ export const transformNameforResolver = (str) =>
     .map((item) => pascalCase(item)) // this is done to prevent collisions with db resources
     .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
 
-export const wktToGeoJSON = (wktString) => wktString
-  ? wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON()
-  : null;
+export const wktToGeoJSON = (wktString) =>
+  wktString
+    ? wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON()
+    : null;
 
 export const extractSelectedFields = (information: any) => {
   let props = []; // top level fields from GraphQL Type

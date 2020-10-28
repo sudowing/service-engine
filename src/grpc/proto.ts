@@ -85,7 +85,9 @@ export const grpcTypes = ({
 
       // json as input should be a sting to get validated and stored correctly
       messages[`input${ResourceName}`].push(
-        `optional ${schemaScalar === 'google.protobuf.Struct' ? 'string' : schemaScalar} ${field}`
+        `optional ${
+          schemaScalar === "google.protobuf.Struct" ? "string" : schemaScalar
+        } ${field}`
       );
       if (primarykey) {
         messages[`keys${ResourceName}`].push(
@@ -153,7 +155,6 @@ export const grpcTypes = ({
       messages[`args_create_${ResourceName}`] = [
         `repeated input${ResourceName} payload`,
       ];
-
     }
 
     const keys = Object.values(dbResources[name]).filter(

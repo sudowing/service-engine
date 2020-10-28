@@ -151,7 +151,7 @@ export const toSchemaScalar = (type: string) => {
     // JSON
     case cnst.JSON:
     case cnst.JSONB:
-        return "JSONB";
+      return "JSONB";
 
     default:
       return "String";

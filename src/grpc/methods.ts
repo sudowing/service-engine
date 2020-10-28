@@ -16,37 +16,41 @@ import { encodeStruct } from "../utils";
 
 const apiType = "GRPC";
 
-  // TODO: if this works for grpc -- expport from GRAPHQL module and use here and there
-  const parseGraphQLInput = (field, op, value) => {
-    if (op === "geo") {
-      const [_op, ..._field] = field.split("_");
-      const _value =
-        _op === "polygon"
-          ? [value]
-          : _op === "radius"
-          ? [value.long, value.lat, value.meters]
-          : [value.xMin, value.yMin, value.xMax, value.yMax];
-      return [`${_field}.geo_${_op}`, _value];
-    } else if (["not_range", "range"].includes(op)) {
-      return [`${field}.${op}`, [value.min, value.max]];
-    } else if (["not_in", "in"].includes(op)) {
-      return [`${field}.${op}`, value];
-    }
-
+// TODO: if this works for grpc -- expport from GRAPHQL module and use here and there
+const parseGraphQLInput = (field, op, value) => {
+  if (op === "geo") {
+    const [_op, ..._field] = field.split("_");
+    const _value =
+      _op === "polygon"
+        ? [value]
+        : _op === "radius"
+        ? [value.long, value.lat, value.meters]
+        : [value.xMin, value.yMin, value.xMax, value.yMax];
+    return [`${_field}.geo_${_op}`, _value];
+  } else if (["not_range", "range"].includes(op)) {
+    return [`${field}.${op}`, [value.min, value.max]];
+  } else if (["not_in", "in"].includes(op)) {
     return [`${field}.${op}`, value];
-  };
+  }
 
-  // TODO: this is copy/paste from the resolvers module. need to unite
-  const gqlParsePayload = (obj: object) =>
-    Object.fromEntries(
-      Object.entries(obj).flatMap(([op, values]) =>
-        Object.entries(values).map(([field, value]) =>
-          parseGraphQLInput(field, op, value)
-        )
+  return [`${field}.${op}`, value];
+};
+
+// TODO: this is copy/paste from the resolvers module. need to unite
+const gqlParsePayload = (obj: object) =>
+  Object.fromEntries(
+    Object.entries(obj).flatMap(([op, values]) =>
+      Object.entries(values).map(([field, value]) =>
+        parseGraphQLInput(field, op, value)
       )
-    );
-const DEFAULT_INPUT = () => ({ payload: {}, context: {}, options: {}, subquery: {} });
-
+    )
+  );
+const DEFAULT_INPUT = () => ({
+  payload: {},
+  context: {},
+  options: {},
+  subquery: {},
+});
 
 export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   resource,
@@ -55,11 +59,10 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   const reqId = uuidv4();
 
   const report = resource.report[operation];
-  const resource_fields = Object.keys(report);
+  const resourceFields = Object.keys(report);
 
   const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
   const argKeys = ["read", "delete"].includes(operation); // used to id if response needs to pluck first item in array
-
 
   const input = argKeys
     ? { ...DEFAULT_INPUT(), payload: args }
@@ -67,15 +70,10 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 
   const { payload, context, options, keys, subquery } = input;
 
+  context.fields = context.fields
+    ? contextTransformer("fields", context.fields)
+    : resourceFields;
 
-
-
-
-  context.fields = context.fields ? contextTransformer("fields", context.fields) : resource_fields
-
-
-
-  
   if (!resource.supportsReturn && ["create", "update"].includes(operation)) {
     context.fields = [];
   }
@@ -83,10 +81,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
-
-  console.log('payload')
-  console.log(payload)
-
   const query = {
     payload:
       operation === "update"
@@ -116,15 +110,9 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       )
     : resource[operation](query);
 
-  console.log('query')
-  console.log(query)
   const serviceResponse = await _serviceResponse;
 
-  console.log('serviceResponse')
-  console.log(serviceResponse)
-
   if (serviceResponse.result) {
-
     try {
       const _records = await serviceResponse.result.sql;
 
@@ -175,7 +163,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       }
 
       const transformJson = (record) => {
-
         const jsonFields = Object.keys(record).filter(
           (key) => !!(report[key].geoqueryType || report[key].jsonType)
         );
@@ -187,12 +174,14 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
         };
       };
 
-      const jsonToStructs = ({data: _data, ...other}) => {
-        let output = {..._data, ...other};
+      const jsonToStructs = ({ data: _data, ...other }) => {
+        let output = { ..._data, ...other };
         if (_data) {
           output = {
             ...other,
-            data: Array.isArray(_data) ? _data.map(transformJson) : transformJson(_data),
+            data: Array.isArray(_data)
+              ? _data.map(transformJson)
+              : transformJson(_data),
           };
         }
 
@@ -201,15 +190,15 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 
       let final;
 
-      if (operation === 'delete') {
-        final = {number: response.data}
-      }
-      else if (singleRecord) {
-        final = transformJson(response.data)
-      }
-      else {
+      if (operation === "delete") {
+        final = { number: response.data };
+      } else if (singleRecord) {
+        final = transformJson(response.data);
+      } else {
         // need to check create one-and-many
-        final = Array.isArray(response.data) ? {data: response.data.map(transformJson)} :  jsonToStructs(response).data[0]
+        final = Array.isArray(response.data)
+          ? { data: response.data.map(transformJson) }
+          : jsonToStructs(response).data[0];
       }
 
       callback(null, final);
@@ -217,29 +206,25 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       // if single record searched and not returned -- 404
       // if ([null, undefined].includes(output)) {
     } catch (err) {
-
-      console.log('err')
-      console.log(err)
-
       // log error && // not a user input error
       callback(
         new Error(
-          {
-            message: "cnst.INTERNAL_SERVER_ERROR",
+          JSON.stringify({
+            message: "INTERNAL_SERVER_ERROR",
             detail: serviceResponse,
             reqId,
-          }.toString()
+          })
         )
       );
     }
   } else {
     callback(
       new Error(
-        {
-          message: "HTTP_STATUS.BAD_REQUEST",
+        JSON.stringify({
+          message: "BAD_REQUEST",
           detail: serviceResponse,
           reqId,
-        }.toString()
+        })
       )
     );
   }
