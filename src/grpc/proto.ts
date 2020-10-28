@@ -174,7 +174,7 @@ export const grpcTypes = ({
           : `${ResourceName}`;
 
         messages[`args_update_${ResourceName}`] = [
-          `required search${ResourceName} keys`,
+          `required keys${ResourceName} keys`,
           `required in${ResourceName} payload`,
         ];
 
