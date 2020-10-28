@@ -72,6 +72,9 @@ export const joiBase = (type: string) => {
 
     // 11.5 The JSON Data Type
     // JSON
+    case cnst.JSON:
+    case cnst.JSONB:
+      return Joi.string().invalid(cnst.SYMBOL_JSON); // will want to use JSONB on output
 
     default:
       return Joi.string();
@@ -146,6 +149,9 @@ export const toSchemaScalar = (type: string) => {
       return "JSONB";
     // 11.5 The JSON Data Type
     // JSON
+    case cnst.JSON:
+    case cnst.JSONB:
+        return "JSONB";
 
     default:
       return "String";

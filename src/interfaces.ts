@@ -26,6 +26,7 @@ export interface IValidatorInspectorReport {
     required: boolean;
     keyComponent: boolean;
     geoqueryType: null | string;
+    jsonType: boolean;
     softDeleteFlag: boolean;
     updateDisabled: boolean;
     createRequired: boolean;

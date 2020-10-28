@@ -135,7 +135,7 @@ export const joiBase = (type: string) => {
     case "json":
     case "jsonb":
     case "jsonpath":
-      return Joi.string(); // will want to use JSONB on output
+      return Joi.string().invalid(cnst.SYMBOL_JSON); // will want to use JSONB on output
 
     // 8.15. Arrays":
     // ignore. default will be string

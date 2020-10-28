@@ -57,10 +57,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   const report = resource.report[operation];
   const resource_fields = Object.keys(report);
 
-  console.log('resource_fields')
-  console.log(resource_fields)
-
-
   const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
   const argKeys = ["read", "delete"].includes(operation); // used to id if response needs to pluck first item in array
 
@@ -68,9 +64,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   const input = argKeys
     ? { ...DEFAULT_INPUT(), payload: args }
     : { ...DEFAULT_INPUT(), ...args };
-
-  console.log('input')
-  console.log(input)
 
   const { payload, context, options, keys, subquery } = input;
 
@@ -90,6 +83,10 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   if (context.orderBy) {
     context.orderBy = contextTransformer("orderBy", context.orderBy);
   }
+
+  console.log('payload')
+  console.log(payload)
+
   const query = {
     payload:
       operation === "update"
@@ -102,9 +99,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
     apiType,
     hardDelete,
   };
-
-  console.log('operation, query')
-  console.log(operation, query)
 
   const subPayload = {
     ...subquery, // subquery has `payload` & `context` keys. needs to be typed
@@ -122,17 +116,17 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       )
     : resource[operation](query);
 
+  console.log('query')
+  console.log(query)
   const serviceResponse = await _serviceResponse;
+
   console.log('serviceResponse')
   console.log(serviceResponse)
+
   if (serviceResponse.result) {
 
     try {
       const _records = await serviceResponse.result.sql;
-
-      console.log('_records')
-      console.log(_records)
-    
 
       const data =
         !resource.supportsReturn && ["create", "update"].includes(operation)
@@ -151,9 +145,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       const response: IServiceResolverResponseBase = {
         data: singleRecord ? (data.length ? data[0] : null) : data,
       };
-
-      console.log('response')
-      console.log(response)
 
       if (operation === "search" && options.count) {
         // later could apply to update & delete
@@ -186,7 +177,7 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       const transformJson = (record) => {
 
         const jsonFields = Object.keys(record).filter(
-          (key) => !!report[key].geoqueryType
+          (key) => !!(report[key].geoqueryType || report[key].jsonType)
         );
         for (const jsonField of jsonFields) {
           record[jsonField] = encodeStruct(record[jsonField]);
@@ -207,8 +198,7 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 
         return output;
       };
-      console.log('response')
-      console.log(response)
+
       let final;
 
       if (operation === 'delete') {
@@ -222,9 +212,6 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
         final = Array.isArray(response.data) ? {data: response.data.map(transformJson)} :  jsonToStructs(response).data[0]
       }
 
-      console.log('final')
-      console.log(final)
-      
       callback(null, final);
 
       // if single record searched and not returned -- 404

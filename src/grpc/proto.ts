@@ -83,8 +83,9 @@ export const grpcTypes = ({
         `${notnull ? "required" : "optional"} ${schemaScalar} ${field}`
       );
 
+      // json as input should be a sting to get validated and stored correctly
       messages[`input${ResourceName}`].push(
-        `optional ${schemaScalar} ${field}`
+        `optional ${schemaScalar === 'google.protobuf.Struct' ? 'string' : schemaScalar} ${field}`
       );
       if (primarykey) {
         messages[`keys${ResourceName}`].push(
@@ -175,7 +176,7 @@ export const grpcTypes = ({
 
         messages[`args_update_${ResourceName}`] = [
           `required keys${ResourceName} keys`,
-          `required in${ResourceName} payload`,
+          `required input${ResourceName} payload`,
         ];
 
         services.push(

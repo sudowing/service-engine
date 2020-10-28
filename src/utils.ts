@@ -173,6 +173,9 @@ export const reducerValidatorInspector = (
           ? cnst.POINT
           : cnst.POLYGON
         : null,
+    jsonType: !!(
+      schema._invalids && schema._invalids.has(cnst.SYMBOL_JSON)
+    ),
     softDeleteFlag: !!(
       schema._invalids && schema._invalids.has(cnst.SYMBOL_SOFT_DELETE)
     ),
@@ -833,10 +836,6 @@ export const encodeStructFields = (data) =>
   );
 
 export const encodeStruct = (data: { [key: string]: any }) => {
-  console.log('---------')
-  console.log('encodeStruct.data')
-  console.log(data)
-  console.log('---------')
   return {
     fields: data ? encodeStructFields(data) : data,
   };

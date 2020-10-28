@@ -776,4 +776,3 @@ https://github.com/protobufjs/protobuf.js/issues/338
 https://github.com/mesg-foundation/mesg-js/blob/238e70e56cc8a35cfc8ffeb1ffa92c3160ff5d87/src/util/encoder.ts
 
 
-DONT FORGET JSONB FIELDS FOR json -> struct conversion

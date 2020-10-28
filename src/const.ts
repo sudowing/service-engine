@@ -46,6 +46,8 @@ export const GEO_BBOX = "geo_bbox";
 export const GEO_RADIUS = "geo_radius";
 export const GEO_POLYGON = "geo_polygon";
 
+export const JSON = "json";
+export const JSONB = "jsonb";
 export const BIT = "bit";
 export const TINYINT = "tinyint";
 export const SMALLINT = "smallint";
@@ -88,6 +90,7 @@ export const DEFINED_ARG_LENGTHS = {
   geo_radius: 3,
 };
 
+export const SYMBOL_JSON = Symbol("json");
 export const SYMBOL_GEOQUERY = Symbol("geoquery");
 
 export const SYMBOL_GEOQUERY_POINT = Symbol("geoquery-point");
