@@ -595,6 +595,27 @@ export const genDatabaseResourceOpenApiDocs = async ({
         },
       },
     },
+    "/proto": {
+      get: {
+        summary: "proto txt",
+        operationId: "proto",
+        tags: ["_service"],
+        responses: {
+          "200": {
+            headers: {
+              "x-request-id": {
+                schema: {
+                  type: "string",
+                },
+                description:
+                  "uuid issued to each request. Injected into all server logs. useful for debugging",
+              },
+            },
+            description: "Text content for .proto file.",
+          },
+        },
+      },
+    },
     "/openapi": {
       get: {
         summary: "openapi json",
