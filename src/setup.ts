@@ -21,6 +21,9 @@ import { grpcModule } from "./grpc";
 
 const PROTO_PATH = __dirname + "/service.proto";
 
+console.log('PROTO_PATH')
+console.log(PROTO_PATH)
+
 export const prepare = async ({
   db,
   st,
@@ -61,9 +64,11 @@ export const prepare = async ({
   const REGEX_LEGAL_SDL = /[0-9a-zA-Z_]+/g;
   const flagNonSupportedSchemaChars = (record) =>
     Object.entries(record).filter(
-      ([key, value]) =>
-        fields.includes(key) &&
+      ([key, value]) => {
+        return fields.includes(key) && value.toString().length &&
         value.toString().match(REGEX_LEGAL_SDL).length > 1
+
+      }
     ).length > 0;
 
   const problemResources = dbResourceRawRows.filter(

@@ -241,63 +241,6 @@ export const grpcSchema = ({
     `
   );
 
-  messages.serviceAppMetadata = [
-    `required string appShortName`,
-    `required string title`,
-    `required string description`,
-    `required string termsOfService`,
-    `required string name`,
-    `required string email`,
-    `required string url`,
-    `repeating string servers`,
-    `required string appName`,
-    `required string routerPrefix`,
-  ];
-
-  messages.serviceAppDataBaseInfo = [
-    `required string dialect`,
-    `required string version`,
-  ];
-
-  messages.NonReturningSuccessResponse = [`required bool success`];
-
-  messages.serviceAppDataBaseInfo = [
-    `required string dialect`,
-    `required string version`,
-  ];
-
-  messages.serviceAppHealthz = [
-    `required string serviceVersion`,
-    `required float timestamp`,
-    `required serviceAppMetadata metadata`,
-    `required serviceAppDataBaseInfo db_info`,
-  ];
-
-  messages.in_range_string = [`required string min`, `required string max`];
-
-  messages.in_range_float = [`required float min`, `required float max`];
-
-  messages.st_radius = [
-    `required float long`,
-    `required float lat`,
-    `required float meters`,
-  ];
-
-  messages.st_bbox = [
-    `required float xMin`,
-    `required float yMin`,
-    `required float xMax`,
-    `required float yMax`,
-  ];
-
-  messages.inputContext = [
-    `required string seperator`,
-    `required bool notWhere`,
-    `required string statementContext`,
-    `required string orderBy`,
-    `required float page`,
-    `required float limit`,
-  ];
 
   // count
   messages.serviceInputOptions = [`required bool count`];
@@ -350,6 +293,10 @@ export const grpcSchema = ({
       }
 
 
+      message NonReturningSuccessResponse {
+        required bool success = 1;
+      }
+
       message serviceAppHealthz {
         required string serviceVersion = 1;
         required float timestamp = 2;
@@ -399,6 +346,10 @@ export const grpcSchema = ({
         optional bool count = 1;
       }
 
+      message servicePointGeometry {
+        required string type = 1;
+        required string coordinates = 2;
+      }
 
       ${items.join(NEW_LINE)}
 
