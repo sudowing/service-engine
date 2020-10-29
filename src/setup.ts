@@ -21,9 +21,6 @@ import { grpcModule } from "./grpc";
 
 const PROTO_PATH = __dirname + "/service.proto";
 
-console.log('PROTO_PATH')
-console.log(PROTO_PATH)
-
 export const prepare = async ({
   db,
   st,
