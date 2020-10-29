@@ -205,6 +205,8 @@ export const COMPLEX_RESOLVER_SEPERATOR = "____";
 
 export const NON_RETURNING_SUCCESS_RESPONSE = { success: true };
 export const NON_RETURNING_FAILURE_RESPONSE = { success: false };
+export const UNIQUE_RECORD_NOT_FOUND_WITH_KEYS =
+  "Unique Record Not Found with those keys";
 
 export const UNSUPPORTED_CHARACTER_IN_DB =
   "DB resource name or field contains character unsupported in GraphQL SDL (schema definition language). Supported characters are limited to `[0-9a-zA-Z_]` in all three `fieldsOfConcern`. Review each field within the `problemResources` records. Solutions would include updating the DDL to a name that is supported of omitting the resource from this service via a startup config";

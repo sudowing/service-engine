@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   NON_RETURNING_SUCCESS_RESPONSE,
   NON_RETURNING_FAILURE_RESPONSE,
+  UNIQUE_RECORD_NOT_FOUND_WITH_KEYS,
 } from "../const";
 import { genCountQuery } from "../database";
 import { IServiceResolverResponseBase, IClassResourceMap } from "../interfaces";
@@ -209,7 +210,7 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
         final = { number: response.data };
       } else if (operation === "read") {
         if (!response.data) {
-          throw new Error("Unique Record Not Found with those keys");
+          throw new Error(UNIQUE_RECORD_NOT_FOUND_WITH_KEYS);
         }
         final = transformJson(response.data);
       } else if (operation === "update") {
@@ -229,11 +230,25 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       // if single record searched and not returned -- 404
       // if ([null, undefined].includes(output)) {
     } catch (err) {
-      // log error && // not a user input error
+      const message =
+        err.message === UNIQUE_RECORD_NOT_FOUND_WITH_KEYS
+          ? "BAD_REQUEST"
+          : "INTERNAL_SERVER_ERROR";
+
+      resource.logger.error(
+        {
+          message,
+          reqId,
+          err,
+          detail: err.message,
+        },
+        "grpc method call error"
+      );
+
       callback(
         new Error(
           JSON.stringify({
-            message: "INTERNAL_SERVER_ERROR",
+            message,
             reqId,
             err,
             detail: err.message,
@@ -242,6 +257,15 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       );
     }
   } else {
+    resource.logger.error(
+      {
+        message: "BAD_REQUEST",
+        detail: serviceResponse,
+        reqId,
+      },
+      "grpc method call error: bad request"
+    );
+
     callback(
       new Error(
         JSON.stringify({

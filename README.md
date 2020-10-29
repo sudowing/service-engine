@@ -733,3 +733,4 @@ There is a basic structure of the logger statements. While you do need to review
 
 Docker is the quickest start. links here and here to docker image and template
 
+add logger to grpc methods...
