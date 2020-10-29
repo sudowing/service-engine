@@ -241,7 +241,6 @@ export const grpcSchema = ({
     `
   );
 
-
   // count
   messages.serviceInputOptions = [`required bool count`];
   // `optional serviceInputOptions options`,

@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { NON_RETURNING_SUCCESS_RESPONSE, NON_RETURNING_FAILURE_RESPONSE } from "../const";
+import {
+  NON_RETURNING_SUCCESS_RESPONSE,
+  NON_RETURNING_FAILURE_RESPONSE,
+} from "../const";
 import { genCountQuery } from "../database";
 import { IServiceResolverResponseBase, IClassResourceMap } from "../interfaces";
 import {
@@ -14,8 +17,8 @@ import {
 
 import { encodeStruct } from "../utils";
 
-
-const nonReturningResponse = (val: any) => !!val ? NON_RETURNING_SUCCESS_RESPONSE : NON_RETURNING_FAILURE_RESPONSE;
+const nonReturningResponse = (val: any) =>
+  !!val ? NON_RETURNING_SUCCESS_RESPONSE : NON_RETURNING_FAILURE_RESPONSE;
 
 const apiType = "GRPC";
 
@@ -122,7 +125,8 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       const data =
         !resource.supportsReturn && ["create", "update"].includes(operation)
           ? operation === "update"
-            ? [nonReturningResponse(_records)] : nonReturningResponse(_records)
+            ? [nonReturningResponse(_records)]
+            : nonReturningResponse(_records)
           : resource.transformRecords(_records);
 
       // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
@@ -165,15 +169,12 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
       }
 
       const transformJson = (record) => {
-
-        console.log('transformJson.record')
-        console.log(record)
-
-        console.log('transformJson.report')
-        console.log(report)
-
         const jsonFields = Object.keys(record).filter(
-          (key) => !!(report[key] && (report[key].geoqueryType || report[key].jsonType))
+          (key) =>
+            !!(
+              report[key] &&
+              (report[key].geoqueryType || report[key].jsonType)
+            )
         );
         for (const jsonField of jsonFields) {
           record[jsonField] = encodeStruct(record[jsonField]);
@@ -199,47 +200,35 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
 
       let final;
 
-      if(!resource.supportsReturn && ['create', 'update'].includes(operation)) {
-
-        console.log('transformJson._records')
-        console.log(_records)
-
-        console.log('transformJson.response.data')
-        console.log(response.data)
-
-
+      if (
+        !resource.supportsReturn &&
+        ["create", "update"].includes(operation)
+      ) {
         final = response.data;
-      }
-      else if (operation === "delete") {
+      } else if (operation === "delete") {
         final = { number: response.data };
-      } else if (singleRecord) { // read || update
+      } else if (operation === "read") {
+        if (!response.data) {
+          throw new Error("Unique Record Not Found with those keys");
+        }
         final = transformJson(response.data);
-      } else {
-
-        console.log('final.response.data')
-        console.log(response.data)
-
+      } else if (operation === "update") {
+        final = transformJson(response.data);
+      } else if (operation === "create") {
         // need to check create one-and-many
         final = Array.isArray(response.data)
           ? { data: response.data.map(transformJson) }
           : jsonToStructs(response).data[0];
+      } else if (operation === "search") {
+        // need to check create one-and-many
+        final = { ...response, data: response.data.map(transformJson) };
       }
-
-      console.log('final')
-      console.log(final)
 
       callback(null, final);
 
       // if single record searched and not returned -- 404
       // if ([null, undefined].includes(output)) {
     } catch (err) {
-
-      console.log('err')
-      console.log(err)
-
-      console.log('serviceResponse')
-      console.log(serviceResponse)
-
       // log error && // not a user input error
       callback(
         new Error(
