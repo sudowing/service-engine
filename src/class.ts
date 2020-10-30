@@ -276,15 +276,22 @@ export class Resource implements ts.IClassResource {
       return util.rejectResource(parsed.errorType, parsed.error);
     }
 
+    const stringValues = util.stringValues(context.seperator);
+
     // if subqueryContext -- delete most the context keys
     if (subqueryContext) {
       delete context.seperator;
       delete context.orderBy;
       delete context.page;
       delete context.limit;
+      // TODO: what about context.fields? confirm this works correctly
     }
 
+    // standardize GRAPHQL & GRPC inputs to REST string input
+    input.payload = stringValues(input.payload);
+
     const { errors, components } = await this.meta.searchQueryParser(
+      // if middlewareFn -- serialize the Object.values to all be strings
       this.middlewareFn ? this.middlewareFn(input.payload) : input.payload,
       input.apiType,
       context

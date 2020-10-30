@@ -101,6 +101,55 @@ export const toSchemaScalar = (type: string) => {
   }
 };
 
+export const toProtoScalar = (type: string) => {
+  switch (type) {
+    case "int":
+    case "integer":
+    case "tinyint":
+    case "smallint":
+    case "mediumint":
+    case "bigint":
+    case "unsigned big int":
+    case "int2":
+    case "int8":
+      return "uint32";
+    // character(n) -- ignore. use default
+    // varchar(n) -- ignore. use default
+    // varying character(n) -- ignore. use default
+    // nchar(n) -- ignore. use default
+    // native character(n) -- ignore. use default
+    // nvarchar(n) -- ignore. use default
+    case "text":
+    case "clob":
+      return "string";
+    case "blob":
+    case "":
+      return "string";
+    case "real":
+    case "double":
+    case "double precision":
+    case "float":
+      return "uint32";
+    case "numeric":
+    // decimal(n1, n2) -- check for starts with
+    case "boolean":
+    case "date":
+    case "datetime":
+      return "uint32";
+    default:
+      // this doesn't matter here as the schema cannot enforce
+      // const match = type.match(cnst.REGEX_CHAR);
+      // if (match) {
+      //   return Joi.string().length(Number(match.groups.len));
+      // }
+      if (type.startsWith("decimal")) {
+        return "uint32";
+      }
+
+      return "string";
+  }
+};
+
 export const dialect = ({ migrationTable }) => {
   const dbSurveyQuery = `
     SELECT
@@ -150,5 +199,11 @@ export const dialect = ({ migrationTable }) => {
 
   const versionQuery = `select sqlite_version() as db_version;`;
 
-  return { dbSurveyQuery, versionQuery, joiBase, toSchemaScalar };
+  return {
+    dbSurveyQuery,
+    versionQuery,
+    joiBase,
+    toSchemaScalar,
+    toProtoScalar,
+  };
 };

@@ -1,30 +1,14 @@
-import { GraphQLModule } from "@graphql-modules/core";
 import gql from "graphql-tag";
-import GraphQLJSON from "graphql-type-json";
-import { UserInputError } from "apollo-server-koa";
 
 import * as fs from "fs";
 
+import { COMPLEX_RESOLVER_SEPERATOR, NEW_LINE } from "../const";
+import { IClassResource } from "../interfaces";
 import {
-  SERVICE_VERSION,
-  COMPLEX_RESOLVER_SEPERATOR,
-  NON_RETURNING_SUCCESS_RESPONSE,
-} from "./const";
-import { genCountQuery } from "./database";
-import {
-  IServiceResolverResponse,
-  IClassResourceMap,
-  IClassResource,
-} from "./interfaces";
-import {
-  contextTransformer,
   getFirstIfSeperated,
-  callComplexResource,
-  genResourcesMap,
   transformNameforResolver,
-  extractSelectedFields,
   permitted,
-} from "./utils";
+} from "../utils";
 
 export const gqlTypes = ({
   dbResources,
@@ -256,8 +240,6 @@ export const gqlTypes = ({
   }
   return schema;
 };
-const ln = `
-`;
 
 export const gqlSchema = async ({
   validators,
@@ -288,7 +270,7 @@ export const gqlSchema = async ({
   const items = Object.entries(other).map(
     ([name, definition]) => `
       ${name} {
-          ${Array.isArray(definition) ? definition.join(ln) : definition}
+          ${Array.isArray(definition) ? definition.join(NEW_LINE) : definition}
       }
     `
   );
@@ -296,10 +278,10 @@ export const gqlSchema = async ({
   const typeDefsString = `
         type Query {
             service_healthz: serviceAppHealthz
-            ${query.join(ln)}
+            ${query.join(NEW_LINE)}
         }
         type Mutation {
-            ${mutation.join(ln)}
+            ${mutation.join(NEW_LINE)}
         }
 
         type serviceAppMetadata {
@@ -395,7 +377,7 @@ export const gqlSchema = async ({
         scalar JSONB
 
 
-        ${items.join(ln)}
+        ${items.join(NEW_LINE)}
 
     `;
 
@@ -411,301 +393,5 @@ export const gqlSchema = async ({
   return {
     typeDefsString,
     typeDefs,
-  };
-};
-
-const apiType = "GRAPHQL";
-export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
-  resource,
-  hardDelete: boolean,
-  supportsReturn: boolean
-) => (operation: string) => async (obj, args, ctx, info) => {
-  const reqId = ctx.reqId || "reqId no issued";
-  const defaultInput = { payload: {}, context: {}, options: {}, subquery: {} };
-
-  const input = { ...defaultInput, ...args };
-  const { payload, context, options, keys, subquery } = input;
-
-  const parseGraphQLInput = (field, op, value) => {
-    if (op === "geo") {
-      const [_op, ..._field] = field.split("_");
-      const _value =
-        _op === "polygon"
-          ? [value]
-          : _op === "radius"
-          ? [value.long, value.lat, value.meters]
-          : [value.xMin, value.yMin, value.xMax, value.yMax];
-      return [`${_field}.geo_${_op}`, _value];
-    } else if (["not_range", "range"].includes(op)) {
-      return [`${field}.${op}`, [value.min, value.max]];
-    } else if (["not_in", "in"].includes(op)) {
-      return [`${field}.${op}`, value];
-    }
-
-    return [`${field}.${op}`, value];
-  };
-
-  const gqlParsePayload = (i: object) =>
-    Object.fromEntries(
-      Object.entries(i).flatMap(([op, values]) =>
-        Object.entries(values).map(([field, value]) =>
-          parseGraphQLInput(field, op, value)
-        )
-      )
-    );
-
-  // tslint:disable-next-line: prefer-const
-  let { props, fields } = extractSelectedFields(info);
-  const callDatabase = props.includes("data");
-
-  if (!supportsReturn && ["create", "update"].includes(operation)) {
-    fields = [];
-  }
-  context.fields = fields;
-
-  if (context.orderBy) {
-    context.orderBy = contextTransformer("orderBy", context.orderBy);
-  }
-  const query = {
-    payload:
-      operation === "update"
-        ? { ...payload, ...keys }
-        : operation === "search"
-        ? gqlParsePayload(payload)
-        : payload,
-    context,
-    requestId: reqId,
-    apiType,
-    hardDelete,
-  };
-
-  const subPayload = {
-    ...subquery, // subquery has `payload` & `context` keys. needs to be typed
-    requestId: reqId,
-    apiType,
-  };
-
-  const _serviceResponse = resource.hasSubquery
-    ? callComplexResource(
-        resourcesMap,
-        resource.name,
-        operation,
-        query,
-        subPayload
-      )
-    : resource[operation](query);
-
-  const serviceResponse = await _serviceResponse;
-
-  if (serviceResponse.result) {
-    try {
-      const sql = serviceResponse.result.sql.toString();
-      const _records = callDatabase ? await serviceResponse.result.sql : [];
-      const data =
-        !supportsReturn && ["create", "update"].includes(operation)
-          ? operation === "update"
-            ? [NON_RETURNING_SUCCESS_RESPONSE]
-            : NON_RETURNING_SUCCESS_RESPONSE
-          : resource.transformRecords(_records);
-
-      // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
-
-      // update & delete will one day support search query for bulk mutation (already supported in the class I think)
-      const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
-
-      delete serviceResponse.result.sql;
-      const debug = {
-        now: Date.now(),
-        reqId,
-        input: {
-          payload,
-          context,
-          options,
-        },
-        serviceResponse,
-      };
-
-      if (subquery) {
-        // @ts-ignore
-        debug.input.subPayload = subPayload;
-      }
-
-      // send count as additional field
-      const response: IServiceResolverResponse = {
-        data: singleRecord ? (data.length ? data[0] : null) : data,
-        sql,
-        debug,
-      };
-
-      if (callDatabase && operation === "search" && options.count) {
-        // later could apply to update & delete
-
-        const { seperator, notWhere, statementContext } = query.context;
-        query.context = { seperator, notWhere, statementContext };
-
-        const _searchCountResult = resource.hasSubquery
-          ? callComplexResource(
-              resourcesMap,
-              resource.name,
-              operation,
-              query,
-              subPayload
-            )
-          : resource[operation](query);
-
-        const { result: searchCountResult } = await _searchCountResult; // validation is now async!
-
-        const sqlSearchCount = genCountQuery(
-          resource.db,
-          searchCountResult.sql
-        );
-
-        const [{ count }] = await sqlSearchCount; // can/should maybe log this
-
-        response.count = count;
-      }
-
-      return response;
-
-      // if single record searched and not returned -- 404
-      // if ([null, undefined].includes(output)) {
-    } catch (err) {
-      // log error && // not a user input error
-      throw new UserInputError("cnst.INTERNAL_SERVER_ERROR", {
-        detail: serviceResponse,
-        reqId,
-      });
-    }
-  } else {
-    throw new UserInputError("HTTP_STATUS.BAD_REQUEST", {
-      detail: serviceResponse,
-      reqId,
-    });
-  }
-};
-
-export const gqlModule = async ({
-  validators,
-  dbResources,
-  dbResourceRawRows,
-  Resources,
-  toSchemaScalar,
-  hardDelete,
-  metadata,
-  supportsReturn,
-  permissions,
-}) => {
-  // resolvers are built. now just need to add gqlschema for complexResources
-  const { typeDefsString, typeDefs } = await gqlSchema({
-    validators,
-    dbResources,
-    dbResourceRawRows,
-    Resources,
-    toSchemaScalar,
-    metadata,
-    supportsReturn,
-    permissions,
-  });
-
-  const serviceResolvers = Resources
-    // .filter(
-    //   (item: any) => ![...item[1].name].includes(":")
-    // ) // temp -- will remove when integrating complex into GraphQL
-    .reduce(
-      ({ Query, Mutation }, [name, resource]) => {
-        const allow = permitted(permissions);
-        const permit = {
-          create: allow(name, "create"),
-          read: allow(name, "read"),
-          update: allow(name, "update"),
-          delete: allow(name, "delete"),
-          any: true,
-        };
-        permit.any =
-          permit.create || permit.read || permit.update || permit.delete;
-
-        const ResourceName = transformNameforResolver(name);
-        const resourcesMap = genResourcesMap(Resources);
-
-        const resolver = makeServiceResolver(resourcesMap)(
-          resource,
-          hardDelete,
-          resource.supportsReturn
-        );
-
-        const output = {
-          Query: {
-            ...Query,
-            [`Read${ResourceName}`]: resolver("read"),
-            [`Search${ResourceName}`]: resolver("search"),
-          },
-          Mutation: {
-            ...Mutation,
-            [`Create${ResourceName}`]: resolver("create"),
-            [`Update${ResourceName}`]: resolver("update"),
-            [`Delete${ResourceName}`]: resolver("delete"),
-          },
-        };
-
-        const keys = Object.values(
-          dbResources[getFirstIfSeperated(name)]
-        ).filter((item: any) => item.primarykey);
-
-        // if resource lacks keys -- delete resolvers for unique records
-        if (!keys.length) {
-          delete output.Query[`Read${ResourceName}`];
-          delete output.Mutation[`Update${ResourceName}`];
-          delete output.Mutation[`Delete${ResourceName}`];
-        } else {
-          if (!permit.read) {
-            delete output.Query[`Read${ResourceName}`];
-          }
-          if (!permit.update) {
-            delete output.Mutation[`Update${ResourceName}`];
-          }
-          if (!permit.delete) {
-            delete output.Mutation[`Delete${ResourceName}`];
-          }
-        }
-        if (!permit.create) {
-          delete output.Query[`Create${ResourceName}`];
-        }
-        if (!permit.read) {
-          delete output.Query[`Search${ResourceName}`];
-        }
-        return output;
-      },
-      { Query: {}, Mutation: {} }
-    );
-
-  const appResolvers = {
-    JSONB: GraphQLJSON,
-    Query: {
-      service_healthz(obj, args, context, info) {
-        const { db_info, ...rest } = metadata;
-        return {
-          serviceVersion: SERVICE_VERSION,
-          timestamp: Date.now(),
-          metadata: rest,
-          db_info,
-        };
-      },
-    },
-  };
-
-  const AppModule = new GraphQLModule({
-    typeDefs,
-    resolvers: [appResolvers, serviceResolvers],
-    context({ ctx }) {
-      const reqId = ctx.response.header["x-request-id"] || "uuidv4()";
-      return {
-        reqId,
-      };
-    },
-  });
-
-  return {
-    AppModule,
-    typeDefsString,
   };
 };

@@ -1,3 +1,9 @@
+import { writeFileSync } from "fs";
+
+import * as protoLoader from "@grpc/proto-loader";
+import { pascalCase } from "change-case";
+import * as grpc from "grpc";
+
 import { Resource } from "./class";
 import {
   STARTUP_FAILED,
@@ -6,10 +12,14 @@ import {
 } from "./const";
 import { aggregationFnBuilder } from "./database";
 import { gqlModule } from "./graphql";
-import { getDatabaseResources } from "./integration";
+import { getDatabaseResources } from "./dialects";
 import { TDatabaseResources } from "./interfaces";
 import { serviceRouters } from "./routers";
 import { genDatabaseResourceValidators } from "./utils";
+
+import { grpcModule } from "./grpc";
+
+const PROTO_PATH = __dirname + "/service.proto";
 
 export const prepare = async ({
   db,
@@ -28,6 +38,7 @@ export const prepare = async ({
     versionQuery,
     joiBase,
     toSchemaScalar,
+    toProtoScalar,
     dbGeometryColumns,
   } = getDatabaseResources({
     db,
@@ -49,11 +60,13 @@ export const prepare = async ({
 
   const REGEX_LEGAL_SDL = /[0-9a-zA-Z_]+/g;
   const flagNonSupportedSchemaChars = (record) =>
-    Object.entries(record).filter(
-      ([key, value]) =>
+    Object.entries(record).filter(([key, value]) => {
+      return (
         fields.includes(key) &&
+        value.toString().length &&
         value.toString().match(REGEX_LEGAL_SDL).length > 1
-    ).length > 0;
+      );
+    }).length > 0;
 
   const problemResources = dbResourceRawRows.filter(
     flagNonSupportedSchemaChars
@@ -129,7 +142,7 @@ export const prepare = async ({
 
   // build the complex resources based on the provided configs
   (complexResources || []).forEach(
-    ({ topResourceName, subResourceName, calculated_fields, group_by }) => {
+    ({ topResourceName, subResourceName, calculatedFields, groupBy }) => {
       // confirm they exist else
       if (!dbResources[topResourceName] || !dbResources[subResourceName]) {
         logger.fatal(
@@ -156,7 +169,7 @@ export const prepare = async ({
           middlewareFn:
             middleware && middleware[name] ? middleware[name] : undefined,
           subResourceName,
-          aggregationFn: aggregationFnBuilder(db)(calculated_fields, group_by),
+          aggregationFn: aggregationFnBuilder(db)(calculatedFields, groupBy),
           geoFields: geoFields[name] || undefined,
           supportsReturn,
         }),
@@ -176,6 +189,22 @@ export const prepare = async ({
     permissions,
   });
 
+  const AppShortName = pascalCase(metadata.appShortName);
+
+  const { protoString, grpcMethods } = await grpcModule({
+    validators,
+    dbResources,
+    dbResourceRawRows,
+    Resources,
+    toProtoScalar,
+    hardDelete,
+    metadata,
+    supportsReturn,
+    permissions,
+    AppShortName,
+    logger,
+  });
+
   const { appRouter, serviceRouter } = await serviceRouters({
     db,
     st,
@@ -186,10 +215,26 @@ export const prepare = async ({
     dbResourceRawRows,
     Resources,
     toSchemaScalar,
+    protoString,
     hardDelete,
     supportsReturn,
     permissions,
   });
 
-  return { appRouter, serviceRouter, AppModule };
+  // setup grpc service
+
+  // write schema to proto file with specific path
+  writeFileSync(PROTO_PATH, protoString);
+  const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+    keepCase: true,
+    longs: String,
+    enums: String,
+    bytes: Array,
+  });
+  const protoService = grpc.loadPackageDefinition(packageDefinition).service;
+  const grpcService = new grpc.Server();
+  grpcService.addService(protoService[AppShortName].service, grpcMethods);
+  grpcService.bind("0.0.0.0:50051", grpc.ServerCredentials.createInsecure());
+
+  return { appRouter, serviceRouter, AppModule, AppShortName, grpcService };
 };

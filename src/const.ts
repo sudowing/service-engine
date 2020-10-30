@@ -46,6 +46,8 @@ export const GEO_BBOX = "geo_bbox";
 export const GEO_RADIUS = "geo_radius";
 export const GEO_POLYGON = "geo_polygon";
 
+export const JSON = "json";
+export const JSONB = "jsonb";
 export const BIT = "bit";
 export const TINYINT = "tinyint";
 export const SMALLINT = "smallint";
@@ -88,6 +90,7 @@ export const DEFINED_ARG_LENGTHS = {
   geo_radius: 3,
 };
 
+export const SYMBOL_JSON = Symbol("json");
 export const SYMBOL_GEOQUERY = Symbol("geoquery");
 
 export const SYMBOL_GEOQUERY_POINT = Symbol("geoquery-point");
@@ -201,6 +204,9 @@ export const SERVICE_RESOURCE_NOT_FOUND_BODY = {
 export const COMPLEX_RESOLVER_SEPERATOR = "____";
 
 export const NON_RETURNING_SUCCESS_RESPONSE = { success: true };
+export const NON_RETURNING_FAILURE_RESPONSE = { success: false };
+export const UNIQUE_RECORD_NOT_FOUND_WITH_KEYS =
+  "Unique Record Not Found with those keys";
 
 export const UNSUPPORTED_CHARACTER_IN_DB =
   "DB resource name or field contains character unsupported in GraphQL SDL (schema definition language). Supported characters are limited to `[0-9a-zA-Z_]` in all three `fieldsOfConcern`. Review each field within the `problemResources` records. Solutions would include updating the DDL to a name that is supported of omitting the resource from this service via a startup config";
@@ -215,3 +221,6 @@ export const PERMIT_DELETE = 8;
 // tslint:disable: no-bitwise
 export const PERMIT_CRUD =
   PERMIT_CREATE | PERMIT_READ | PERMIT_UPDATE | PERMIT_DELETE;
+
+export const NEW_LINE = `
+        `;

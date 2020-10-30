@@ -166,12 +166,14 @@ export const reducerValidatorInspector = (
     keyComponent: !!(
       schema._invalids && schema._invalids.has(cnst.SYMBOL_UNIQUE_KEY_COMPONENT)
     ),
+    // TODO: add json type. will be needed by grpc `jsonToStructs` in grpc.methods
     geoqueryType:
       schema._invalids && schema._invalids.has(cnst.SYMBOL_GEOQUERY)
         ? schema._invalids.has(cnst.SYMBOL_GEOQUERY_POINT)
           ? cnst.POINT
           : cnst.POLYGON
         : null,
+    jsonType: !!(schema._invalids && schema._invalids.has(cnst.SYMBOL_JSON)),
     softDeleteFlag: !!(
       schema._invalids && schema._invalids.has(cnst.SYMBOL_SOFT_DELETE)
     ),
@@ -332,11 +334,7 @@ export const searchQueryParser = async (
     const typecast: any = typecastFn(type);
 
     if (schema && supportMultipleValues(operation)) {
-      // if GRAPHQL must convert to string to pass validation
-      const values =
-        apiType === "GRAPHQL"
-          ? (rawValue.map(String) as any[])
-          : rawValue.split(sep).map(typecast);
+      const values = rawValue.split(sep).map(typecast);
 
       if (!validArgsforOperation(operation, values))
         errors.push({ field, error: badArgsLengthError(operation, values) });
@@ -394,7 +392,7 @@ export const queryContextParser = (
     if (context.hasOwnProperty(key)) {
       let value: any = rawValue;
       if (apiType === "REST") {
-        // NEED TO SKIP THIS FOR GRAPHQL CALLS -- they'll send the arrays & types
+        // NEED TO SKIP THIS FOR GRAPHQL & GRPC CALLS -- they'll send the arrays & types
         value = contextTransformer(key, rawValue);
       }
 
@@ -654,7 +652,9 @@ export const transformNameforResolver = (str) =>
     .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
 
 export const wktToGeoJSON = (wktString) =>
-  wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON();
+  wktString
+    ? wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON()
+    : null;
 
 export const extractSelectedFields = (information: any) => {
   let props = []; // top level fields from GraphQL Type
@@ -767,11 +767,75 @@ export const operationFlag = (operation: string) => {
 };
 
 // | because we are applying fine grain to higher policy
+// TODO: the application of sysPerms and resourcePerms is wrong. Fix before release
 export const permitted = (permissions: ts.IConfigServicePermission) => (
   resource: string,
   operation: string
 ) =>
   !!(
     operationFlag(operation) &
-    (permissions.systemPermissions | permissions.resourcePermissions[resource])
+      (permissions.systemPermissions |
+        permissions.resourcePermissions[resource]) ||
+    operationFlag(operation) & permissions.resourcePermissions[resource]
   );
+
+export const stringValues = (sep: string) => (obj: object) =>
+  Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [
+      key,
+      Array.isArray(value)
+        ? value.join(sep || cnst.SEARCH_QUERY_CONTEXT.seperator)
+        : value,
+    ])
+  );
+
+export const appendIndex = (el, i) => `${el} = ${++i}`;
+export const appendSemicolon = (el) => `${el};`;
+
+// https://github.com/mesg-foundation/mesg-js/blob/238e70e56cc8a35cfc8ffeb1ffa92c3160ff5d87/src/util/encoder.ts
+
+export const encodeStructField = (data, key) => {
+  const value = data[key];
+  switch (Object.prototype.toString.call(value)) {
+    case "[object Null]":
+    case "[object Undefined]":
+      return { nullValue: value };
+    case "[object Object]":
+      return {
+        structValue: {
+          fields: encodeStructFields(value),
+        },
+      };
+    case "[object Array]":
+      return {
+        listValue: {
+          values: value.map((k, i) => encodeStructField(value, i)),
+        },
+      };
+    case "[object Number]":
+      return { numberValue: value };
+    case "[object Boolean]":
+      return { boolValue: value };
+    case "[object String]":
+      return { stringValue: value };
+    case "[object Date]":
+      return { stringValue: (value as Date).toJSON() };
+    default:
+      throw new Error("not supported");
+  }
+};
+
+export const encodeStructFields = (data) =>
+  Object.keys(data).reduce(
+    (prev, next) => ({
+      ...prev,
+      [next]: encodeStructField(data, next),
+    }),
+    {}
+  );
+
+export const encodeStruct = (data: { [key: string]: any }) => {
+  return {
+    fields: data ? encodeStructFields(data) : data,
+  };
+};
