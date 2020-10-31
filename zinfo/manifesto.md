@@ -2,14 +2,17 @@
 
 # What's the value here?
 
-## Query DBs _via_ REST **and** GraphQL **and** gRPC
+## Call DBs _via_ REST **and** GraphQL **and** gRPC
 
 I've worked in multiple shops where some subset of engineers had an interest in utilizing `GraphQL` or `gRPC` -- but others were hesitent as `REST` was the office standard and learning any new tech takes time. A primary goal of this project is to support all three so that the REST needs of today are satisfied, while enabling `GraphQL` & `gRPC` evaluation/adoption.
 
-
 ## Most CRUD is Generic
 
-With all the unique features that are core to making your products stand out -- it's unlikely you're _uninterested_ in dedicating much time building individual REST endpoints that map 1-to-1 to DB tables.
+The unique features that make your product(s) stand out in the market deserve the lion's share of your bandwidth. As such, it's unlikely you're _uninterested_ in dedicating much time building individual REST endpoints that map 1-to-1 to DB tables.
+
+
+
+---
 
 If you've done it more than once, you already know how tedious and mentally unchallenging this exercise can be. It's work that must be done... but 
 
