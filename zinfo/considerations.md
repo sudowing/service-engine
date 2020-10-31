@@ -24,17 +24,17 @@ Postgres does and it's the recommended engine for new projects implemented this 
 ###### **NOTE**: MySQL & Sqlite3 return 201s with no-body  in REST and other payloads in GraphQL & gRPC.
 
 
-
-
 ## Supported DB Engines Respective Data Types
 
 Resources provisioned in this application are based upon the tables, views and materialized views -- and the fields and respective data types they contain -- reported on a **`dbSurveyQuery`**.
 
 (`REST` endpoints, `GraphQL` resolvers & `gRPC` methods)
 
-## Supported DB Engines
+While this application currently supports three popular database engines -- the **`dbSurveyQuery`** and various Data Type mappings are based upon recent full versions of the engine.
 
-Schema
+What this means practically is that the application may work on lower versions, the DB data types supported in the application may differ between versions. It's also possible (although not expected) that the **`dbSurveyQuery`** itself would not work for all versions. Anyone noticing an issue is encoraged to open an [issue]() and roll up their sleeves to take the first swing at proposing a resolution.
+
+In time -- its possible that version specific DB Engine support will be provided. But for now the DB Engines supported (including the version used for map development) are outlined below.
 
 ### PostgreSQL (Version 12)
 - [Data Types](https://www.postgresql.org/docs/12/datatype.html)
@@ -57,9 +57,3 @@ Schema
 - Map: [Data Type -> GraphQL Schema](./src/dialects/sqlite.ts)
 - Map: [Data Type -> gRPC Proto Scalar](./src/dialects/sqlite.ts)
 
-
-
-
-asd 
-- typed from current versions
- for the most recent versions of the supported databases
