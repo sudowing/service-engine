@@ -1,39 +1,34 @@
 
+# Key Concepts
+
+Requests to applications implementing this framework are used to build SQL queries via the SQL Query Builder, [knex.js](http://knexjs.org).
+
+While the call signatures for `REST`, `GraphQL` or `gRPC` each differ, each received request gets transformed to a common standard before for validation and execution.
+
+## Standardized Query = Payload + Context
+
+These standardized requests are made up of (among other things) a `payload` & `context`. Below is an example.
+
+```json
+{
+	"payload": {
+		"occupation": "engineer",
+		"state.in": "NJ|PA",
+		"handle.like": "sudo",
+	},
+	"context": {
+		"page": 5,
+		"limit": 3,
+		"orderBy": "handle,name_first:desc",
+		"fields": "id,handle,email,name_first",
+		"seperator": "|"
+	},
+}
+```
 
 
-# Interface Components (Query Metadata)
 
-There are several standardized components that exist in both REST & GraphQL interfaces.
-REST data returns in Response Headers, while GraphQL data is returned in response types.
-
-
-## Request Id
-
-Each request get's a Request ID (uuid) assign, which get's attached to the response header and also injected into any log statements during the fulfillment of the request. This reqId should make searching for events related to a single call in your logs trivial.
-
-## SQL
-
-Each call (REST & GraphQL) ends up building a SQL query that in most cases get's executed. The actual SQL query is always available via a response header on REST calls (and available another way via GraphQL -- more to follow).
-
-
-## Search Counts
-
-Executing a paginated search is a standard operation, and in order to save an additional service call to request the count for a search query (in addition to the actual search providing results) -- the unpaginated count is available via the response header.
-
-This way -- you can choose to request the count for the first page, which does result in 2 DB calls -- but then omit that flag for subsequent pages. GraphQL handles this a bit differently as there is a specific resolver for counts.
-
-
-
-
-
-
-
-------
-
-
-# SQL -- from afar
-
-Both REST calls and GraphQL calls end up building SQL queries. Some components of the 
+Some components of the 
 service request are related to 
 
 return fields, pagination, ordering, and a few other things -- these are defined a `context`
@@ -42,7 +37,7 @@ the comparison, logical and spacial type operators that are all supported are de
 
 a single REST call will have a `query` + `context` regardless of what CRUD method is being triggered.
 
-The same concepts are used in the GraphQL calls -- although the format is slightly different as the inputs can be submitted as their json type instead of strings via query string.
+
 
 
 
@@ -50,20 +45,26 @@ SQL via REST & GraphQL
 
 Query & Context
 
-```
+```sql
 select
-	fclass, name, geom
+	  id
+	, handle
+	, email
+	, name_first
 from
-	public.gis_osm_places_free_1
+	public.some_table -- REST call made to /public_some_table
 where
-	fclass in ('hamlet', 'village')
+	occupation = 'engineer'
 	and
-	name like 'Ro%'
+	state in ('NJ', 'PA')
+	and	
+	handle like 'sudo%'
 order by
-	name desc
-limit 250
+	  handle
+	, name_first desc
+limit 30
+offset 120
 ```
-
 
 
 
@@ -94,6 +95,50 @@ Context = additional information to be used in - query
 - page
 - limit (set for service in .env)
 
+
+
+
+
+# Interface Components
+
+## Query Metadata
+
+There are several standardized components that exist in both REST & GraphQL interfaces.
+REST data returns in Response Headers, while GraphQL data is returned in response types.
+
+
+### Request Id
+
+Each request get's a Request ID (uuid) assign, which get's attached to the response header and also injected into any log statements during the fulfillment of the request. This `reqId` should make searching for events related to a single call in your logs trivial.
+
+always present
+`x-request-id`
+
+### SQL
+
+Each call (REST, GraphQL or gRPC) ends up building a SQL query that in most cases get's executed (see [**debug mode**]()). The actual SQL query is always available via a response header on REST (as `x-sql`) calls and available another way via GraphQL.
+
+`x-get-sql`
+`x-sql`
+
+
+### Search Counts
+
+Executing a paginated search is a standard operation, and in order to save an additional service call to request the count for a search query (in addition to the actual search providing results) -- the unpaginated count is available via the response header.
+
+This way -- you can choose to request the count for the first page, which does result in 2 DB calls -- but then omit that flag for subsequent pages. GraphQL handles this a bit differently as there is a specific resolver for counts.
+
+
+`x-get-count`
+`x-count`
+
+
+
+
+------
+
+
+# SQL -- from afar
 
 ## geoqueries
   geoqueries are support in postgis where fields are geo types

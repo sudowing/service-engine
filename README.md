@@ -1,0 +1,4 @@
+
+
+https://restfulapi.net/hateoas/
+

@@ -17,7 +17,7 @@ Additionally -- if the service account lacks permissions to CRUD to specific obj
 The supported method for resolving this is to define service permissions in the *permissions configuration object*, which will prevent the publication of REST endpoints &* resolvers.
 
 ## Returning Fields on CREATE & UPDATE
-This application implements [knex.js](http://knexjs.org/), which supports a great many popular DBs, but not all DBs support returning fields on INSERT & UPDATE statements.
+This application implements [knex.js](http://knexjs.org), which supports a great many popular DBs, but not all DBs support returning fields on INSERT & UPDATE statements.
 
 Postgres does and it's the recommended engine for new projects implemented this library.
 
