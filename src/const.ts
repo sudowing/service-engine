@@ -81,7 +81,7 @@ export const SUPPORTED_OPERATIONS = {
   not_range: true,
   geo_bbox: true,
   geo_radius: true,
-  geo_polygon: true,
+  geo_polygon: false,
 };
 export const DEFINED_ARG_LENGTHS = {
   range: 2,

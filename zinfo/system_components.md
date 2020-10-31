@@ -1,49 +1,46 @@
 
 # Key Concepts
 
+## SQL; From Afar
+
 Requests to applications implementing this framework are used to build SQL queries via the SQL Query Builder, [knex.js](http://knexjs.org).
 
 While the call signatures for `REST`, `GraphQL` or `gRPC` each differ, each received request gets transformed to a common standard before for validation and execution.
 
+While trying to understand how this Framework functions, keep in mind that all API calls -- by all API methods -- are used to generate SQL. The call signatures for each are different, but not by much.
+
+And if you understand how each are processed after getting standardized... it would probably be easy to understand the various interfaces.
+
 ## Standardized Query = Payload + Context
 
-These standardized requests are made up of (among other things) a `payload` & `context`. Below is an example.
+Standardized API Requests are comprised of (among other things) a `payload` & `context`. Below is an example of what this standardized object looks like after it's been standardized.
 
 ```json
 {
 	"payload": {
 		"occupation": "engineer",
 		"state.in": "NJ|PA",
-		"handle.like": "sudo",
+		"handle.like": "sudo%",
 	},
 	"context": {
 		"page": 5,
 		"limit": 3,
-		"orderBy": "handle,name_first:desc",
+		"orderBy": "handle,name_last:desc",
 		"fields": "id,handle,email,name_first",
 		"seperator": "|"
 	},
 }
 ```
 
+The **`query`** object above would get validated to ensure all fields requested to be returned and all used for ordering exist on the target resource, the `keys` in the `payload` are fields in the target table, and that the `values` in `payload` are **[A]** of the correct data type and **[B]** the operators used on fields (ex `.like` or `.in`) have the correct number of args and type if the operator has requirements (range, geoquery, etc. have these kinds of requirements).
 
+If **invalid**, the application will respond with a meaningful, verbose message indicating what the issue was with the request.
 
-Some components of the 
-service request are related to 
+If **valid**, The **`query`** would get passed to a function that would build `SQL` to be executed against the DB.
 
-return fields, pagination, ordering, and a few other things -- these are defined a `context`
+## Standardized Query to SQL
 
-the comparison, logical and spacial type operators that are all supported are defined as the request `query`
-
-a single REST call will have a `query` + `context` regardless of what CRUD method is being triggered.
-
-
-
-
-
-SQL via REST & GraphQL
-
-Query & Context
+As an example, the **`query`** object above would produce the `SQL` below:
 
 ```sql
 select
@@ -61,30 +58,47 @@ where
 	handle like 'sudo%'
 order by
 	  handle
-	, name_first desc
+	, name_last desc
 limit 30
 offset 120
 ```
 
 
 
-Query = Supported SQL Operators
- - equal
- - gt
- - gte
- - lt
- - lte
- - not
- - like
- - null
- - not_null
- - in
- - not_in
- - range
- - not_range
- - geo_bbox
- - geo_radius
- - geo_polygon
+
+
+
+
+
+## Supported SQL Operators
+
+The example above uses three **operators** (`equal`, `in`, `like`), this Framework supports sixteen `operators`. The table below details each supported **operator**.
+
+|field.**`operator`**|sql operator|multiple seperated args|defined # of args|
+|:-:|:-:|:-:|:-:|
+|field|= (default)|false||
+|field.`equal`|=|false||
+|field.`gt`|>|false||
+|field.`gte`|>=|false||
+|field.`lt`|<|false||
+|field.`lte`|<=|false||
+|field.`not`|<>|false||
+|field.`like`|like|false||
+|field.`null`|is null|false||
+|field.`not_null`|is not null|false||
+|field.`in`|in (...values)|true||
+|field.`not_in`|not in (...values)|true||
+|field.`range`|between `x` and `y`|true|2|
+|field.`not_range`|not between `x` and `y`|true|2|
+|field.`geo_bbox`|geo_bbox|true|4|
+|field.`geo_radius`|geo_radius|true|3|
+|field.`geo_polygon`|geo_polygon|false||
+
+---
+
+## Supported Context Keys
+
+Inbound calls for Search Resources (REST & GraphQL) accept a query context that is used to define the sql to be executed. Additionally -- all resources support `fields` context, meaning no matter what operation you are executing, you can limit the fields being returned.
 
 Context = additional information to be used in - query
 - fields
@@ -138,7 +152,6 @@ This way -- you can choose to request the count for the first page, which does r
 ------
 
 
-# SQL -- from afar
 
 ## geoqueries
   geoqueries are support in postgis where fields are geo types
@@ -155,7 +168,7 @@ validate search interfaces, fields requested, etc
 
 ## Query Context
 
-Inbound calls for Search Resources (REST & GraphQL) accept a query context that is used to define the sql to be executed. Additionally -- all resources support `fields` context, meaning no matter what operation you are executing, you can limit the fields being returned.
+
 
 ##### **NOTE:** Context in REST is always in 
 ## Query Makup
