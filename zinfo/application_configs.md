@@ -53,7 +53,7 @@ example:
 const resourceSearchMiddleware = {
   public_accounts: item => ({
     ...item,
-    partition_key: !!item.email ? item.email.toLowerCase()[0] : '',
+    partition_key: !!item.email ? item.email.toLowerCase()[0] : null,
   }),
 }
 

@@ -1,5 +1,8 @@
 
 
+# ~~Manifesto~~ Mission Statement
+
+
 # What's the value here?
 
 ## Call DBs _via_ REST **and** GraphQL **and** gRPC
@@ -8,7 +11,7 @@ I've worked in multiple shops where some subset of engineers had an interest in 
 
 ## Most CRUD is Generic
 
-The unique features that make your product(s) stand out in the market deserve the lion's share of your bandwidth. As such, it's unlikely you're _uninterested_ in dedicating much time building individual REST endpoints that map 1-to-1 to DB tables.
+The unique features that make your product(s) stand out in the market deserve the lion's share of your bandwidth. As such, it's unlikely you are _uninterested_ in dedicating much time building individual REST endpoints that map 1-to-1 to DB tables.
 
 
 
