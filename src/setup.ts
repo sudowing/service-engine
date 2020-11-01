@@ -11,13 +11,15 @@ import {
   UNSUPPORTED_CHARACTER_IN_DB,
 } from "./const";
 import { aggregationFnBuilder } from "./database";
-import { gqlModule } from "./graphql";
 import { getDatabaseResources } from "./dialects";
 import { TDatabaseResources } from "./interfaces";
+
+import { gqlModule } from "./graphql";
+import { grpcModule } from "./grpc";
 import { serviceRouters } from "./rest";
+
 import { genDatabaseResourceValidators } from "./utils";
 
-import { grpcModule } from "./grpc";
 
 const PROTO_PATH = __dirname + "/service.proto";
 
