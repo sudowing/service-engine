@@ -14,7 +14,7 @@ import { aggregationFnBuilder } from "./database";
 import { gqlModule } from "./graphql";
 import { getDatabaseResources } from "./dialects";
 import { TDatabaseResources } from "./interfaces";
-import { serviceRouters } from "./routers";
+import { serviceRouters } from "./rest";
 import { genDatabaseResourceValidators } from "./utils";
 
 import { grpcModule } from "./grpc";

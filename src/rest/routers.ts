@@ -1,10 +1,11 @@
 import * as Router from "@koa/router";
 
-import { genDatabaseResourceOpenApiDocs } from "./openapi";
-import * as cnst from "./const";
-import { gqlModule } from "./graphql";
+import * as cnst from "../const";
+import { gqlModule } from "../graphql";
 
-import { genResourcesMap } from "./utils";
+import { genResourcesMap } from "../utils";
+
+import { genDatabaseResourceOpenApiDocs } from "./openapi";
 import { serviceView } from "./views";
 
 const j = JSON.stringify; // convience

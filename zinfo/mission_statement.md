@@ -1,9 +1,6 @@
 
 
-# ~~Manifesto~~ Mission Statement
-
-
-# What's the value here?
+# ~~Manifesto~~ What's the value here?
 
 ## Call DBs _via_ REST **and** GraphQL **and** gRPC
 
@@ -13,21 +10,32 @@ I've worked in multiple shops where some subset of engineers had an interest in 
 
 The unique features that make your product(s) stand out in the market deserve the lion's share of your bandwidth. As such, it's unlikely you are _uninterested_ in dedicating much time building individual REST endpoints that map 1-to-1 to DB tables.
 
-
-
 ---
 
-If you've done it more than once, you already know how tedious and mentally unchallenging this exercise can be. It's work that must be done... but 
+If you've done it more than once, you already know how tedious and mentally unchallenging this exercise can be. It's work that must be done... but why reinvent the wheel if this provides what you need?
 
- Why reinvent the wheel if this provides what you need?
-
-
-
-ived from DDLs
+This Framework builds derives resource definitions from the DB DDLs and 
+1-to-1 to DB tables, views and materialized views.
 
 
 
-ived from DDLs
+
+## Validation at the Source
+
+JOI validators are created for each resource -- or more acurately each CRUD method for each resource.
+
+These validators prevent invalid db queries from reaching the database and also offloading validation requirements from clients.
+
+
+
+## facilitate future migration of backing services
+Abstraction at DB, enabled easier migration of db in future as limits callers to a single app, enabled automagic handling of parititons via middleware (which the service's callers will not be aware of)
+
+If you haven't been a part of a db to db migration - you haven't lived. These are complicated projects requiring a fair amount of planning and coordination before finally flipping the switch.
+
+
+
+
 
 ## Why not just Query the DB directly
 
@@ -41,34 +49,20 @@ use the prebuilt docker app that implements the framework. don't even need to im
 Docker container & clonable template for migrations, configs and specifics
 
 
-
-## Prebuilt Docker Container
-
-use the prebuilt docker app that implements the framework. don't even need to implement it in node yourself.
-
-Docker container & clonable template for migrations, configs and specifics
+00000000000000
+===
 
 
 
 
 
 
-
-## Validation at the Source
-
-JOI validators are created for each resource -- or more acurately each CRUD method for each resource.
-
-These validators prevent invalid db queries from reaching the database and also offloading validation requirements from clients.
 
 ## Database Migrations
 
 Migrations are an awesome way for managing changes to db state. Since this project will act as the DAL for a specific DB, it makes a logical place to also hold migration files.
 
 
-## facilitate future migration of backing services
-Abstraction at DB, enabled easier migration of db in future as limits callers to a single app, enabled automagic handling of parititons via middleware (which the service's callers will not be aware of)
-
-If you haven't been a part of a db to db migration - you haven't lived. These are complicated projects requiring a fair amount of planning and coordination before finally flipping the switch.
 
 ## horitonatlly scalable data stores
 
@@ -80,17 +74,3 @@ sibling project provides hub-and-spoke access to multiple implementations, provi
 
 Self host GIS systems
 
-
-## what about joins
-Joins are supported in views.
-
-## how about subqueries
-Supported -- al beit a little clunky. I'll buy a beer for the person who comes up with something more elegant.
-
-see: complex queries
-
-## Explain automagic partition handling!
-
-There exists a middleware method that allows you to intercept & manipulate inbound service queries **before** they get submitted for processing (validation & db query). Think hard coding some search param, appending a search param based on the query or other related things.
-
-see: middleware

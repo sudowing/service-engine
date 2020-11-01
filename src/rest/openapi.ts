@@ -9,9 +9,9 @@ import {
   DEBUG,
   SERVICE_VERSION,
   PIPE,
-} from "./const";
-import { IValidationExpanderReport } from "./interfaces";
-import { permitted } from "./utils";
+} from "../const";
+import { IValidationExpanderReport } from "../interfaces";
+import { permitted } from "../utils";
 
 const genSearchParams = (oa3DataSchema, resource) => ([
   name,

@@ -5,7 +5,7 @@
 ## Database | PostgreSQL
 
 If you have the option -- I recommend PostgreSQL. Not only does it support [PostGIS](https://postgis.net/), but it's got great support for [table partitioning](https://www.postgresql.org/docs/12/indexes-partial.html) and [partial indexes](https://www.postgresql.org/docs/12/indexes-partial.html).
-Additionally, a detail relevant to this project, it supports **returning** on [data manipulation](https://www.postgresql.org/docs/12/dml-returning.html), which means you'll get records back, including fields that the db created (like ids) upon creation (CREATE + UPDATE).
+Additionally, a detail relevant to this project, PostgreSQL supports **returning** on [data manipulation](https://www.postgresql.org/docs/12/dml-returning.html) (CREATE + UPDATE) --  which means you'll get records back, including fields that the db created (like ids) upon creation.
 
 MySQL & SQLite3 do not support this feature, and as a result `REST` Create & Update calls serve 201 no bodys. `GraphQL` and `gRPC` calls function in a similar manner.
 

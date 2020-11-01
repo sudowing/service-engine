@@ -2,10 +2,10 @@ import { parse as parseURL } from "url";
 
 import * as HTTP_STATUS from "http-status";
 
-import * as cnst from "./const";
-import { genCountQuery } from "./database";
-import * as ts from "./interfaces";
-import { callComplexResource, permitted } from "./utils";
+import * as cnst from "../const";
+import { genCountQuery } from "../database";
+import * as ts from "../interfaces";
+import { callComplexResource, permitted } from "../utils";
 
 const j = JSON.stringify; // convience
 

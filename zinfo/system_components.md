@@ -1,5 +1,5 @@
 
-# Key Concepts
+# Key Concepts & Interfaces
 
 ## SQL; From Afar
 
@@ -63,18 +63,11 @@ limit 30
 offset 120
 ```
 
-
-
-
-
-
-
-
 ## Supported SQL Operators
 
 The example above uses three **operators** (`equal`, `in`, `like`), this Framework supports sixteen `operators`. The table below details each supported **operator**.
 
-|field.**`operator`**|sql operator|multiple seperated args|defined # of args|
+|field.**`operator`**|sql operator|multiple seperated args|# of args|
 |:-:|:-:|:-:|:-:|
 |field|= (default)|false||
 |field.`equal`|=|false||
@@ -95,6 +88,29 @@ The example above uses three **operators** (`equal`, `in`, `like`), this Framewo
 |field.`geo_polygon`|geo_polygon|false||
 
 ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Supported Context Keys
 
