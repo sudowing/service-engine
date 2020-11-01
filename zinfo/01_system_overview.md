@@ -2,11 +2,7 @@
 
 # ~~Manifesto~~ What's the value here?
 
-## REST **and** GraphQL **and** gRPC
-
-I've worked in multiple shops where some subset of engineers had an interest in utilizing `GraphQL` or `gRPC` -- but others were hesitent as `REST` was the office standard and learning any new tech takes time. A primary goal of this project is to support all three so that the `REST` needs of today are satisfied, while enabling `GraphQL` & `gRPC` evaluation/adoption.
-
-## CRUD is Generic (_mostly_)
+CRUD is Generic (_mostly_)
 
 The unique features that make your product(s) stand out in the market deserve the lion's share of your bandwidth. As such, it's unlikely you have much _sincere interest_ in dedicating time building individual REST endpoints that map 1-to-1 to DB tables.
 
@@ -20,12 +16,9 @@ This Framework builds derives resource definitions from the DB DDLs and
 
 
 
+## REST **and** GraphQL **and** gRPC
 
-
-
-
-
-
+I've worked in multiple shops where some subset of engineers had an interest in utilizing `GraphQL` or `gRPC` -- but others were hesitent as `REST` was the office standard and learning any new tech takes time. A primary goal of this project is to support all three so that the `REST` needs of today are satisfied, while enabling `GraphQL` & `gRPC` evaluation/adoption.
 
 ## Validation at the Source
 
@@ -82,44 +75,15 @@ These validators prevent invalid db queries from reaching the database and also 
 
 
 
-
-
-
-## facilitate future migration of backing services
-Abstraction at DB, enabled easier migration of db in future as limits callers to a single app, enabled automagic handling of parititons via middleware (which the service's callers will not be aware of)
-
-If you haven't been a part of a db to db migration - you haven't lived. These are complicated projects requiring a fair amount of planning and coordination before finally flipping the switch.
-
-
-
-
-
-## Why not just Query the DB directly
-
-Simply put -- _taste_.
-
-Imaging if you work in a shop where you've got three applications and a handful of async jobs working from queues. Those processes need some method
-
-
-use the prebuilt docker app that implements the framework. don't even need to implement it in node yourself.
-
-Docker container & clonable template for migrations, configs and specifics
-
-also -- this will free you from having to add db drivers to your apps and manage multiple connx to multiple dbs
-
-
-00000000000000
-===
-
-
-
-
-
-
-
 ## Database Migrations
 
 Migrations are an awesome way for managing changes to db state. Since this project will act as the DAL for a specific DB, it makes a logical place to also hold migration files.
+
+
+
+## geoqueries serving GeoJSON
+
+Self host GIS systems
 
 
 
@@ -129,7 +93,9 @@ horitonatlly scalable data stores
 sibling project provides hub-and-spoke access to multiple implementations, providing single service to port-forward from k8s for easier dev-experience (while deployed apps can call the individual services directly)
 
 
-## geoqueries serving GeoJSON
 
-Self host GIS systems
 
+## facilitate future migration of backing services
+Abstraction at DB, enabled easier migration of db in future as limits callers to a single app, enabled automagic handling of parititons via middleware (which the service's callers will not be aware of)
+
+If you haven't been a part of a db to db migration - you haven't lived. These are complicated projects requiring a fair amount of planning and coordination before finally flipping the switch.

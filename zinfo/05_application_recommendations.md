@@ -36,3 +36,9 @@ If you give engineers the ability
 
 I'd prefer do with via an active flag. Even to support with GDPR or CCPA requirements, I'd not support deleting via this service. instead -- this service should flip flags and an async worker should connect to the to this service via a special method to handle the user requested (and gov mandated) purge
 
+## Prebuilt Docker Container
+
+use the prebuilt docker app that implements the framework. don't even need to implement it in node yourself.
+
+Docker container & clonable template for migrations, configs and specifics
+

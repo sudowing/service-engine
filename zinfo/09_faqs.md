@@ -1,8 +1,18 @@
-## Prebuilt Docker Container
+
+
+## Why not just Query the DB directly
+
+Simply put -- _taste_.
+
+Imaging if you work in a shop where you've got three applications and a handful of async jobs working from queues. Those processes need some method
+
 
 use the prebuilt docker app that implements the framework. don't even need to implement it in node yourself.
 
 Docker container & clonable template for migrations, configs and specifics
+
+also -- this will free you from having to add db drivers to your apps and manage multiple connx to multiple dbs
+
 
 
 ## what about joins

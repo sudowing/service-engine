@@ -1,7 +1,7 @@
 
 # Design & Development Walkthroughs
 
-This documention provides an overview of how to use this framework to build `REST`, `GraphQL` and `gRPC` services -- detailing all features and configuration options. Anyone intested in exploring how this all works is free to inspect the source.
+This documention provides an overview of how to use this framework to (quickly) build `REST`, `GraphQL` and `gRPC` services -- detailing all features and configuration options. Anyone intested in exploring how this all works is free to inspect the source.
 
 That being said, there are a great many people who would benefit from a guided overview of this project and a walkthrough of implementing against different DBs.
 
