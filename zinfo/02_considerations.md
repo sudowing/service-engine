@@ -1,6 +1,6 @@
 
 
-# Important Considerations
+# Application Considerations
 
 The service _should_ work out-of-the-box with minimal configuration. There are however a couple key requirements that must be satisfied before this service will function.
 

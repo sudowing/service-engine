@@ -1,5 +1,5 @@
 
-# Optional Configurations
+# Application Configurations
 
 ### default page limit
 

@@ -28,5 +28,11 @@ If engineers want to hack or iterate through some ideas, local is the place to d
 ## soft delete
 
 ###### **not yet implemented**
-removing user data is bad. I'd prefer do with via an active flag. Even to support with GDPR or CCPA requirements, I'd not support deleting via this service. instead -- this service should flip flags and an async worker should connect to the to this service via a special method to handle the user requested (and gov mandated) purge
+Removing user data is dangerous.
+
+If you give them features to delete records in bulk -- they'll misuse it.
+If you give engineers the ability 
+
+
+I'd prefer do with via an active flag. Even to support with GDPR or CCPA requirements, I'd not support deleting via this service. instead -- this service should flip flags and an async worker should connect to the to this service via a special method to handle the user requested (and gov mandated) purge
 
