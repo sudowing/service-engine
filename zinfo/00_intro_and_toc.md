@@ -1,11 +1,8 @@
 # Service-Engine
 
-Service-Engine is an opinionated framework 
-for publishing **REST** Endpoints, **GraphQL** Resolvers & **gRPC** Methods for database resources (tables, views and materialized views).
-The goal is to provide a generalized method for quickly standing up a data access layer, providing **CRUD** functionality to commonly used SQL databases -- with a few bells and whistles thrown in.
+Service-Engine is a framework for publishing generalized **REST**, **GraphQL** & **gRPC** Services that facilitate CRUD operations against the tables, views and materialized views of popular databases.
 
-[![Alt text](https://i3.ytimg.com/vi/ZeFpweKpIHo/maxresdefault.jpg)](https://www.youtube.com/watch?v=ZeFpweKpIHo)
-
+It can be implemented via an [NPM package](https://www.npmjs.com/package/service-engine) or as a [Docker Container](https://hub.docker.com/r/sudowing/service-engine).
 
 
 
@@ -33,13 +30,3 @@ The goal is to provide a generalized method for quickly standing up a data acces
 * [Additional Data Sets](#additional-data-sets)
 * [Versioning](#versioning)
 * [License](#license)
-
-
-On start,
-- run migrations (if configured to do so)
-- autodetect db resources (via inspection)
-- builds validators for CREATE, READ, UPDATE, DELETE & SEARCH methods
-- publishes REST endpoints, GraphQL resolvers & gRPC methods
-- autogenerates OpenAPI3 documentation
-
-

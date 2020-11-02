@@ -68,7 +68,7 @@ offset 120
 The example above uses three **operators** (`equal`, `in`, `like`), this Framework supports sixteen `operators`. The table below details each supported **operator**.
 
 |field.**`operator`**|sql operator|multiple seperated args|# of args|
-|:-:|:-:|:-:|:-:|
+|---|:-:|:-:|:-:|
 |field|= (default)|false||
 |field.`equal`|=|false||
 |field.`gt`|>|false||
