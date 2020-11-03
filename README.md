@@ -580,3 +580,11 @@ To support this, I've produced a series of videos
 where I provide a detailed walk-through of how this system works, detail each component and explain the requirements and various considerations that went into each  design decision.
  
 Any engineers interested in such content, can find it available via subscription via [Patreon](https://www.patreon.com/sudowing).
+
+#  <a id="versioning"></a>Versioning
+
+[SemVer](http://semver.org/) is used for versioning. For the versions available, see the [tags on this repository](https://github.com/sudowing/service-engine/tags). 
+
+#  <a id="license"></a>License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
