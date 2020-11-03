@@ -18,7 +18,7 @@ The resources provivisioned by the server for the various services (`REST` endpo
 
 ## <a id="overview_validation-at-the-source"></a>Validation at the Source
 
-### <a id=overview_validation-at-the-source_overview"></a>Overview
+### <a id="overview_validation-at-the-source_overview"></a>Overview
 A core benefit of implementing this framework is offloading the **`validation`** a given DB request from other backend processes.
 
 This is benefitial for a few reasons, but before we discuss let's consider how a basic request to a `REST` endpont would get handled.
@@ -31,7 +31,7 @@ This is benefitial for a few reasons, but before we discuss let's consider how a
 The example above show some general processing that occurs before a `REST` request gets sent to a DB. The same steps exist in GraphQL and gRPC -- so we'll just focus on **#3** as we discuss the value of this feature.
 
 
-### <a id=overview_validation-at-the-source_how-it-works"></a>How it works
+### <a id="overview_validation-at-the-source_how-it-works"></a>How it works
 
 When an server starts, the following tasks get executed:
 
@@ -40,7 +40,7 @@ When an server starts, the following tasks get executed:
 3. Builds [JOI validators](https://joi.dev) for all DB resources (distinct validator for each supported DQL & DML operation)
 4. Publishes `REST`, `GraphQL` & `gRPC` services that apply the appropriate validator for different `CRUD` operations
 
-### <a id=overview_validation-at-the-source_why-this-is-positive"></a>Why this is positive
+### <a id="overview_validation-at-the-source_why-this-is-positive"></a>Why this is positive
 
 
 If you've got multiple applications calling the same DB, each application will need implement validation. If you are doing your best to follow the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself), one option would be to place the validators inside a dedicated package, then implement that within each app calling the service (this would also be a fine place to share SQL queries).

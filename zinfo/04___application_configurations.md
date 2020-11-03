@@ -107,5 +107,5 @@ const { App, logger, grpcService } = await ignite({
 });
 ```
 
-##### <a id="**note-i-know-this-is-a-bit-clunky-i-ll-buy-a-beer-for-the"></a>**NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant.
+##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant.
 
