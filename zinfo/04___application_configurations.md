@@ -1,11 +1,11 @@
 
-# Application Configurations
+# <a id="application-configurations"></a>Application Configurations
 
-## default page limit
+## <a id="application-configurations_default-page-limit"></a>default page limit
 
 BLAH BLAH BLAH
 
-## Permissions
+## <a id="application-configurations_permissions"></a>Permissions
 
 Service permissions are managed via permissions objects defined at the system & resource levels:
 
@@ -35,7 +35,7 @@ const { App, logger, grpcService } = await ignite({
 });
 ```
 
-## Middleware
+## <a id="application-configurations_middleware"></a>Middleware
 
 Sometimes it can be useful to intercept an inbound query before submitting for processing. To accomplish this, this framework supports middleware -- which are a set of functions that take as `input` a **`query object`** and returns a new **`query object`** (that will still pass the validation).
 
@@ -59,7 +59,7 @@ const { App, logger, grpcService } = await ignite({
 });
 ```
 
-### Examples of Middleware Functionality
+## <a id="application-configurations_examples-of-middleware-functionality"></a>Examples of Middleware Functionality
 ```sh
 # REST call to /public_accounts or
 # GRAPHQL query SearchPublicAccounts
@@ -75,25 +75,7 @@ const { App, logger, grpcService } = await ignite({
 }
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Complex Resources (subqueries)
+## <a id="application-configurations_complex-resources-subqueries"></a>Complex Resources (subqueries)
 
 Subqueries & Aggregate functions in SQL are fully supported in this framework. The configuration of these features are a little clunky, but once setup they support the same common interfaces as all other resources (full validation, middleware support, REST query standards, OpenAPI generation, GraphqL support, etc).
 
@@ -125,5 +107,5 @@ const { App, logger, grpcService } = await ignite({
 });
 ```
 
-##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant.
+##### <a id="**note-i-know-this-is-a-bit-clunky-i-ll-buy-a-beer-for-the"></a>**NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant.
 
