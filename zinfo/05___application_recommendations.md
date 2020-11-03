@@ -1,6 +1,4 @@
-
-
-# Database Recommendations
+# Application Recommendations
 
 ## Database | PostgreSQL
 
@@ -9,36 +7,20 @@ Additionally, a detail relevant to this project, PostgreSQL supports **returning
 
 MySQL & SQLite3 do not support this feature, and as a result `REST` Create & Update calls serve 201 no bodys. `GraphQL` and `gRPC` calls function in a similar manner.
 
-
-
-
-
-
-
-
-
----
-
 ## Change Management | DB Migrations
 
-in deployed environments I would limit the creation of new db objects to the service account to be used by this service -- and I would remove permissions for destructive activies (and probably creative ones) from standard users.
+Database migrations (a.k.a. [Schema Migrations](https://en.wikipedia.org/wiki/Schema_migration)) are the best way to manage modifications to the DB state in deployed environments.
+
+In environments above `development`, I would limit the creation of new db objects to the service account to be used by this service -- and I would remove permissions for destructive activies from standard users.
 
 If engineers want to hack or iterate through some ideas, local is the place to do so. Once things get created and owned by the service account, an entire class of problems disappear.
 
-## soft delete
+## Soft Delete
 
-###### **not yet implemented**
 Removing user data is dangerous.
 
-If you give them features to delete records in bulk -- they'll misuse it.
-If you give engineers the ability 
+If you give users features to delete records in bulk -- they'll misuse it. And if you give engineers permission to execute destructive operations in the DB -- they will use them.
 
+For permanently removing user records, I recommend do with via a boolean __active flag__.
 
-I'd prefer do with via an active flag. Even to support with GDPR or CCPA requirements, I'd not support deleting via this service. instead -- this service should flip flags and an async worker should connect to the to this service via a special method to handle the user requested (and gov mandated) purge
-
-## Prebuilt Docker Container
-
-use the prebuilt docker app that implements the framework. don't even need to implement it in node yourself.
-
-Docker container & clonable template for migrations, configs and specifics
-
+Even to support with GDPR or CCPA requirements, I'd not support deleting via this service, but instead, calling this service to flip flags and using an async worker to execute the purge.
