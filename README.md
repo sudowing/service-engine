@@ -258,7 +258,7 @@ Below are all the supported `context` keys available for use within a query:
 |notWhere|The WHERE clause can be combined with AND, OR, and NOT operators. **NOT IMPLEMENTED**|
 |statementContext|The WHERE clause can be combined with AND, OR, and NOT operators. **NOT IMPLEMENTED**|
 
-##### <a id-note-context-in-rest-is-always-in-querty-string-this-is"></a>**NOTE:** Context in REST is always in querty string. This is useful for returning fields on `CREATE` & `UPDATE.`
+##### **NOTE:** Context in REST is always in querty string. This is useful for returning fields on `CREATE` & `UPDATE.`
 
 ## <a id="key-concepts-interfaces_query-metadata"></a>Query Metadata
 
@@ -542,19 +542,19 @@ npm pack && npm publish
 
 ## <a id="related-projects_node-implementation-public-docker-image"></a>Node Implementation & Public Docker Image 
 
--##### [GitHub Repo](https://github.com/sudowing/service-engine-docker) 
+##### [GitHub Repo](https://github.com/sudowing/service-engine-docker) 
 
 If you would like to see what a node.js implementation looks like, or are looking for something easily forkable, I've built such an application that serves as the basis for the public Docker Image available on [Docker Hub](https://hub.docker.com/r/sudowing/service-engine).
 
 ## <a id="related-projects_forkable-service-template"></a>Forkable Service Template 
--##### [GitHub Repo](https://github.com/sudowing/service-engine-template) 
+##### [GitHub Repo](https://github.com/sudowing/service-engine-template) 
 
 Instead of having to actually implement this within a node app, you can simply skip that step and run the app as a Docker container, using the  public docker image.
 
 The repo above is a minimalistic project that implements the public Docker Container -- containing only the resources unique to an implementation (metadata, migration files, middleware, complex resources, permissions and env vars).
 
 ## <a id="related-projects_local-db-development-guide"></a>Local DB Development Guide
--##### [GitHub Repo](https://github.com/sudowing/guide-local-databases)
+##### [GitHub Repo](https://github.com/sudowing/guide-local-databases)
 
 Developing this project required working with multiple DBs and learning to standup and load PostGIS.
 
