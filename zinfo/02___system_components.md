@@ -97,37 +97,31 @@ Below are all the supported `context` keys available for use within a query:
 |orderBy|fields to order results by. can accept multiple values seperated by `","`. Format: `field:desc` (`:asc` is default so you can omit)|
 |page|Pagination Page|
 |limit|Pagination Limit| (set for service in .env)
-|notWhere|The WHERE clause can be combined with AND, OR, and NOT operators. NOT IMPLEMENTED|
-|statementContext|The WHERE clause can be combined with AND, OR, and NOT operators. NOT IMPLEMENTED|
+|notWhere|The WHERE clause can be combined with AND, OR, and NOT operators. **NOT IMPLEMENTED**|
+|statementContext|The WHERE clause can be combined with AND, OR, and NOT operators. **NOT IMPLEMENTED**|
 
-
-
-
-
-# Interface Components
+##### **NOTE:** Context in REST is always in querty string. This is useful for returning fields on `CREATE` & `UPDATE.`
 
 ## Query Metadata
 
 There are several standardized components that exist in both `REST` & `GraphQL` interfaces.
-`REST` data returns in Response Headers, while `GraphQL` data is returned in response types.
-
+`REST` data returns in Response Headers, while `GraphQL` data is returned in response types. `gRPC` currently does not support these features.
 
 ### Request Id
 
 Each request gets a Request ID (uuid) assigned, which is is attached to the response header and also injected into any log statements during the fulfillment of the request. This `reqId` should make searching for events related to a single call in your logs trivial.
 
-|gere|sdfsd|ddd|
-|---|---|---|
-|`x-request-id`|response header|UUID assigned to request for injection into logs|
+|request-header|value|response-header|description|
+|---|---|---|---|
+|N/A|N/A|`x-request-id`|UUID assigned to request for injection into logs and troubleshooting of calls.|
 
 ### SQL
 
-Each call (REST, GraphQL or gRPC) ends up building a SQL query that in most cases get's executed (see [**debug mode**]()). The actual SQL query is always available via a response header on REST (as `x-sql`) calls and available another way via GraphQL.
+Each call (`REST`, `GraphQL` or `gRPC`) ends up building a SQL query that in most cases get's executed (see [**debug mode**]()). The actual SQL query is always available via a response header on `REST` calls (as `x-sql`) and available another way via GraphQL.
 
-|gere|sdfsd|ddd|
-|---|---|---|
-|`x-get-sql`|request header|truthy|
-|`x-sql`|response header|SQL built by service.|
+|request-header|value|response-header|description|
+|---|---|---|---|
+|`x-get-sql`|truthy|`x-sql`|SQL built by service|
 
 
 ### Search Counts
@@ -136,44 +130,13 @@ Executing a paginated search is a standard operation, and in order to save an ad
 
 This way -- you can choose to request the count for the first page, which does result in 2 DB calls -- but then omit that flag for subsequent pages. `GraphQL` and `gRPC` handles this a bit differently, but they function in very similar manners.
 
-|gere|sdfsd|ddd|
-|---|---|---|
-|`x-get-count`|request header|truthy|
-|`x-count`|response header|unpaginated count for submitted query (even if request was paginated|
-
-
-
-
-
-====
-====
-====
-====
-
-
-## validation -- based on db models
-validate search interfaces, fields requested, etc
-- verbose error messages in `response.body`
-
-## Query Context
-
-
-
-##### **NOTE:** Context in REST is always in 
-## Query Makup
-### example query
-### example urls
-
-
-
-
-
+|request-header|value|response-header|description|
+|---|---|---|---|
+|`x-get-count`|truthy|`x-count`|unpaginated count for submitted query (even if request was paginated)|
 
 ## Debug Mode
 
 Every resource can be called in a normal mode, which submits valid queries to the DB and debug mode -- which stops at the DB's door. If you are interested in seeing how a given REST/GraphQL query was parsed, validation responses and the SQL query built (before it's executed) -- you can do so via debug mode in REST & GraphQL.
-
-
 
 ### example urls
 ```
@@ -183,24 +146,3 @@ http://localhost:8080/sample-app-name/service/${schema}_${table}/?|orderBy=uuid:
 # debug mode (no db call)
 http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=t
 ```
-
-
-
-## logger log.msg
-
-There is a basic structure of the logger statements. While you do need to review the various keys in the log statements, here is what I have catalogs along with desctiptions of the various values.
-
-- service_call
-  - general call
-
-- CRUD CALLS TO CLASS
-- context_errors
-- validation_error
-- resource_response
-- resource_call
-
-- in router (and needs to be in graphql)
-- db_call_failed
-
-- startup_failed
-
