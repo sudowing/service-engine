@@ -129,7 +129,7 @@ If implementing in `node`, you'll be following the [knex migration docs](http://
 
 ## <a id="overview_gis-support"></a>GIS Support
 
-If the DB powering this service is `PostgreSQL` with the `postgis` extension enabled, you will 
+If the DB powering this service is `PostgreSQL` with the `postgis` extension enabled, spacial queries will be enabled on geometric fields.
 
 This feature works by identifying any fields of a geometric type (as reported in the initial DB survey on startup) and enabling various spacial type functions (`st_*`) via **SEARCH methods**.
 
