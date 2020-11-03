@@ -21,7 +21,7 @@ This application implements [knex.js](http://knexjs.org), which supports a great
 
 Postgres does and it's the recommended engine for new projects implemented this library.
 
-###### **NOTE**: MySQL & Sqlite3 return 201s with no-body  in REST and other payloads in GraphQL & gRPC.
+##### **NOTE**: MySQL & Sqlite3 return 201s with no-body  in REST and other payloads in GraphQL & gRPC.
 
 
 # Supported DB Engines Respective Data Types

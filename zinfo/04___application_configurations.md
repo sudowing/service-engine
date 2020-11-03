@@ -1,15 +1,18 @@
 
 # Application Configurations
 
-### default page limit
+## default page limit
 
+BLAH BLAH BLAH
 
 ## Permissions
 
-Permissions for db resources are managed via permissions objects defined at the system & resource levels:
+Service permissions are managed via permissions objects defined at the system & resource levels:
 
 - `systemPermissions` apply to all db resources published on service (REST & GraphQL).
 - `resourcePermissions` can be used to modify/overide permissions set for system.
+
+Below is an example of how to configure permissions for the service:
 
 ```js
 import { ignite, initPostProcessing, permit } from "service-engine";
@@ -25,29 +28,21 @@ const resourcePermissions = {
   'some_view_name': permit().read(),
 }
 
-const { App, logger } = await ignite({
+const { App, logger, grpcService } = await ignite({
     db, metadata,
     systemPermissions,
     resourcePermissions,
 });
 ```
 
-
-
-
-
-
-
-
-
-
 ## Middleware
 
-Sometimes it can be useful to intercept an inbound query before submitting for processing. In order to support this, this framework supports a concept of middleware, which are a set of functions that take as `input` an object comprised of qs args (or GraphQL input) and returns a new object (that will still pass the validation).
+Sometimes it can be useful to intercept an inbound query before submitting for processing. To accomplish this, this framework supports middleware -- which are a set of functions that take as `input` a **`query object`** and returns a new **`query object`** (that will still pass the validation).
 
-This can be useful for appending submitted queries with additional search criteria deriving from the request on-the-fly -- like adding a partition key to a query or by appending a max bbox for a query using a geo point & zoom level.
+This can be useful for appending submitted queries with additional search criteria deriving from the request **on-the-fly** -- like adding a partition key to a query or by appending a max bbox for a query using a geo point & zoom level.
 
-example:
+Below is an example of how to configure permissions for the service:
+
 ```js
 // object keys are resource endpoints `${schema}_${db_resource}` that are listed in the OpenAPI3 docs at `/openapi`
 const resourceSearchMiddleware = {
@@ -57,7 +52,7 @@ const resourceSearchMiddleware = {
   }),
 }
 
-const { App, apolloServer, logger } = await ignite({
+const { App, logger, grpcService } = await ignite({
   db,
   metadata,
   resourceSearchMiddleware
@@ -102,11 +97,8 @@ const { App, apolloServer, logger } = await ignite({
 
 Subqueries & Aggregate functions in SQL are fully supported in this framework. The configuration of these features are a little clunky, but once setup they support the same common interfaces as all other resources (full validation, middleware support, REST query standards, OpenAPI generation, GraphqL support, etc).
 
+Below is an example of how to configure complex resources for the service:
 
-
-. I'll buy a beer for the person who comes up with something more elegant.
-
-example:
 ```js
 const complexResources = [
   {
@@ -126,11 +118,12 @@ const complexResources = [
   }
 ]
 
-const { App, logger } = await ignite({
+const { App, logger, grpcService } = await ignite({
   db,
   metadata,
   complexResources
 });
-
-
 ```
+
+##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant.
+
