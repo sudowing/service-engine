@@ -443,23 +443,34 @@ const { App, logger, grpcService } = await ignite({
 
 Subqueries & Aggregate functions in SQL are fully supported in this framework. The configuration of these features are a little clunky, but once setup they support the same common interfaces as all other resources (full validation, middleware support, REST query standards, OpenAPI generation, GraphqL support, etc).
 
+The reason I describe them as _clunky_ is because you will often have to create a new view that matches that data structure of the query result you want to expose. This is because the validation and interface auto provisioning is based on the results of the **`dbSurveyQuery`**, which means if you want access to data in a particular format from a server resource (think `REST` endpoint)... it must be represented in that format in a table, view or materialized view.
+
+The way I've built the feature is to define two (2) resources that exist in the **`dbSurveyQuery`** -- which means that validators have been provisioned.
+
+You name the resources as follows:
+
+- `topResourceName`
+- `subResourceName`
+
+The `subResourceName` is the real DB object that gets queried. The `topResourceName` is the result of any *grouping* && *aggregation* _functions_.
+
 Below is an example of how to configure complex resources for the service:
 
 ```js
 const complexResources = [
+  {
+    topResourceName: 'cms_providers',
+    subResourceName: 'cms_providers',
+    calculatedFields: {
+      address_city: 'LOWER(address_city)'
+    },
+  },
   {
     topResourceName: 'public_i001_city_state_entity_provider_n',
     subResourceName: 'cms_providers',
     groupBy: ['address_city','address_state','entity_type','provider_type'],
     calculatedFields: {
       n: 'count(npi)'
-    },
-  },
-  {
-    topResourceName: 'cms_providers',
-    subResourceName: 'cms_providers',
-    calculatedFields: {
-      address_city: 'LOWER(address_city)'
     },
   }
 ]
@@ -470,6 +481,11 @@ const { App, logger, grpcService } = await ignite({
   complexResources
 });
 ```
+In the first example `cms_providers` is named as both the `topResourceName` && `subResourceName`, which is fine as there are no aggregations resulting in changes to field names or data types. The use of *calculatedFields* is only used to transform the data within the confines of the original datatype of the field (notice the key name in `calculatedFields` hasn't changed from the original field). You would likely never do this, as a normal view would be a better place to store such a query -- but I've placed it here only to help highlight how the feature works.
+
+In the second example, there are both **groupings** and **aggregation functions** that change the name and/or data type of the fields reported in the **`dbSurveyQuery`**. This is a problem because the result structure doesn't exist and won't be automatically provisioned as a validator.
+
+To solve this.... I intentionally create a view that exists only for reference here in this complex query configuration. This resource, referenced as *topResourceName*,  `public_i001_city_state_entity_provider_n` is/could be a view I created specifically for the purpose of use in this complex resource (schema: `public` & view: `i001_city_state_entity_provider_n`). I use the `i`+`#` prefix to identify DB objects that "are not real".
 
 ##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant.
 
