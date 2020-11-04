@@ -481,13 +481,13 @@ const { App, logger, grpcService } = await ignite({
   complexResources
 });
 ```
-In the first example `cms_providers` is named as both the `topResourceName` && `subResourceName`, which is fine as there are no aggregations resulting in changes to field names or data types. The use of *calculatedFields* is only used to transform the data within the confines of the original datatype of the field (notice the key name in `calculatedFields` hasn't changed from the original field). You would likely never do this, as a normal view would be a better place to store such a query -- but I've placed it here only to help highlight how the feature works.
+In the first example `cms_providers` (schema: `cms` & view: `providers`) is named as both the `topResourceName` && `subResourceName`, which is fine as there are no aggregations resulting in changes to field names or data types. The use of *calculatedFields* is only used to transform the data within the confines of the original datatype of the field (notice the key name in `calculatedFields` hasn't changed from the original field). You would likely never do this, as a normal view would be a better place to store such a query -- but I've placed it here only to help highlight how the feature works.
 
 In the second example, there are both **groupings** and **aggregation functions** that change the name and/or data type of the fields reported in the **`dbSurveyQuery`**. This is a problem because the result structure doesn't exist and won't be automatically provisioned as a validator.
 
 To solve this.... I intentionally create a view that exists only for reference here in this complex query configuration. This resource, referenced as *topResourceName*,  `public_i001_city_state_entity_provider_n` is/could be a view I created specifically for the purpose of use in this complex resource (schema: `public` & view: `i001_city_state_entity_provider_n`). I use the `i`+`#` prefix to identify DB objects that "are not real".
 
-##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant.
+##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant. But it works. And that's not nothing. :fire:
 
 
 # <a id="application-recommendations"></a>Application Recommendations
