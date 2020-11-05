@@ -11,13 +11,14 @@ import {
   UNSUPPORTED_CHARACTER_IN_DB,
 } from "./const";
 import { aggregationFnBuilder } from "./database";
-import { gqlModule } from "./graphql";
 import { getDatabaseResources } from "./dialects";
 import { TDatabaseResources } from "./interfaces";
-import { serviceRouters } from "./routers";
-import { genDatabaseResourceValidators } from "./utils";
 
+import { gqlModule } from "./graphql";
 import { grpcModule } from "./grpc";
+import { serviceRouters } from "./rest";
+
+import { genDatabaseResourceValidators } from "./utils";
 
 const PROTO_PATH = __dirname + "/service.proto";
 
@@ -31,6 +32,7 @@ export const prepare = async ({
   complexResources,
   hardDelete,
   permissions,
+  pageLimit,
 }) => {
   // these are specific to the db engine version
   const {
@@ -54,6 +56,7 @@ export const prepare = async ({
   metadata.db_info = {
     dialect: db.client.config.client,
     version: dbVersionRawRows[0].db_version,
+    pageLimit,
   };
 
   const fields = ["resource_schema", "resource_name", "resource_column_name"];
@@ -136,6 +139,7 @@ export const prepare = async ({
           middleware && middleware[name] ? middleware[name] : undefined,
         geoFields: geoFields[name] || undefined,
         supportsReturn,
+        pageLimit,
       }),
     ]
   );
@@ -172,6 +176,7 @@ export const prepare = async ({
           aggregationFn: aggregationFnBuilder(db)(calculatedFields, groupBy),
           geoFields: geoFields[name] || undefined,
           supportsReturn,
+          pageLimit,
         }),
       ]);
     }

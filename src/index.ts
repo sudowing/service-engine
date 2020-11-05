@@ -7,7 +7,7 @@ import * as bodyParser from "koa-bodyparser";
 import * as compress from "koa-compress";
 import * as HTTP_STATUS from "http-status";
 
-import { PERMIT_CRUD } from "./const";
+import { DEFAULT_PAGINATION_LIMIT, PERMIT_CRUD } from "./const";
 import { author } from "./credit";
 import {
   IObjectTransformerMap,
@@ -38,6 +38,7 @@ export const ignite = async ({
   complexResources,
   systemPermissions,
   resourcePermissions,
+  paginationLimit,
 }: {
   db: any;
   metadata: any;
@@ -45,6 +46,7 @@ export const ignite = async ({
   complexResources?: IComplexResourceConfig[];
   systemPermissions?: IServicePermission;
   resourcePermissions?: IObjectStringByGeneric<IServicePermission>;
+  paginationLimit?: string|number;
 }) => {
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
@@ -69,6 +71,10 @@ export const ignite = async ({
     level: 0,
   });
 
+  const pageLimit = paginationLimit
+    ? Number(paginationLimit)
+    : DEFAULT_PAGINATION_LIMIT;
+
   const {
     appRouter,
     serviceRouter,
@@ -85,6 +91,7 @@ export const ignite = async ({
     complexResources,
     hardDelete: ENABLE_HARD_DELETE,
     permissions,
+    pageLimit,
   });
 
   const { schema, context } = AppModule;
