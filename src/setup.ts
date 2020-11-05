@@ -56,6 +56,7 @@ export const prepare = async ({
   metadata.db_info = {
     dialect: db.client.config.client,
     version: dbVersionRawRows[0].db_version,
+    pageLimit,
   };
 
   const fields = ["resource_schema", "resource_name", "resource_column_name"];

@@ -8,6 +8,14 @@ import * as wkx from "wkx";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
+
+
+/**
+ * @description
+ * @param {*} accum
+ * @param {*} { status, value, reason }
+ * @returns
+ */
 const transformSettledValidation = (accum, { status, value, reason }) => {
   if (status === "fulfilled") {
     accum.values.push(value);
@@ -17,13 +25,28 @@ const transformSettledValidation = (accum, { status, value, reason }) => {
   return accum;
 };
 
+
+/**
+ * @description
+ * @param {*} settledPromises
+ */
 const reduceSettledAsyncValidation = (settledPromises) =>
   settledPromises.reduce(transformSettledValidation, {
     values: [],
     errors: [],
   });
 
+/**
+ * @description
+ * @param {*} arg
+ */
 export const castString = (arg) => String(arg);
+
+/**
+ * @description
+ * @param {*} arg
+ * @returns
+ */
 export const castNumber = (arg) => {
   const n = Number(arg);
   return !Number.isNaN(n)
@@ -31,8 +54,17 @@ export const castNumber = (arg) => {
     : `number conversion failed to provide meaningful value (${arg} = NaN)`;
 };
 
+/**
+ * @description
+ * @param {*} arg
+ */
 export const castBoolean = (arg) =>
   Boolean(cnst.FALSEY_STRING_VALUES.includes(arg) ? false : arg);
+
+/**
+ * @description
+ * @param {*} arg
+ */
 export const castOther = (arg) => arg;
 
 /**
@@ -138,14 +170,39 @@ export const modifyValidator = (
 };
 
 export const validate = {
+  /**
+   * @description
+   * @param {Joi.Schema} validator
+   * @returns {Joi.Schema}
+   */
   create: (validator: Joi.Schema): Joi.Schema =>
     modifyValidator(validator, cnst.CREATE),
+  /**
+   * @description
+   * @param {Joi.Schema} validator
+   * @returns {Joi.Schema}
+   */
   read: (validator: Joi.Schema): Joi.Schema =>
     modifyValidator(validator, cnst.READ),
+  /**
+   * @description
+   * @param {Joi.Schema} validator
+   * @returns {Joi.Schema}
+   */
   update: (validator: Joi.Schema): Joi.Schema =>
     modifyValidator(validator, cnst.UPDATE),
+  /**
+   * @description
+   * @param {Joi.Schema} validator
+   * @returns {Joi.Schema}
+   */
   delete: (validator: Joi.Schema): Joi.Schema =>
     modifyValidator(validator, cnst.READ),
+  /**
+   * @description
+   * @param {Joi.Schema} validator
+   * @returns {Joi.Schema}
+   */
   search: (validator: Joi.Schema): Joi.Schema => validator,
 };
 
@@ -236,6 +293,10 @@ export const generateSearchQueryError = ({
 export const badArgsLengthError = (operation: string, values: any[]): string =>
   `'${operation}' operation requires ${cnst.DEFINED_ARG_LENGTHS[operation]} args. ${values.length} were provided.`;
 
+/**
+ * @description
+ * @param {string} field
+ */
 export const defineValidationErrorMessage = (field: string) => (message, i) =>
   `'${field}' argument #${i}: ${message}`;
 
@@ -282,6 +343,12 @@ export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
   };
 };
 
+/**
+ * @description
+ * @param {*} attribute
+ * @param {*} input
+ * @returns
+ */
 export const contextTransformer = (attribute, input) => {
   switch (attribute) {
     case cnst.FIELDS:
@@ -377,6 +444,13 @@ export const searchQueryParser = async (
   return { errors, components };
 };
 
+/**
+ * @description
+ * @param {Joi.Schema} validator
+ * @param {ts.IParamsSearchQueryParser} query
+ * @param {string} apiType
+ * @returns {ts.IQueryContextResponse}
+ */
 export const queryContextParser = (
   validator: Joi.Schema,
   query: ts.IParamsSearchQueryParser,
@@ -423,7 +497,6 @@ export const queryContextParser = (
 };
 
 // this is to much dupe. can abstract and pass key.path to map
-// this is to much dupe. can abstract and pass key.path to map
 
 /**
  * @description Accepts Validator Inspection Report as input and lists all softDeleteFields (designed to only support one)
@@ -446,8 +519,17 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
     []
   );
 
+/**
+ * @description
+ * @param {number} meters
+ */
 export const metersToDecimalDegrees = (meters: number) => meters / cnst.DD_BASE;
 
+/**
+ * @description
+ * @param {Joi.Schema} validator
+ * @returns {ts.IValidationExpander}
+ */
 export const validationExpander = (
   validator: Joi.Schema
 ): ts.IValidationExpander => {
@@ -468,6 +550,12 @@ export const validationExpander = (
   const meta: ts.IValidationExpanderMeta = {
     softDeleteFields: softDeleteFields(report.read),
     uniqueKeyComponents: uniqueKeyComponents(report.read),
+    /**
+     * @description
+     * @param {*} query
+     * @param {*} apiType
+     * @param {*} context
+     */
     searchQueryParser: (query, apiType, context) =>
       searchQueryParser(
         validator,
@@ -481,6 +569,12 @@ export const validationExpander = (
 };
 
 // need to remove context keys
+
+/**
+ * @description
+ * @param {Joi.Schema} validator
+ * @param {(any | any[])} payload
+ */
 export const validateOneOrMany = (
   validator: Joi.Schema,
   payload: any | any[]
@@ -497,6 +591,12 @@ export const removeContextKeys = (context, payload) => {
   return contextFreePayload;
 };
 
+/**
+ * @description
+ * @param {string} errorType
+ * @param {*} error
+ * @returns {ts.IRejectResource}
+ */
 export const rejectResource = (
   errorType: string,
   error
@@ -504,8 +604,19 @@ export const rejectResource = (
   errorType,
   error,
 });
+
+/**
+ * @description
+ * @param {*} result
+ * @returns {ts.IResolveResource}
+ */
 export const resolveResource = (result): ts.IResolveResource => ({ result });
 
+/**
+ * @description
+ * @param {string} resource
+ * @param {string} [prefix="service"]
+ */
 export const nameRestEndpointGetRecords = (
   resource: string,
   prefix: string = "service"
@@ -514,18 +625,45 @@ export const nameRestEndpointGetRecords = (
   uniqueEndpoint: `/${prefix}/${resource}/record`,
 });
 
+/**
+ * @description
+ * @param {boolean} keyComponent
+ */
 export const joiKeyComponentText = (keyComponent: boolean) =>
   keyComponent ? `.invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT)` : ``;
 
+/**
+ * @description
+ * @param {boolean} required
+ */
 export const joiRequiredText = (required: boolean) =>
   required ? `.required()` : ``;
 
+/**
+ * @description
+ * @param {Joi.Schema} joi
+ * @param {boolean} keyComponent
+ */
 export const joiKeyComponent = (joi: Joi.Schema, keyComponent: boolean) =>
   keyComponent ? joi.invalid(cnst.SYMBOL_UNIQUE_KEY_COMPONENT) : joi;
 
+/**
+ * @description
+ * @param {Joi.Schema} joi
+ * @param {boolean} required
+ */
 export const joiRequired = (joi: Joi.Schema, required: boolean) =>
   required ? joi : joi; // need to eval .required() here... think it's breaking the framework
 
+/**
+ * @description
+ * @param {ts.IDatabaseBootstrapRaw} {
+ *   db,
+ *   dbResourceRawRows,
+ *   joiBase,
+ * }
+ * @returns
+ */
 export const genDatabaseResourceValidators = async ({
   db,
   dbResourceRawRows,
@@ -580,6 +718,12 @@ export const genDatabaseResourceValidators = async ({
   return { validators, dbResources };
 };
 
+/**
+ * @description
+ * @param {*} payload
+ * @param {string} prefix
+ * @returns {[ts.IObjectStringByString, ts.IObjectStringByString]}
+ */
 export const seperateByKeyPrefix = (
   payload: any,
   prefix: string
@@ -597,6 +741,15 @@ export const seperateByKeyPrefix = (
   return [payloadWithPrefix, payloadWithoutPrefix];
 };
 
+/**
+ * @description
+ * @param {ts.IClassResourceMap} resourcesMap
+ * @param {string} resourceName
+ * @param {string} operation
+ * @param {*} payload
+ * @param {*} [subPayload]
+ * @returns
+ */
 export const callComplexResource = async (
   resourcesMap: ts.IClassResourceMap,
   resourceName: string,
@@ -633,9 +786,19 @@ export const callComplexResource = async (
   });
 };
 
+/**
+ * @description
+ * @param {string} str
+ * @param {string} [seperator=":"]
+ */
 export const getFirstIfSeperated = (str: string, seperator = ":") =>
   str.includes(seperator) ? str.split(seperator)[0] : str;
 
+/**
+ * @description
+ * @param {*} Resources
+ * @returns {ts.IClassResourceMap}
+ */
 export const genResourcesMap = (Resources): ts.IClassResourceMap =>
   Resources.reduce(
     (batch, [name, _Resource]: any) => ({
@@ -645,17 +808,30 @@ export const genResourcesMap = (Resources): ts.IClassResourceMap =>
     {}
   );
 
+/**
+ * @description
+ * @param {*} str
+ */
 export const transformNameforResolver = (str) =>
   str
     .split(":")
     .map((item) => pascalCase(item)) // this is done to prevent collisions with db resources
     .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
 
+/**
+ * @description
+ * @param {*} wktString
+ */
 export const wktToGeoJSON = (wktString) =>
   wktString
     ? wkx.Geometry.parse(Buffer.from(wktString, "hex")).toGeoJSON()
     : null;
 
+/**
+ * @description
+ * @param {*} information
+ * @returns
+ */
 export const extractSelectedFields = (information: any) => {
   let props = []; // top level fields from GraphQL Type
   let fields = []; // fields within `data` GraphQL Type
@@ -690,6 +866,10 @@ export const extractSelectedFields = (information: any) => {
   return { props, fields };
 };
 
+/**
+ * @description
+ * @param {*} knexConfig
+ */
 export const initPostProcessing = (knexConfig) =>
   !knexConfig.client.includes("mysql")
     ? knexConfig
@@ -705,42 +885,88 @@ export const initPostProcessing = (knexConfig) =>
         ...knexConfig,
       };
 
+/**
+ * @description
+ * @param {*} client
+ */
 export const supportsReturnOnCreateAndUpdate = (client) =>
   ["pg", "mssql", "oracledb"].includes(client);
 
 // tslint:disable: no-bitwise
+/**
+ * @description
+ * @returns {ts.IServicePermission}
+ */
 export const permit = (): ts.IServicePermission => ({
   _permission: 0,
+  /**
+   * @description
+   * @returns
+   */
   create() {
     this._permission = this._permission | cnst.PERMIT_CREATE;
     return this;
   },
+  /**
+   * @description
+   * @returns
+   */
   read() {
     this._permission = this._permission | cnst.PERMIT_READ;
     return this;
   },
+  /**
+   * @description
+   * @returns
+   */
   update() {
     this._permission = this._permission | cnst.PERMIT_UPDATE;
     return this;
   },
+  /**
+   * @description
+   * @returns
+   */
   delete() {
     this._permission = this._permission | cnst.PERMIT_DELETE;
     return this;
   },
+  /**
+   * @description
+   * @returns
+   */
   crud() {
     return this.create().read().update().delete();
   },
+  /**
+   * @description
+   * @returns
+   */
   none() {
     this._permission = 0;
     return this;
   },
+  /**
+   * @description
+   * @returns
+   */
   get() {
     return this._permission;
   },
 });
 
+/**
+ * @description
+ * @param {*} str
+ */
 const prepCase = (str) => str.split(".").join("_");
 // NOTE: be sure to change key case to match `db_resources`
+
+/**
+ * @description
+ * @param {ts.IObjectStringByGeneric<ts.IServicePermission>} permissions
+ * @returns {ts.IObjectStringByNumber}
+ */
 export const extractPermissions = (
   permissions: ts.IObjectStringByGeneric<ts.IServicePermission>
 ): ts.IObjectStringByNumber =>
@@ -751,6 +977,11 @@ export const extractPermissions = (
     ])
   );
 
+/**
+ * @description String to Ints for BitWise operations (permission flags)
+ * @param {string} operation
+ * @returns
+ */
 export const operationFlag = (operation: string) => {
   switch (operation) {
     case "create":
@@ -768,6 +999,10 @@ export const operationFlag = (operation: string) => {
 
 // | because we are applying fine grain to higher policy
 // TODO: the application of sysPerms and resourcePerms is wrong. Fix before release
+/**
+ * @description Used to determine if a given method is permitted on a resource.
+ * @param {ts.IConfigServicePermission} permissions
+ */
 export const permitted = (permissions: ts.IConfigServicePermission) => (
   resource: string,
   operation: string
@@ -779,6 +1014,10 @@ export const permitted = (permissions: ts.IConfigServicePermission) => (
     operationFlag(operation) & permissions.resourcePermissions[resource]
   );
 
+/**
+ * @description Transforms nested object from REST, GraphQL, gRPC to simply entries. Used in validation and query building.
+ * @param {string} sep
+ */
 export const stringValues = (sep: string) => (obj: object) =>
   Object.fromEntries(
     Object.entries(obj).map(([key, value]) => [
@@ -789,11 +1028,26 @@ export const stringValues = (sep: string) => (obj: object) =>
     ])
   );
 
+/**
+ * @description adds message field index numbers to protobuff messages
+ * @param {*} el
+ * @param {*} i
+ */
 export const appendIndex = (el, i) => `${el} = ${++i}`;
+/**
+ * @description appends semicolon to given string
+ * @param {*} el
+ */
 export const appendSemicolon = (el) => `${el};`;
 
 // https://github.com/mesg-foundation/mesg-js/blob/238e70e56cc8a35cfc8ffeb1ffa92c3160ff5d87/src/util/encoder.ts
 
+/**
+ * @description Transforms values in js object to protobuff struct scalars
+ * @param {*} data
+ * @param {*} key
+ * @returns
+ */
 export const encodeStructField = (data, key) => {
   const value = data[key];
   switch (Object.prototype.toString.call(value)) {
@@ -825,6 +1079,10 @@ export const encodeStructField = (data, key) => {
   }
 };
 
+/**
+ * @description Transforms entries in js object to protobuff struct scalars
+ * @param {*} data
+ */
 export const encodeStructFields = (data) =>
   Object.keys(data).reduce(
     (prev, next) => ({
@@ -834,6 +1092,11 @@ export const encodeStructFields = (data) =>
     {}
   );
 
+/**
+ * @description Transforms js object to protobuff struct
+ * @param {{ [key: string]: any }} data
+ * @returns
+ */
 export const encodeStruct = (data: { [key: string]: any }) => {
   return {
     fields: data ? encodeStructFields(data) : data,
