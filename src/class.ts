@@ -8,10 +8,6 @@ import * as database from "./database";
 import * as ts from "./interfaces";
 import * as util from "./utils";
 
-const PAGINATION_LIMIT = process.env.PAGINATION_LIMIT
-  ? Number(process.env.PAGINATION_LIMIT)
-  : cnst.DEFAULT_PAGINATION_LIMIT;
-
 export const genericResourceCall = (
   operation: string,
   schema: Joi.Schema,
@@ -113,6 +109,7 @@ export class Resource implements ts.IClassResource {
   public aggregationFn?: ts.TKnexSubQuery;
   public geoFields?: ts.IObjectGeoFields;
   public supportsReturn: boolean;
+  public pageLimit: number;
 
   public schema: ts.IValidationExpanderSchema;
   public report: ts.IValidationExpanderReport;
@@ -132,6 +129,7 @@ export class Resource implements ts.IClassResource {
     aggregationFn,
     geoFields,
     supportsReturn,
+    pageLimit,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -145,6 +143,7 @@ export class Resource implements ts.IClassResource {
     this.aggregationFn = aggregationFn;
     this.geoFields = geoFields;
     this.supportsReturn = supportsReturn;
+    this.pageLimit = pageLimit;
 
     const { schema, report, meta } = util.validationExpander(validator);
     this.schema = schema;
@@ -259,9 +258,9 @@ export class Resource implements ts.IClassResource {
     context.fields = context.fields || Object.keys(this.report.search);
 
     context.limit =
-      context.limit && context.limit <= PAGINATION_LIMIT
+      context.limit && context.limit <= this.pageLimit
         ? context.limit
-        : PAGINATION_LIMIT;
+        : this.pageLimit;
 
     if (parsed.error) {
       this.logger.error(

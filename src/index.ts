@@ -55,8 +55,6 @@ export const ignite = async ({
     db.client.config.client
   );
 
-  const pageLimit = paginationLimit ? Number(paginationLimit) : DEFAULT_PAGINATION_LIMIT;
-
   const permissions: IConfigServicePermission = {
     systemPermissions: systemPermissions
       ? extractPermissions({ systemPermissions }).systemPermissions
@@ -72,6 +70,10 @@ export const ignite = async ({
     name: metadata.appName,
     level: 0,
   });
+
+  const pageLimit = paginationLimit
+    ? Number(paginationLimit)
+    : DEFAULT_PAGINATION_LIMIT;
 
   const {
     appRouter,
@@ -89,6 +91,7 @@ export const ignite = async ({
     complexResources,
     hardDelete: ENABLE_HARD_DELETE,
     permissions,
+    pageLimit,
   });
 
   const { schema, context } = AppModule;

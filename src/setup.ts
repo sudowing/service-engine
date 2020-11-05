@@ -20,7 +20,6 @@ import { serviceRouters } from "./rest";
 
 import { genDatabaseResourceValidators } from "./utils";
 
-
 const PROTO_PATH = __dirname + "/service.proto";
 
 export const prepare = async ({
@@ -33,6 +32,7 @@ export const prepare = async ({
   complexResources,
   hardDelete,
   permissions,
+  pageLimit,
 }) => {
   // these are specific to the db engine version
   const {
@@ -138,6 +138,7 @@ export const prepare = async ({
           middleware && middleware[name] ? middleware[name] : undefined,
         geoFields: geoFields[name] || undefined,
         supportsReturn,
+        pageLimit,
       }),
     ]
   );
@@ -174,6 +175,7 @@ export const prepare = async ({
           aggregationFn: aggregationFnBuilder(db)(calculatedFields, groupBy),
           geoFields: geoFields[name] || undefined,
           supportsReturn,
+          pageLimit,
         }),
       ]);
     }

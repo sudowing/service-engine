@@ -254,6 +254,7 @@ export interface IClassResourceConstructor {
   aggregationFn?: TKnexSubQuery;
   geoFields?: IObjectGeoFields;
   supportsReturn: boolean;
+  pageLimit: number;
 }
 
 export type TAsyncResourceResponse = Promise<
@@ -277,6 +278,8 @@ export interface IClassResource {
   aggregationFn?: TKnexSubQuery;
   geoFields?: IObjectGeoFields;
   supportsReturn: boolean;
+  pageLimit: number;
+
   queryBase(): IResourceQueryBase;
   contextParser(input: IParamsProcessBase): IResourceContextParserResponse;
 
