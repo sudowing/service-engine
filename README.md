@@ -249,7 +249,7 @@ Inbound calls for Search Resources (REST, GraphQL & gRPC) accept a query context
 Below are all the supported `context` keys available for use within a query:
 
 |key|description|
-|---|:-:|
+|---|:--|
 |fields|fields to return from the SQL query|
 |seperator|seperator used to seperator values submitted in request (default is `","`|
 |orderBy|fields to order results by. can accept multiple values seperated by `","`. Format: `field:desc` (`:asc` is default so you can omit)|
@@ -258,7 +258,7 @@ Below are all the supported `context` keys available for use within a query:
 |notWhere|used to determine if knex uses `WHERE` or `NOT WHERE` when applying filters. **NOT IMPLEMENTED**|
 |statementContext|used to determine how filters should be applied together (AND, OR, and NOT operators) **NOT IMPLEMENTED**|
 
-##### **NOTE:** Context in REST is always in querty string. This is useful for returning fields on `CREATE` & `UPDATE.`
+##### **NOTE:** Context in REST is always in query string. This is useful for returning fields on `CREATE` & `UPDATE.`
 
 ## <a id="key-concepts-interfaces_query-metadata"></a>Query Metadata
 
