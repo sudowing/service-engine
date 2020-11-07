@@ -1,6 +1,6 @@
 # Service-Engine
 
-Service-Engine is a framework for publishing generalized **`REST`**, **`GraphQL`** & **`gRPC`** Services that facilitate CRUD operations against the tables, views and materialized views of popular databases.
+Service-Engine auto provisions **`REST`**, **`GraphQL`** & **`gRPC`** services that support CRUD operations (with full validation) to _tables_, _views_ and _materialized views_ of several popular databases.
 
 It can be implemented via an [NPM package](https://www.npmjs.com/package/service-engine) **and** as a [Docker Container](https://hub.docker.com/r/sudowing/service-engine).
 
@@ -244,7 +244,7 @@ The example above uses three **operators** (`equal`, `in`, `like`), this Framewo
 
 ## <a id="key-concepts-interfaces_supported-context-keys"></a>Supported Context Keys
 
-Inbound calls for Search Resources (REST & GraphQL) accept a query context that is used to define the sql to be executed. Additionally -- all resources support `fields` context, meaning no matter what operation you are executing, you can limit the fields being returned.
+Inbound calls for Search Resources (REST, GraphQL & gRPC) accept a query context that is used to define the sql to be executed. Additionally -- all resources support `fields` context, meaning no matter what operation you are executing, you can limit the fields being returned.
 
 Below are all the supported `context` keys available for use within a query:
 
@@ -299,13 +299,11 @@ Every resource can be called in a normal mode, which submits valid queries to th
 ### <a id="key-concepts-interfaces_debug-mode_example-urls"></a>Example URLs
 ```
 # service_call
-http://localhost:8080/sample-app-name/service/${schema}_${table}/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=t
+http://localhost:8080/sample-app-name/service/${schema}_${table}/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=truthy
 
 # debug mode (no db call)
-http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=t
+http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=falsey
 ```
-
-
 
 # <a id="application-considerations"></a>Application Considerations
 
