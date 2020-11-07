@@ -54,21 +54,21 @@ export const joiBase = (type: string) => {
 
     // 11.4 Spatial Data Types
     case cnst.GEOMETRY:
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON);
     case cnst.POINT:
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT);
     case cnst.LINESTRING:
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE);
     case cnst.POLYGON:
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON);
     case cnst.MULTIPOINT:
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT);
     case cnst.MULTILINESTRING:
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE);
     case cnst.MULTIPOLYGON:
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON);
     case cnst.GEOMETRYCOLLECTION:
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON);
 
     // 11.5 The JSON Data Type
     // JSON

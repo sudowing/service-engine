@@ -255,8 +255,8 @@ Below are all the supported `context` keys available for use within a query:
 |orderBy|fields to order results by. can accept multiple values seperated by `","`. Format: `field:desc` (`:asc` is default so you can omit)|
 |page|Pagination Page|
 |limit|Pagination Limit| (set for service in .env)
-|notWhere|The WHERE clause can be combined with AND, OR, and NOT operators. **NOT IMPLEMENTED**|
-|statementContext|The WHERE clause can be combined with AND, OR, and NOT operators. **NOT IMPLEMENTED**|
+|notWhere|used to determine if knex uses `WHERE` or `NOT WHERE` when applying filters. **NOT IMPLEMENTED**|
+|statementContext|used to determine how filters should be applied together (AND, OR, and NOT operators) **NOT IMPLEMENTED**|
 
 ##### **NOTE:** Context in REST is always in querty string. This is useful for returning fields on `CREATE` & `UPDATE.`
 
@@ -275,7 +275,7 @@ Each request gets a Request ID (uuid) assigned, which is is attached to the resp
 
 ### <a id="key-concepts-interfaces_query-metadata_sql"></a>SQL
 
-Each call (`REST`, `GraphQL` or `gRPC`) ends up building a SQL query that in most cases get's executed (see [**debug mode**]()). The actual SQL query is always available via a response header on `REST` calls (as `x-sql`) and available another way via GraphQL.
+Each call (`REST`, `GraphQL` or `gRPC`) ends up building a SQL query that in most cases get's executed (see [**debug mode**](#key-concepts-interfaces_debug-mode)). The actual SQL query is always available via a response header on `REST` calls (as `x-sql`) and available another way via GraphQL.
 
 |request-header|value|response-header|description|
 |---|---|---|---|
@@ -538,7 +538,7 @@ I use [nodemon](https://www.npmjs.com/package/nodemon) when developing locally t
 
 >Error: ENOSPC: System limit for number of file watchers reached
 
-After a little Sherlocking, I found a solution on [this medium post](https://medium.com/@bestafiko/npm-npm-start-error-enospc-system-limit-for-number-of-file-watchers-reached-bdc0eab0a159). :100: to @bestafiko
+After a little Sherlocking, I found a solution on [this medium post](https://medium.com/@bestafiko/npm-npm-start-error-enospc-system-limit-for-number-of-file-watchers-reached-bdc0eab0a159).
 
 ```sh
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p

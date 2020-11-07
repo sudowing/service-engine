@@ -806,7 +806,7 @@ export const genResourcesMap = (Resources): ts.IClassResourceMap =>
   );
 
 /**
- * @description
+ * @description used to namespace complex resources from natural ones. fn name needs attention.
  * @param {*} str
  */
 export const transformNameforResolver = (str) =>
@@ -816,7 +816,7 @@ export const transformNameforResolver = (str) =>
     .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
 
 /**
- * @description
+ * @description Transform WKT strings to GeoJSON
  * @param {*} wktString
  */
 export const wktToGeoJSON = (wktString) =>
@@ -825,7 +825,7 @@ export const wktToGeoJSON = (wktString) =>
     : null;
 
 /**
- * @description
+ * @description GraphQL calls naturally feature `fields`, however we must distinguish between meta keys and nested db fields. This supports that utility.
  * @param {*} information
  * @returns
  */
@@ -864,7 +864,7 @@ export const extractSelectedFields = (information: any) => {
 };
 
 /**
- * @description
+ * @description Adds postProcessResponse fn for db dialects where knex returns TextRow objects
  * @param {*} knexConfig
  */
 export const initPostProcessing = (knexConfig) =>
@@ -883,10 +883,10 @@ export const initPostProcessing = (knexConfig) =>
       };
 
 /**
- * @description
- * @param {*} client
+ * @description checks against whitelist to see if db named supports return on DML
+ * @param {string} client
  */
-export const supportsReturnOnCreateAndUpdate = (client) =>
+export const supportsReturnOnCreateAndUpdate = (client: string) =>
   ["pg", "mssql", "oracledb"].includes(client);
 
 // tslint:disable: no-bitwise
@@ -898,7 +898,7 @@ export const permit = (): ts.IServicePermission => ({
   _permission: 0,
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   create() {
     this._permission = this._permission | cnst.PERMIT_CREATE;
@@ -906,7 +906,7 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   read() {
     this._permission = this._permission | cnst.PERMIT_READ;
@@ -914,7 +914,7 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   update() {
     this._permission = this._permission | cnst.PERMIT_UPDATE;
@@ -922,7 +922,7 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   delete() {
     this._permission = this._permission | cnst.PERMIT_DELETE;
@@ -930,14 +930,14 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   crud() {
     return this.create().read().update().delete();
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   none() {
     this._permission = 0;
@@ -945,7 +945,7 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {number}
    */
   get() {
     return this._permission;
@@ -953,14 +953,15 @@ export const permit = (): ts.IServicePermission => ({
 });
 
 /**
- * @description
+ * @description Transform dot notation for schema.table to schema_table.
  * @param {*} str
+ * @returns {string}
  */
-const prepCase = (str) => str.split(".").join("_");
+const prepCase = (str): string => str.split(".").join("_");
 // NOTE: be sure to change key case to match `db_resources`
 
 /**
- * @description
+ * @description Transforms permission object into bitwise flags
  * @param {ts.IObjectStringByGeneric<ts.IServicePermission>} permissions
  * @returns {ts.IObjectStringByNumber}
  */
