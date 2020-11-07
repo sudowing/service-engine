@@ -1,6 +1,6 @@
 import { Buffer } from "buffer";
 
-import * as Joi from "@hapi/joi";
+import * as Joi from "joi";
 import { pascalCase } from "change-case";
 import { cloneDeep } from "lodash";
 import * as wkx from "wkx";
@@ -8,10 +8,8 @@ import * as wkx from "wkx";
 import * as cnst from "./const";
 import * as ts from "./interfaces";
 
-
-
 /**
- * @description
+ * @description reducer that seperates fulfilled promises from those rejected. Used in places with Promise.AllSettled is implemented on async validators to quickly check for failures.
  * @param {*} accum
  * @param {*} { status, value, reason }
  * @returns
@@ -25,9 +23,8 @@ const transformSettledValidation = (accum, { status, value, reason }) => {
   return accum;
 };
 
-
 /**
- * @description
+ * @description reduces settled array of validators to seperate valid values from errors
  * @param {*} settledPromises
  */
 const reduceSettledAsyncValidation = (settledPromises) =>
@@ -37,13 +34,13 @@ const reduceSettledAsyncValidation = (settledPromises) =>
   });
 
 /**
- * @description
+ * @description casts input as string. used as inputs are passed to validators.
  * @param {*} arg
  */
 export const castString = (arg) => String(arg);
 
 /**
- * @description
+ * @description attempts to case value as Number. if NaN - casts as verbose string that will fail validation and get returned to the user. used as inputs are passed to validators.
  * @param {*} arg
  * @returns
  */
@@ -55,7 +52,7 @@ export const castNumber = (arg) => {
 };
 
 /**
- * @description
+ * @description attempts to cast falsey values to Boolean False. used as inputs are passed to validators.
  * @param {*} arg
  */
 export const castBoolean = (arg) =>
@@ -294,7 +291,7 @@ export const badArgsLengthError = (operation: string, values: any[]): string =>
   `'${operation}' operation requires ${cnst.DEFINED_ARG_LENGTHS[operation]} args. ${values.length} were provided.`;
 
 /**
- * @description
+ * @description builds verbose string with multiple references specific to why a given request failed
  * @param {string} field
  */
 export const defineValidationErrorMessage = (field: string) => (message, i) =>
@@ -344,7 +341,7 @@ export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
 };
 
 /**
- * @description
+ * @description Used to transform context arguments sent in GraphQL and gRPC to REST standard -- so all requests can get processed by complex middleware.
  * @param {*} attribute
  * @param {*} input
  * @returns
@@ -372,7 +369,7 @@ export const contextTransformer = (attribute, input) => {
 };
 
 /**
- * @description Heart of the entire system. This Fn takes in a JOI validator and a query object (`ctx.request.query`) and submits both for processing. Search interfaces, fields & operations, are derived from the JOI validators, values from query object are typecasted to data types (if possible) using the types of each field from the JOI validator. Some query operations support multiple values seperated by commas, and this value parsing to arrays is also done here. The `context` object returned is used to build the query -- but is more superficial than the `components` which are used within the `where` part of the query. Any errors with a give query against a validator produces an array of errors, so the request can be stopped before submitting to database.
+ * @description The Heart of the entire system. This Fn takes in a JOI validator and a query object (`ctx.request.query`) and submits both for processing. Search interfaces, fields & operations, are derived from the JOI validators, values from query object are typecasted to data types (if possible) using the types of each field from the JOI validator. Some query operations support multiple values seperated by commas, and this value parsing to arrays is also done here. The `context` object returned is used to build the query -- but is more superficial than the `components` which are used within the `where` part of the query. Any errors with a give query against a validator produces an array of errors, so the request can be stopped before submitting to database.
  * @param {Joi.Schema} validator
  * @param {ts.IParamsSearchQueryParser} query
  * @returns {Promise<ts.ISearchQueryResponse>}
@@ -445,7 +442,7 @@ export const searchQueryParser = async (
 };
 
 /**
- * @description
+ * @description produces query context object. For REST calls, first parses query string to assemble base arguments. Then checks for things like return fields or ordering fields do not exist.
  * @param {Joi.Schema} validator
  * @param {ts.IParamsSearchQueryParser} query
  * @param {string} apiType
@@ -520,13 +517,13 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
   );
 
 /**
- * @description
+ * @description conversion of meters to units used in spacial queries
  * @param {number} meters
  */
 export const metersToDecimalDegrees = (meters: number) => meters / cnst.DD_BASE;
 
 /**
- * @description
+ * @description A core component of entire system. Each DB resource gets a single validator built on first pass that checks for types and values. This fn derives CRUD & Search specific validators from that original -- and applies flags to keys used in delete, update and read. The REPORT object, reviews each generated validator and generates an object describing each that is used for various logic through the system. Is simplier to perform here a single time and produce a comprehensive report object than continualy checking various properties (often deeply nested and private) in the validator.
  * @param {Joi.Schema} validator
  * @returns {ts.IValidationExpander}
  */
@@ -571,7 +568,7 @@ export const validationExpander = (
 // need to remove context keys
 
 /**
- * @description
+ * @description Used to standardize validation. Want to workwith single input and array of inputs as REST, GraphQL and gRPC can take 1 or many records.
  * @param {Joi.Schema} validator
  * @param {(any | any[])} payload
  */
@@ -592,7 +589,7 @@ export const removeContextKeys = (context, payload) => {
 };
 
 /**
- * @description
+ * @description Transforms input into object with `errorType` & `error` keys
  * @param {string} errorType
  * @param {*} error
  * @returns {ts.IRejectResource}
@@ -606,14 +603,14 @@ export const rejectResource = (
 });
 
 /**
- * @description
+ * @description Transforms input into object with `result` key set to the input value
  * @param {*} result
  * @returns {ts.IResolveResource}
  */
 export const resolveResource = (result): ts.IResolveResource => ({ result });
 
 /**
- * @description
+ * @description generates URL paths for each resource. Applies a specific prefix to each.
  * @param {string} resource
  * @param {string} [prefix="service"]
  */
@@ -626,21 +623,7 @@ export const nameRestEndpointGetRecords = (
 });
 
 /**
- * @description
- * @param {boolean} keyComponent
- */
-export const joiKeyComponentText = (keyComponent: boolean) =>
-  keyComponent ? `.invalid(engine.SYMBOL_UNIQUE_KEY_COMPONENT)` : ``;
-
-/**
- * @description
- * @param {boolean} required
- */
-export const joiRequiredText = (required: boolean) =>
-  required ? `.required()` : ``;
-
-/**
- * @description
+ * @description Adds invalid `key` flag to any validator for a field that is used as a key
  * @param {Joi.Schema} joi
  * @param {boolean} keyComponent
  */
@@ -648,7 +631,7 @@ export const joiKeyComponent = (joi: Joi.Schema, keyComponent: boolean) =>
   keyComponent ? joi.invalid(cnst.SYMBOL_UNIQUE_KEY_COMPONENT) : joi;
 
 /**
- * @description
+ * @description DISABLED FOR EVAL. Goal was to modify validator for required fields. would be used in `genDatabaseResourceValidators`
  * @param {Joi.Schema} joi
  * @param {boolean} required
  */
@@ -656,7 +639,7 @@ export const joiRequired = (joi: Joi.Schema, required: boolean) =>
   required ? joi : joi; // need to eval .required() here... think it's breaking the framework
 
 /**
- * @description
+ * @description Generates JOI validators for each resource reported in the dbSurveyQuery. Basis of entire system. Also generates dbResources Map -- which contains the survey results -- but in a better format for use through the system.
  * @param {ts.IDatabaseBootstrapRaw} {
  *   db,
  *   dbResourceRawRows,
@@ -719,7 +702,7 @@ export const genDatabaseResourceValidators = async ({
 };
 
 /**
- * @description
+ * @description Builds two objects from one by matching on key prefixes
  * @param {*} payload
  * @param {string} prefix
  * @returns {[ts.IObjectStringByString, ts.IObjectStringByString]}
@@ -742,7 +725,7 @@ export const seperateByKeyPrefix = (
 };
 
 /**
- * @description
+ * @description Used for applying complex middleware to subqueries for all service calls and parsing subPayload from REST
  * @param {ts.IClassResourceMap} resourcesMap
  * @param {string} resourceName
  * @param {string} operation
@@ -758,6 +741,7 @@ export const callComplexResource = async (
   subPayload?: any // subpayloads are passed from GraphQL. else they are parsed from REST `payload`
 ) => {
   if (!subPayload) {
+    // TODO: this block needs to be a single fn thats isolated and testable
     const [_subPayload, _restPayload] = seperateByKeyPrefix(
       payload.payload,
       ">"
@@ -787,7 +771,7 @@ export const callComplexResource = async (
 };
 
 /**
- * @description
+ * @description Used to normalize processing of simple and complex resources. if complex, the first resource is used as the interface, which is the result of the middleware that aggregates or otherwise modifies the subquery data structure.
  * @param {string} str
  * @param {string} [seperator=":"]
  */
@@ -795,7 +779,7 @@ export const getFirstIfSeperated = (str: string, seperator = ":") =>
   str.includes(seperator) ? str.split(seperator)[0] : str;
 
 /**
- * @description
+ * @description Seemingly reducer that takes Object.entries and generates Object. Could probably be done with Object.fromEntries -- but the value here is likely typescript (IClassResourceMap). Could likely be culled with a small Pull Request
  * @param {*} Resources
  * @returns {ts.IClassResourceMap}
  */
@@ -809,7 +793,7 @@ export const genResourcesMap = (Resources): ts.IClassResourceMap =>
   );
 
 /**
- * @description
+ * @description used to namespace complex resources from natural ones. fn name needs attention.
  * @param {*} str
  */
 export const transformNameforResolver = (str) =>
@@ -819,7 +803,7 @@ export const transformNameforResolver = (str) =>
     .join(cnst.COMPLEX_RESOLVER_SEPERATOR);
 
 /**
- * @description
+ * @description Transform WKT strings to GeoJSON
  * @param {*} wktString
  */
 export const wktToGeoJSON = (wktString) =>
@@ -828,7 +812,7 @@ export const wktToGeoJSON = (wktString) =>
     : null;
 
 /**
- * @description
+ * @description GraphQL calls naturally feature `fields`, however we must distinguish between meta keys and nested db fields. This supports that utility.
  * @param {*} information
  * @returns
  */
@@ -867,7 +851,7 @@ export const extractSelectedFields = (information: any) => {
 };
 
 /**
- * @description
+ * @description Adds postProcessResponse fn for db dialects where knex returns TextRow objects
  * @param {*} knexConfig
  */
 export const initPostProcessing = (knexConfig) =>
@@ -886,10 +870,10 @@ export const initPostProcessing = (knexConfig) =>
       };
 
 /**
- * @description
- * @param {*} client
+ * @description checks against whitelist to see if db named supports return on DML
+ * @param {string} client
  */
-export const supportsReturnOnCreateAndUpdate = (client) =>
+export const supportsReturnOnCreateAndUpdate = (client: string) =>
   ["pg", "mssql", "oracledb"].includes(client);
 
 // tslint:disable: no-bitwise
@@ -901,7 +885,7 @@ export const permit = (): ts.IServicePermission => ({
   _permission: 0,
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   create() {
     this._permission = this._permission | cnst.PERMIT_CREATE;
@@ -909,7 +893,7 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   read() {
     this._permission = this._permission | cnst.PERMIT_READ;
@@ -917,7 +901,7 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   update() {
     this._permission = this._permission | cnst.PERMIT_UPDATE;
@@ -925,7 +909,7 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   delete() {
     this._permission = this._permission | cnst.PERMIT_DELETE;
@@ -933,14 +917,14 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   crud() {
     return this.create().read().update().delete();
   },
   /**
    * @description
-   * @returns
+   * @returns {ts.IServicePermission}
    */
   none() {
     this._permission = 0;
@@ -948,7 +932,7 @@ export const permit = (): ts.IServicePermission => ({
   },
   /**
    * @description
-   * @returns
+   * @returns {number}
    */
   get() {
     return this._permission;
@@ -956,14 +940,15 @@ export const permit = (): ts.IServicePermission => ({
 });
 
 /**
- * @description
+ * @description Transform dot notation for schema.table to schema_table.
  * @param {*} str
+ * @returns {string}
  */
-const prepCase = (str) => str.split(".").join("_");
+const prepCase = (str): string => str.split(".").join("_");
 // NOTE: be sure to change key case to match `db_resources`
 
 /**
- * @description
+ * @description Transforms permission object into bitwise flags
  * @param {ts.IObjectStringByGeneric<ts.IServicePermission>} permissions
  * @returns {ts.IObjectStringByNumber}
  */

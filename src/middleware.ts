@@ -1,7 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 import { HEADER_REQUEST_ID } from "./const";
-import * as Joi from "@hapi/joi";
+import * as Joi from "joi";
 
+/**
+ * @description This middleware adds a UUID to each request and generates a log statement for each service all (for REST and GraphQL)
+ * @param {*} logger
+ */
 export const prepRequestForService = (logger) => async (
   ctx: Joi.Context,
   next: () => Promise<{}>

@@ -1,4 +1,4 @@
-import * as Joi from "@hapi/joi";
+import * as Joi from "joi";
 import * as cnst from ".././const";
 
 // defintions based on psql 12 datatypes
@@ -20,19 +20,19 @@ const hasGeoPrefix = (type) =>
 
 const joiGeoTypeByPrefix = (type: string) => {
   if (type.startsWith("")) {
-    return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT);
   } else if (type.startsWith("") || type.startsWith("")) {
-    return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE);
   } else if (type.startsWith("")) {
-    return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG);
   } else if (type.startsWith("")) {
-    return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX);
   } else if (type.startsWith("")) {
-    return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH);
   } else if (type.startsWith("") || type.startsWith("")) {
-    return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON);
   } else if (type.startsWith("")) {
-    return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
+    return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE);
   }
 
   return null;
@@ -92,28 +92,28 @@ export const joiBase = (type: string) => {
     // 8.8. Geometric Types":
     case "point":
     case "geometry(Point)":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT);
     case "line":
     case "geometry(Line)":
     case "geometry(MultiLineString)":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE);
     case "lseg":
     case "geometry(Lseg)":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG);
     case "box":
     case "geometry(Box)":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX);
     case "path":
     case "geometry(Path)":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH);
     case "polygon":
     case "geometry":
     case "geometry(Polygon)":
     case "geometry(MultiPolygon)":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON);
     case "circle":
     case "geometry(Circle)":
-      return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE); // will want geoJson on output
+      return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE);
     // 8.9. Network Address Types":
     case "cidr":
     case "inet":
@@ -257,7 +257,7 @@ export const toSchemaScalar = (type: string) => {
     case "geometry(MultiPolygon)":
     case "circle":
     case "geometry(Circle)":
-      return "JSONB"; // will want geoJson on output
+      return "JSONB";
     // 8.9. Network Address Types":
     case "cidr":
     case "inet":
@@ -322,7 +322,7 @@ export const toSchemaScalar = (type: string) => {
     case "pg_lsn":
       return "String";
     default:
-      if (hasGeoPrefix(type)) return "JSONB"; // will want geoJson on output
+      if (hasGeoPrefix(type)) return "JSONB";
       return "String";
   }
 };
@@ -396,7 +396,7 @@ export const toProtoScalar = (type: string) => {
     case "geometry(MultiPolygon)":
     case "circle":
     case "geometry(Circle)":
-      return "google.protobuf.Struct"; // will want geoJson on output
+      return "google.protobuf.Struct";
     // 8.9. Network Address Types":
     case "cidr":
     case "inet":
@@ -460,7 +460,7 @@ export const toProtoScalar = (type: string) => {
     case "pg_lsn":
       return "string";
     default:
-      if (hasGeoPrefix(type)) return "google.protobuf.Struct"; // will want geoJson on output
+      if (hasGeoPrefix(type)) return "google.protobuf.Struct";
       return "string";
   }
 };

@@ -2,12 +2,12 @@
 import { expect } from "chai";
 import "mocha";
 
-import * as database from "../database";
+import * as grpc from "../grpc";
 
-describe("database", () => {
+describe("grpc", () => {
   describe("simply get them represented on the coverage report", () => {
     it("exists", () => {
-      expect(typeof database).to.equal("object");
+      expect(typeof grpc).to.equal("object");
     });
   });
 });

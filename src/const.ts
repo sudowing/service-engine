@@ -12,6 +12,9 @@ export const PATCH = "PATCH";
 
 export const UNDERSCORE_IDS = "_ids";
 export const UNDERSCORE_BYKEY = "_byKey";
+export const UNDERSCORE_INNER = "_inner";
+export const CHILDREN = "children";
+
 export const DOT = ".";
 export const PIPE = "|";
 export const EMPTY_STRING = "";
