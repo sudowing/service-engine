@@ -6,10 +6,8 @@ import * as credit from "../credit";
 
 describe("credit", () => {
   describe("simply get them represented on the coverage report", () => {
-
     it("exists", () => {
       expect(typeof credit).to.equal("object");
     });
-
   });
 });

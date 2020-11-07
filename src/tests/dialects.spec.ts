@@ -6,10 +6,8 @@ import * as dialects from "../dialects";
 
 describe("dialects", () => {
   describe("simply get them represented on the coverage report", () => {
-
     it("exists", () => {
       expect(typeof dialects).to.equal("object");
     });
-
   });
 });
