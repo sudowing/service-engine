@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { HEADER_REQUEST_ID } from "./const";
-import * as Joi from "@hapi/joi";
+import * as Joi from "joi";
 
 export const prepRequestForService = (logger) => async (
   ctx: Joi.Context,

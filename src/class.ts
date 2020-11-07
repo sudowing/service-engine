@@ -2,7 +2,7 @@ import * as bunyan from "bunyan";
 import * as knex from "knex";
 import * as knexPostgis from "knex-postgis";
 
-import * as Joi from "@hapi/joi";
+import * as Joi from "joi";
 import * as cnst from "./const";
 import * as database from "./database";
 import * as ts from "./interfaces";

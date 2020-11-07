@@ -46,7 +46,7 @@ export const ignite = async ({
   complexResources?: IComplexResourceConfig[];
   systemPermissions?: IServicePermission;
   resourcePermissions?: IObjectStringByGeneric<IServicePermission>;
-  paginationLimit?: string|number;
+  paginationLimit?: string | number;
 }) => {
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
