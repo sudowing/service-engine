@@ -1,14 +1,12 @@
 import { Buffer } from "buffer";
 
-import * as Joi from "@hapi/joi";
+import * as Joi from "joi";
 import { pascalCase } from "change-case";
 import { cloneDeep } from "lodash";
 import * as wkx from "wkx";
 
 import * as cnst from "./const";
 import * as ts from "./interfaces";
-
-
 
 /**
  * @description
@@ -24,7 +22,6 @@ const transformSettledValidation = (accum, { status, value, reason }) => {
   }
   return accum;
 };
-
 
 /**
  * @description
