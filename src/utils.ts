@@ -622,7 +622,6 @@ export const nameRestEndpointGetRecords = (
   uniqueEndpoint: `/${prefix}/${resource}/record`,
 });
 
-
 /**
  * @description Adds invalid `key` flag to any validator for a field that is used as a key
  * @param {Joi.Schema} joi
