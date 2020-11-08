@@ -38,7 +38,8 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
         * [MySQL (Version 8)](#application-considerations_my-sql-version-8)
         * [SQLite (Version 3)](#application-considerations_sq-lite-version-3)
 * [Application Configurations](#application-configurations)
-    * [default page limit](#application-configurations_default-page-limit)
+    * [Default & Max Page Limit](#application-configurations_default-page-limit)
+    * [gRPC Service Port](#application-configurations_grpc_port)
     * [Permissions](#application-configurations_permissions)
     * [Middleware](#application-configurations_middleware)
     * [Examples of Middleware Functionality](#application-configurations_examples-of-middleware-functionality)
@@ -47,6 +48,11 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
     * [Database | PostgreSQL](#application-recommendations_database-postgre-sql)
     * [Change ](#application-recommendations_change-management-db-migrations)
     * [Soft Delete](#application-recommendations_soft-delete)
+* [Key REST Endpoints](#rest-endpoints)
+    * [Health Check](#rest-endpoints_health_check)
+    * [OpenAPI 3](#rest-endpoints_open_api_3)
+    * [.proto file](#rest-endpoints_proto_file)
+    * [GraphQL SDL](#rest-endpoints_graph_ql_sdl)
 * [Development Notes](#development-notes)
     * [NPM Link](#development-notes_npm-link)
     * [File Watchers](#development-notes_file-watchers)
@@ -241,6 +247,7 @@ The example above uses three **operators** (`equal`, `in`, `like`), this Framewo
 |field.`geo_radius`|geo_radius|true|3|
 |field.`geo_polygon`|geo_polygon|false||
 
+##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the pipe (`>`) as a prefix. Example, `last_name` & `>state` are the query string parameters for context options `page` on the **`topResourceName`** & **`state`** on the **`subResourceName`**.
 
 ## <a id="key-concepts-interfaces_supported-context-keys"></a>Supported Context Keys
 
@@ -258,7 +265,9 @@ Below are all the supported `context` keys available for use within a query:
 |notWhere|used to determine if knex uses `WHERE` or `NOT WHERE` when applying filters. **NOT IMPLEMENTED**|
 |statementContext|used to determine how filters should be applied together (AND, OR, and NOT operators) **NOT IMPLEMENTED**|
 
-##### **NOTE:** Context in REST is always in query string. This is useful for returning fields on `CREATE` & `UPDATE.`
+##### **NOTE 1:** Context in REST is always in query string. This is useful for returning fields on `CREATE` & `UPDATE.`
+
+##### **NOTE 2:** Context parameters in REST use the pipe (`|`) as a prefix. Example, `|page` & `|limit` are the query string parameters for context options `page` & `limit`.
 
 ## <a id="key-concepts-interfaces_query-metadata"></a>Query Metadata
 
@@ -363,9 +372,25 @@ In time -- its possible that version specific DB Engine support will be provided
 
 # <a id="application-configurations"></a>Application Configurations
 
-## <a id="application-configurations_default-page-limit"></a>default page limit
+## <a id="application-configurations_default-page-limit"></a>Default & Max Page Limit
 
-BLAH BLAH BLAH
+The page limitation used as the default and max for any request to the server.
+
+```
+  const { App, logger, grpcService } = await ignite({
+    db, metadata, paginationLimit: 250,
+  });
+```
+
+## <a id="application-configurations_grpc_port"></a>`gRPC` Service Port
+
+The port that the `gRPC` service will listen on.
+
+```
+  const { App, logger, grpcService } = await ignite({
+    db, metadata, grpcPort: 50051,
+  });
+```
 
 ## <a id="application-configurations_permissions"></a>Permissions
 
@@ -515,6 +540,35 @@ For permanently removing user records, I recommend do with via a boolean __activ
 
 Even to support with GDPR or CCPA requirements, I'd not support deleting via this service, but instead, calling this service to flip flags and using an async worker to execute the purge.
 
+#  <a id="rest-endpoints"></a>Key REST Endpoints
+
+## <a id="rest-endpoints_health_check"></a>Health Check
+**endpoint**: `/healthz`
+
+A health check route is available at this endpoint. The response provides metadata for the service and some information about the DB dialect that is powering the server.
+
+## <a id="rest-endpoints_open_api_3"></a>OpenAPI 3
+**endpoint**: `/openapi`
+
+OpenAPI3 definitions for the REST service are available at this endpoint.
+
+## <a id="rest-endpoints_proto_file"></a>.proto file
+**endpoint**: `/proto`
+
+The contents of the `.proto` file that is needed to make gRPC calls to this service is available at this endpoint.
+
+## <a id="rest-endpoints_graph_ql_sdl"></a>GraphQL SDL
+**endpoint**: `/schema`
+
+The GraphQL schema used by this service are available at this endpoint.
+
+## Development Resources
+
+**endpoint**: `/resources`  
+**endpoint**: `/db_resources`  
+**endpoint**: `/db_resources/raw`  
+
+The resources above were used repeatedly during development to get an idea of that DB resources were being reported by the **`dbSurveyQuery`** and how they are being transformed for use by the *Resource* objects.
 
 # <a id="development-notes"></a>Development Notes
 

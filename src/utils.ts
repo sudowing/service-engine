@@ -1005,7 +1005,7 @@ export const permitted = (permissions: ts.IConfigServicePermission) => (
  */
 export const stringValues = (sep: string) => (obj: object) =>
   Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [
+    Object.entries(obj || {}).map(([key, value]) => [
       key,
       Array.isArray(value)
         ? value.join(sep || cnst.SEARCH_QUERY_CONTEXT.seperator)
