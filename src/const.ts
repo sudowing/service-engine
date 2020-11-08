@@ -1,4 +1,3 @@
-
 export const DEFAULT_GRPC_PORT = 50051;
 export const DEFAULT_REST_PORT = 8080;
 

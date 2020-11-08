@@ -33,6 +33,7 @@ export const prepare = async ({
   hardDelete,
   permissions,
   pageLimit,
+  grpcPort,
 }) => {
   // these are specific to the db engine version
   const {
@@ -239,7 +240,10 @@ export const prepare = async ({
   const protoService = grpc.loadPackageDefinition(packageDefinition).service;
   const grpcService = new grpc.Server();
   grpcService.addService(protoService[AppShortName].service, grpcMethods);
-  grpcService.bind("0.0.0.0:50051", grpc.ServerCredentials.createInsecure());
+  grpcService.bind(
+    `0.0.0.0:${grpcPort}`,
+    grpc.ServerCredentials.createInsecure()
+  );
 
   return { appRouter, serviceRouter, AppModule, AppShortName, grpcService };
 };
