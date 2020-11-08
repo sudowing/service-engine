@@ -1,3 +1,7 @@
+
+export const DEFAULT_GRPC_PORT = 50051;
+export const DEFAULT_REST_PORT = 8080;
+
 export const CREATE = "create";
 export const READ = "read";
 export const UPDATE = "update";
@@ -204,7 +208,7 @@ export const SERVICE_RESOURCE_NOT_FOUND_BODY = {
   ],
 };
 
-export const COMPLEX_RESOLVER_SEPERATOR = "____";
+export const COMPLEX_RESOLVER_SEPERATOR = "_subquery_";
 
 export const NON_RETURNING_SUCCESS_RESPONSE = { success: true };
 export const NON_RETURNING_FAILURE_RESPONSE = { success: false };
@@ -215,7 +219,7 @@ export const UNSUPPORTED_CHARACTER_IN_DB =
   "DB resource name or field contains character unsupported in GraphQL SDL (schema definition language). Supported characters are limited to `[0-9a-zA-Z_]` in all three `fieldsOfConcern`. Review each field within the `problemResources` records. Solutions would include updating the DDL to a name that is supported of omitting the resource from this service via a startup config";
 
 export const BAD_CONFIG_COMPLEX_RESOURCE =
-  "one of the resources provided for a complexResource does not exist. Make sure both are reflected in the DB as tables, views or materialized views. They must exist at boot so this system can auto generate the appropriate @hapi/joi validators -- which drive all of the REST & GraphQL interfaces (and auto documentation)";
+  "one of the resources provided for a complexResource does not exist. Make sure both are reflected in the DB as tables, views or materialized views. They must exist at boot so this system can auto generate the appropriate JOI validators -- which drive all of the REST & GraphQL interfaces (and auto documentation)";
 
 export const PERMIT_CREATE = 1;
 export const PERMIT_READ = 2;
