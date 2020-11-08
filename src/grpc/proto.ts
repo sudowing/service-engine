@@ -134,7 +134,7 @@ export const grpcTypes = ({
 
       if (subResourceName) {
         messages[`args_search_${ResourceName}`].push(
-          `optional args_search_${subResourceName} subquery`
+          `optional search${subResourceName} subquery`
         );
       }
 

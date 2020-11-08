@@ -602,3 +602,38 @@ Any engineers interested in such content, can find it available via subscription
 #  <a id="license"></a>License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+
+#  <a id="rest-endpoints"></a>Key REST Endpoints
+
+## Health Check
+**endpoint**: `/healthz`
+
+Provides 
+
+## OpenAPI 3
+**endpoint**: `/openapi`
+
+asdfdas
+
+## .proto file
+**endpoint**: `/proto`
+
+asdfdas
+
+## GraphQL SDL
+**endpoint**: `/schema`
+
+asdfdas
+
+
+gRPC port by config
+
+explain query string prefixes
+|
+>
+add table for context options under sql operators
+
+
+make sure debug mode is explained
+

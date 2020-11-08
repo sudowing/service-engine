@@ -1,9 +1,0 @@
-gRPC port by config
-
-add table for context options under sql operators
-
-make sure debug mode is explained
-
-
-mention that protobuff is available at REST endpoing /proto AND /openapi is also available
-

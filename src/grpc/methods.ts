@@ -102,7 +102,7 @@ export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
   };
 
   const subPayload = {
-    ...subquery, // subquery has `payload` & `context` keys. needs to be typed
+    payload: gqlParsePayload(subquery), // subquery has `payload` & `context` keys. needs to be typed
     requestId: reqId,
     apiType,
   };
