@@ -4,6 +4,8 @@ Service-Engine auto provisions **`REST`**, **`GraphQL`** & **`gRPC`** services t
 
 It can be implemented via an [NPM package](https://www.npmjs.com/package/service-engine) **and** as a [Docker Container](https://hub.docker.com/r/sudowing/service-engine).
 
+![service-envine promo-art](assets/img/readme/service-engine_art.png "Service-Engine | Promo Poster (GraphQL, gRPC & REST")
+
 #  <a id="table-of-contents"></a>Table of Contents
 
 * [Overview](#overview)
@@ -247,7 +249,7 @@ The example above uses three **operators** (`equal`, `in`, `like`), this Framewo
 |field.`geo_radius`|geo_radius|true|3|
 |field.`geo_polygon`|geo_polygon|false||
 
-##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the pipe (`>`) as a prefix. Example, `last_name` & `>state` are the query string parameters for context options `page` on the **`topResourceName`** & **`state`** on the **`subResourceName`**.
+##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the Greater-than sign (`>`) as a prefix. Example, `last_name` & `>state` are the query string parameters for context options `page` on the **`topResourceName`** & **`state`** on the **`subResourceName`**.
 
 ## <a id="key-concepts-interfaces_supported-context-keys"></a>Supported Context Keys
 
@@ -312,6 +314,11 @@ http://localhost:8080/sample-app-name/service/${schema}_${table}/?|orderBy=uuid:
 
 # debug mode (no db call)
 http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=falsey
+
+
+# service call for example given above in
+# Standardized Query = Payload + Context
+http://localhost:8080/sample-app-name/debug/${schema}_${table}/?occupation=engineer&state.in=NJ|PA&handle.like=sudo%&|page=5&|limit=3&|orderBy=handle,name_last:desc&|fields=id,handle,email,name_first&|seperator=|
 ```
 
 # <a id="application-considerations"></a>Application Considerations
