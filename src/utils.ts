@@ -517,7 +517,7 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
   );
 
 /**
- * @description conversion of meters to units used in spacial queries
+ * @description conversion of meters to units used in spatial queries
  * @param {number} meters
  */
 export const metersToDecimalDegrees = (meters: number) => meters / cnst.DD_BASE;

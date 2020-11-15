@@ -99,7 +99,7 @@ export const gqlTypes = ({
       ];
     }
 
-    const spacialType = (st: boolean) => (str: string) =>
+    const spatialType = (st: boolean) => (str: string) =>
       st || !str.startsWith("geo");
 
     const searchInterfaces = [
@@ -120,7 +120,7 @@ export const gqlTypes = ({
       `not_range: in_range${ResourceName}`,
       // accept DEFINED multiple values of DEFINED type
       `geo: st_${ResourceName}`,
-    ].filter(spacialType(hasGeoQueryType));
+    ].filter(spatialType(hasGeoQueryType));
 
     schema[`input search${ResourceName}`] = searchInterfaces;
 
