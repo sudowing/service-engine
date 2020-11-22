@@ -233,3 +233,8 @@ export const NEW_LINE = `
         `;
 
 export const DEFAULT_MIGRATION_SCRIPT_NAME = "migration_by_sql_dir";
+
+export const DEFAULT_MIGRATION_CONTENT = {
+  up: [],
+  down: [],
+};

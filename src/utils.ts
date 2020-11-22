@@ -1,5 +1,8 @@
 import { Buffer } from "buffer";
 
+import * as fs from "fs";
+import * as path from "path";
+
 import * as Joi from "joi";
 import { pascalCase, snakeCase } from "change-case";
 import { cloneDeep } from "lodash";
@@ -1102,4 +1105,50 @@ export const genNextMigrationName = ({ date, id, args }) => {
     args.length ? args.join("-") : cnst.DEFAULT_MIGRATION_SCRIPT_NAME
   );
   return [timestamp, id, name].join("_");
+};
+
+/**
+ * @description List all files in a directory in Node.js recursively in a synchronous fashion (taken from a gist)
+ * @param {*} dir
+ * @param {*} filelist
+ * @returns
+ */
+export const surveyDirectory = (dir, filelist = []) => {
+  const files = fs.readdirSync(dir);
+  filelist = filelist || [];
+  files.forEach((file) => {
+    if (fs.statSync(path.join(dir, file)).isDirectory()) {
+      filelist = surveyDirectory(path.join(dir, file), filelist);
+    } else {
+      filelist.push(path.join(dir, file));
+    }
+  });
+  return filelist;
+};
+
+/**
+ * @description seperate files into up & down batches for knex
+ * @param {*} accum
+ * @param {*} curr
+ * @returns
+ */
+export const reducerSqlContent = (accum, curr) => {
+  const direction = curr.includes("/up/") ? "up" : "down";
+  accum[direction].push(curr);
+  return accum;
+};
+
+/**
+ * @description collect file paths for all .sql files that makeup a given migration
+ * @param {*} dir
+ * @returns
+ */
+export const gatherContent = (dir) => {
+  const source = surveyDirectory(dir).reduce(
+    reducerSqlContent,
+    cnst.DEFAULT_MIGRATION_CONTENT
+  );
+  source.up.sort();
+  source.down.sort();
+  return source;
 };
