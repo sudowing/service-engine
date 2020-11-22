@@ -28,7 +28,7 @@ import {
   extractPermissions,
 } from "./utils";
 
-export { initPostProcessing, permit } from "./utils";
+export { initPostProcessing, permit, genNextMigrationName } from "./utils";
 
 // currently this is server wide setting. future will be per resource
 const ENABLE_HARD_DELETE = process.env.ENABLE_HARD_DELETE
