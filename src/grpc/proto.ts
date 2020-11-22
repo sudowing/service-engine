@@ -96,7 +96,7 @@ export const grpcTypes = ({
       }
     }
 
-    const spacialType = (st: boolean) => (str: string) =>
+    const spatialType = (st: boolean) => (str: string) =>
       st || !str.endsWith("geo");
 
     const searchInterfaces = [
@@ -117,7 +117,7 @@ export const grpcTypes = ({
       `optional in_range${ResourceName} not_range`,
       // accept DEFINED multiple values of DEFINED type
       `optional st_${ResourceName} geo`,
-    ].filter(spacialType(hasGeoQueryType));
+    ].filter(spatialType(hasGeoQueryType));
 
     messages[`search${ResourceName}`] = searchInterfaces;
 

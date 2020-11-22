@@ -191,6 +191,7 @@ export const HEADER_GET_COUNT = "x-get-count";
 export const HEADER_COUNT = "x-count";
 
 export const REGEX_CHAR = /(character|varchar|nchar|varying)\((?<len>\d+)\)/;
+export const REGEX_NON_DIGIT = /\D/g;
 
 export const DEFAULT_PAGINATION_LIMIT = 250;
 
@@ -230,3 +231,5 @@ export const PERMIT_CRUD =
 
 export const NEW_LINE = `
         `;
+
+export const DEFAULT_MIGRATION_SCRIPT_NAME = "migration_by_sql_dir";

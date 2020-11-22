@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 
 import * as Joi from "joi";
-import { pascalCase } from "change-case";
+import { pascalCase, snakeCase } from "change-case";
 import { cloneDeep } from "lodash";
 import * as wkx from "wkx";
 
@@ -517,7 +517,7 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
   );
 
 /**
- * @description conversion of meters to units used in spacial queries
+ * @description conversion of meters to units used in spatial queries
  * @param {number} meters
  */
 export const metersToDecimalDegrees = (meters: number) => meters / cnst.DD_BASE;
@@ -1086,4 +1086,20 @@ export const encodeStruct = (data: { [key: string]: any }) => {
   return {
     fields: data ? encodeStructFields(data) : data,
   };
+};
+
+/**
+ * @description generates migration script name needed for reading from sql & up/down directories
+ * @param {*} {date, id, args}
+ * @returns
+ */
+export const genNextMigrationName = ({ date, id, args }) => {
+  const timestamp = date
+    .toISOString()
+    .replace(cnst.REGEX_NON_DIGIT, "")
+    .substr(0, 14);
+  const name = snakeCase(
+    args.length ? args.join("-") : cnst.DEFAULT_MIGRATION_SCRIPT_NAME
+  );
+  return [timestamp, id, name].join("_");
 };

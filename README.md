@@ -4,6 +4,8 @@ Service-Engine auto provisions **`REST`**, **`GraphQL`** & **`gRPC`** services t
 
 It can be implemented via an [NPM package](https://www.npmjs.com/package/service-engine) **and** as a [Docker Container](https://hub.docker.com/r/sudowing/service-engine).
 
+![service-envine promo-art](assets/img/readme/service-engine_art.png "Service-Engine | Promo Poster (GraphQL, gRPC & REST")
+
 #  <a id="table-of-contents"></a>Table of Contents
 
 * [Overview](#overview)
@@ -135,13 +137,13 @@ If implementing in `node`, you'll be following the [knex migration docs](http://
 
 ## <a id="overview_gis-support"></a>GIS Support
 
-If the DB powering this service is `PostgreSQL` with the `postgis` extension enabled, spacial queries will be enabled on geometric fields.
+If the DB powering this service is `PostgreSQL` with the `postgis` extension enabled, spatial queries will be enabled on geometric fields.
 
-This feature works by identifying any fields of a geometric type (as reported in the initial DB survey on startup) and enabling various spacial type functions (`st_*`) via **SEARCH methods**.
+This feature works by identifying any fields of a geometric type (as reported in the initial DB survey on startup) and enabling various spatial type functions (`st_*`) via **SEARCH methods**.
 
 Additionally, any fields of this type are published as GeoJSON (after being transformed from WKT).
 
-Current support for spacial search functions include:
+Current support for spatial search functions include:
 - Radius ([ST_Intersects](https://postgis.net/docs/ST_Intersects.html))
 - Bounding Box ([ST_Intersects](https://postgis.net/docs/ST_Intersects.html) & [ST_MakeEnvelope](http://www.postgis.net/docs/ST_MakeEnvelope.html))
 - Custom Polygon ([ST_Intersects](https://postgis.net/docs/ST_Intersects.html) & [ST_GeomFromText](http://www.postgis.net/docs/ST_GeomFromText.html))
@@ -247,7 +249,7 @@ The example above uses three **operators** (`equal`, `in`, `like`), this Framewo
 |field.`geo_radius`|geo_radius|true|3|
 |field.`geo_polygon`|geo_polygon|false||
 
-##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the pipe (`>`) as a prefix. Example, `last_name` & `>state` are the query string parameters for context options `page` on the **`topResourceName`** & **`state`** on the **`subResourceName`**.
+##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the Greater-than sign (`>`) as a prefix. Example, `last_name` & `>state` are the query string parameters for context options `page` on the **`topResourceName`** & **`state`** on the **`subResourceName`**.
 
 ## <a id="key-concepts-interfaces_supported-context-keys"></a>Supported Context Keys
 
@@ -312,6 +314,11 @@ http://localhost:8080/sample-app-name/service/${schema}_${table}/?|orderBy=uuid:
 
 # debug mode (no db call)
 http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:desc&|limit=3&|page=10&|fields=id,uuid&active=falsey
+
+
+# service call for example given above in
+# Standardized Query = Payload + Context
+http://localhost:8080/sample-app-name/debug/${schema}_${table}/?occupation=engineer&state.in=NJ|PA&handle.like=sudo%&|page=5&|limit=3&|orderBy=handle,name_last:desc&|fields=id,handle,email,name_first&|seperator=|
 ```
 
 # <a id="application-considerations"></a>Application Considerations
@@ -628,7 +635,7 @@ Developing this project required working with multiple DBs and learning to stand
 
 There are several guides spread around the internet explaining how to run various DBs via containers, so I've simply aggregated the steps and publsihed them here.
 
-Additionally, the process of loading spacial data into PostGIS was completely new to me. I have worked with these types of systems, benefiting greatly from the work of some awesome data folks, but I'd never been required to dive into that myself. **This project changed that.**
+Additionally, the process of loading spatial data into PostGIS was completely new to me. I have worked with these types of systems, benefiting greatly from the work of some awesome data folks, but I'd never been required to dive into that myself. **This project changed that.**
 
 In [this repo](https://github.com/sudowing/guide-local-databases#postgis-local-development-guide)
 I've included instructions on how to run PostGIS via a container **AND** I've provided the steps needed to load it. From downloading source material (shapefiles), to converting them to `SQL` insert statements and using the `CLI` to import the data -- every step is documented.
