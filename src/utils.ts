@@ -1148,9 +1148,10 @@ export const reducerSqlContent = (accum, curr) => {
  * @returns
  */
 export const gatherModularSQLContentByID = (dir, id) => {
-  const source = surveyDirectory(
-    [dir, "sql", id].join("/")
-  ).reduce(reducerSqlContent, { ...cnst.DEFAULT_MIGRATION_CONTENT });
+  const source = surveyDirectory([dir, "sql", id].join("/")).reduce(
+    reducerSqlContent,
+    (() => cnst.DEFAULT_MIGRATION_CONTENT)()
+  );
   source.up.sort();
   source.down.sort();
   return source;
@@ -1161,9 +1162,9 @@ export const gatherModularSQLContentByID = (dir, id) => {
  * @param {*} files
  */
 export const processModularSQL = (files) => (knex) =>
-  !files.length.length
+  !files.length
     ? knex
-    : files.length.reduce(
+    : files.reduce(
         (tnx, file) => tnx.raw(fs.readFileSync(file, "utf-8")),
         knex.schema
       );
