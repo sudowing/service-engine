@@ -1091,6 +1091,9 @@ export const encodeStruct = (data: { [key: string]: any }) => {
   };
 };
 
+// the functions below only exist for implementation within `service-engine-docker`
+// it is used in the custom migration feature
+
 /**
  * @description generates migration script name needed for reading from sql & up/down directories
  * @param {*} {date, id, args}
@@ -1139,16 +1142,43 @@ export const reducerSqlContent = (accum, curr) => {
 };
 
 /**
- * @description collect file paths for all .sql files that makeup a given migration
+ * @description collects and sorts filenames for all content that make up a migration batch
  * @param {*} dir
+ * @param {*} id
  * @returns
  */
-export const gatherContent = (dir) => {
-  const source = surveyDirectory(dir).reduce(
-    reducerSqlContent,
-    cnst.DEFAULT_MIGRATION_CONTENT
-  );
+export const gatherModularSQLContentByID = (dir, id) => {
+  const source = surveyDirectory(
+    [dir, "sql", id].join("/")
+  ).reduce(reducerSqlContent, { ...cnst.DEFAULT_MIGRATION_CONTENT });
   source.up.sort();
   source.down.sort();
   return source;
+};
+
+/**
+ * @description generic knex up/down fns that intake file paths and process the content via knex.raw(file_content)
+ * @param {*} files
+ */
+export const processModularSQL = (files) => (knex) =>
+  !files.length.length
+    ? knex
+    : files.length.reduce(
+        (tnx, file) => tnx.raw(fs.readFileSync(file, "utf-8")),
+        knex.schema
+      );
+
+/**
+ * @description convenience fn that minimizes implementation code for utilizing these methods. Implemented in custom knex stub
+ * @param {*} dirname
+ * @param {*} filename
+ * @returns
+ */
+export const modularMigration = (dirname, filename) => {
+  const id = filename.replace(dirname, "").split("_")[1];
+  const { up, down } = gatherModularSQLContentByID(dirname, id);
+  return {
+    up: processModularSQL(up),
+    down: processModularSQL(down),
+  };
 };

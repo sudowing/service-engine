@@ -32,7 +32,7 @@ export {
   initPostProcessing,
   permit,
   genNextMigrationName,
-  gatherContent,
+  modularMigration,
 } from "./utils";
 
 // currently this is server wide setting. future will be per resource
