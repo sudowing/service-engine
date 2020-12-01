@@ -18,7 +18,13 @@ const geoPrefixes = [
 const hasGeoPrefix = (type) =>
   !!geoPrefixes.filter((geoPrefix) => type.startsWith(geoPrefix)).length;
 
+/**
+ * @description The idea is to assign joi validators with geo types based on db type prefix. Not yet implemented.
+ * @param {string} type
+ * @returns
+ */
 const joiGeoTypeByPrefix = (type: string) => {
+  /*
   if (type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT);
   } else if (type.startsWith("") || type.startsWith("")) {
@@ -34,6 +40,7 @@ const joiGeoTypeByPrefix = (type: string) => {
   } else if (type.startsWith("")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE);
   }
+  */
 
   return null;
 };

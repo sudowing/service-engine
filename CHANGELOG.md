@@ -6,15 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.3.2] - 2020-11-08
+## [1.3.3] - 2020-12-01
+### Added
+- Patched bad joi assignment based on db type prefix (in postgresql)
+
+## [1.3.2] - 2020-11-28
 ### Added
 - Patched fixed immutable issue with custom migration scripts.
 
-## [1.3.1] - 2020-11-08
+## [1.3.1] - 2020-11-28
 ### Added
 - Patched function broken by bad object key. Also fixed immutable issue.
 
-## [1.3.0] - 2020-11-08
+## [1.3.0] - 2020-11-28
 ### Added
 - Developed better modularMigration functionality (implemented in `service-engine-docker`)
 
@@ -35,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial Release
 
-[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.3.2
+[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.3.3
+[1.3.3]: https://github.com/sudowing/service-engine/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/sudowing/service-engine/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/sudowing/service-engine/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/sudowing/service-engine/compare/v1.2.1...v1.3.0
