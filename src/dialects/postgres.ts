@@ -24,23 +24,27 @@ const hasGeoPrefix = (type) =>
  * @returns
  */
 const joiGeoTypeByPrefix = (type: string) => {
-  /*
-  if (type.startsWith("")) {
+  if (type.startsWith("geometry(Point")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_POINT);
-  } else if (type.startsWith("") || type.startsWith("")) {
+  } else if (
+    type.startsWith("geometry(Line") ||
+    type.startsWith("geometry(MultiLineString")
+  ) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_LINE);
-  } else if (type.startsWith("")) {
+  } else if (type.startsWith("geometry(Lseg")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_LSEG);
-  } else if (type.startsWith("")) {
+  } else if (type.startsWith("geometry(Box")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_BOX);
-  } else if (type.startsWith("")) {
+  } else if (type.startsWith("geometry(Path")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_PATH);
-  } else if (type.startsWith("") || type.startsWith("")) {
+  } else if (
+    type.startsWith("geometry(Polygon") ||
+    type.startsWith("geometry(MultiPolygon")
+  ) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_POLYGON);
-  } else if (type.startsWith("")) {
+  } else if (type.startsWith("geometry(Circle")) {
     return Joi.string().invalid(...cnst.SYMBOLS_GEO_CIRCLE);
   }
-  */
 
   return null;
 };
