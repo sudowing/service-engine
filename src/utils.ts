@@ -954,14 +954,6 @@ export const permit = (): ts.IServicePermission => ({
 });
 
 /**
- * @description Transform dot notation for schema.table to schema_table.
- * @param {*} str
- * @returns {string}
- */
-const prepCase = (str): string => str.split(".").join("_");
-// NOTE: be sure to change key case to match `db_resources`
-
-/**
  * @description Transforms permission object into bitwise flags
  * @param {ts.IObjectStringByGeneric<ts.IServicePermission>} permissions
  * @returns {ts.IObjectStringByNumber}
@@ -970,10 +962,7 @@ export const extractPermissions = (
   permissions: ts.IObjectStringByGeneric<ts.IServicePermission>
 ): ts.IObjectStringByNumber =>
   Object.fromEntries(
-    Object.entries(permissions).map(([key, value]) => [
-      prepCase(key),
-      value.get(),
-    ])
+    Object.entries(permissions).map(([key, value]) => [key, value.get()])
   );
 
 /**
