@@ -249,7 +249,8 @@ The example above uses three **operators** (`equal`, `in`, `like`), this Framewo
 |field.`geo_radius`|geo_radius|true|3|
 |field.`geo_polygon`|geo_polygon|false||
 
-##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the Greater-than sign (`>`) as a prefix. Example, `last_name` & `>state` are the query string parameters for context options `page` on the **`topResourceName`** & **`state`** on the **`subResourceName`**.
+##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the Greater-than sign (`>`) as a prefix.
+> Example, `|page` & `>state` are the query string parameters for context option `page` on the **`topResourceName`** and sub query **`state`** on the **`subResourceName`**.
 
 ## <a id="key-concepts-interfaces_supported-context-keys"></a>Supported Context Keys
 
@@ -318,7 +319,7 @@ http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:de
 
 # service call for example given above in
 # Standardized Query = Payload + Context
-http://localhost:8080/sample-app-name/debug/${schema}_${table}/?occupation=engineer&state.in=NJ|PA&handle.like=sudo%&|page=5&|limit=3&|orderBy=handle,name_last:desc&|fields=id,handle,email,name_first&|seperator=|
+http://localhost:8080/sample-app-name/service/${schema}_${table}/?occupation=engineer&state.in=NJ|PA&handle.like=sudo%&|page=5&|limit=3&|orderBy=handle,name_last:desc&|fields=id,handle,email,name_first&|seperator=|
 ```
 
 # <a id="application-considerations"></a>Application Considerations
@@ -590,6 +591,8 @@ One one occasion, and for a reason I did't understand, the implementing project 
 3. re-link with the 2-link commands as per npm-link
 
 Now I am able to fully test my unpublished module locally.
+
+##### **REFERENCE:** [NPM Link Quick Start](https://medium.com/dailyjs/how-to-use-npm-link-7375b6219557)
 
 ## <a id="development-notes_file-watchers"></a>File Watchers
 
