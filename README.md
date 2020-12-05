@@ -529,8 +529,6 @@ To solve this.... I intentionally create a view that exists only for reference h
 
 ##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant. But it works. And that's not nothing. :fire:
 
-
-
 ## <a id="application-configurations_redacted_fields"></a>Redacted Fields
 
 In some situations, it may be useful to redact columns from database resources.
@@ -555,12 +553,6 @@ const { App, logger, grpcService } = await ignite({
   db, metadata, redactedFields
 });
 ```
-
-
-
-
-
-
 
 # <a id="application-recommendations"></a>Application Recommendations
 
