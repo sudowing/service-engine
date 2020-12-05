@@ -77,9 +77,7 @@ export const serviceRouters = async ({
   });
 
   const { typeDefsString } = await gqlModule({
-    validators,
     dbResources,
-    dbResourceRawRows,
     Resources,
     toSchemaScalar,
     hardDelete,

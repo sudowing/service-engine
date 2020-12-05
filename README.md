@@ -46,6 +46,7 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
     * [Middleware](#application-configurations_middleware)
     * [Examples of Middleware Functionality](#application-configurations_examples-of-middleware-functionality)
     * [Complex Resources (subqueries)](#application-configurations_complex-resources-subqueries)
+    * [Redacted Fields](#application-configurations_redacted_fields)
 * [Application Recommendations](#application-recommendations)
     * [Database | PostgreSQL](#application-recommendations_database-postgre-sql)
     * [Change ](#application-recommendations_change-management-db-migrations)
@@ -249,7 +250,8 @@ The example above uses three **operators** (`equal`, `in`, `like`), this Framewo
 |field.`geo_radius`|geo_radius|true|3|
 |field.`geo_polygon`|geo_polygon|false||
 
-##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the Greater-than sign (`>`) as a prefix. Example, `last_name` & `>state` are the query string parameters for context options `page` on the **`topResourceName`** & **`state`** on the **`subResourceName`**.
+##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the Greater-than sign (`>`) as a prefix.
+> Example, `|page` & `>state` are the query string parameters for context option `page` on the **`topResourceName`** and sub query **`state`** on the **`subResourceName`**.
 
 ## <a id="key-concepts-interfaces_supported-context-keys"></a>Supported Context Keys
 
@@ -318,7 +320,7 @@ http://localhost:8080/sample-app-name/debug/${schema}_${table}/?|orderBy=uuid:de
 
 # service call for example given above in
 # Standardized Query = Payload + Context
-http://localhost:8080/sample-app-name/debug/${schema}_${table}/?occupation=engineer&state.in=NJ|PA&handle.like=sudo%&|page=5&|limit=3&|orderBy=handle,name_last:desc&|fields=id,handle,email,name_first&|seperator=|
+http://localhost:8080/sample-app-name/service/${schema}_${table}/?occupation=engineer&state.in=NJ|PA&handle.like=sudo%&|page=5&|limit=3&|orderBy=handle,name_last:desc&|fields=id,handle,email,name_first&|seperator=|
 ```
 
 # <a id="application-considerations"></a>Application Considerations
@@ -438,6 +440,10 @@ This can be useful for appending submitted queries with additional search criter
 Below is an example of how to configure permissions for the service:
 
 ```js
+import { ignite, initPostProcessing } from "service-engine";
+
+// other setup ...
+
 // object keys are resource endpoints `${schema}_${db_resource}` that are listed in the OpenAPI3 docs at `/openapi`
 const resourceSearchMiddleware = {
   public_accounts: item => ({
@@ -487,6 +493,10 @@ The `subResourceName` is the real DB object that gets queried. The `topResourceN
 Below is an example of how to configure complex resources for the service:
 
 ```js
+import { ignite, initPostProcessing } from "service-engine";
+
+// other setup ...
+
 const complexResources = [
   {
     topResourceName: 'cms_providers',
@@ -519,6 +529,30 @@ To solve this.... I intentionally create a view that exists only for reference h
 
 ##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant. But it works. And that's not nothing. :fire:
 
+## <a id="application-configurations_redacted_fields"></a>Redacted Fields
+
+In some situations, it may be useful to redact columns from database resources.
+
+Below is an example of how to redact fields for a given db resource:
+
+```js
+import { ignite, initPostProcessing } from "service-engine";
+
+// other setup ...
+
+const redactedFields = {
+    public_some_table: [
+        'this',
+        'that',
+        'the_other',
+        'part_key',
+    ],
+};
+
+const { App, logger, grpcService } = await ignite({
+  db, metadata, redactedFields
+});
+```
 
 # <a id="application-recommendations"></a>Application Recommendations
 
@@ -590,6 +624,8 @@ One one occasion, and for a reason I did't understand, the implementing project 
 3. re-link with the 2-link commands as per npm-link
 
 Now I am able to fully test my unpublished module locally.
+
+##### **REFERENCE:** [NPM Link Quick Start](https://medium.com/dailyjs/how-to-use-npm-link-7375b6219557)
 
 ## <a id="development-notes_file-watchers"></a>File Watchers
 

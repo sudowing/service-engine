@@ -49,6 +49,7 @@ export const ignite = async ({
   resourcePermissions,
   paginationLimit,
   grpcPort,
+  redactedFields,
 }: {
   db: any;
   metadata: any;
@@ -58,6 +59,7 @@ export const ignite = async ({
   resourcePermissions?: IObjectStringByGeneric<IServicePermission>;
   paginationLimit?: string | number;
   grpcPort?: string | number;
+  redactedFields?: IObjectStringByGeneric<string[]>;
 }) => {
   // only if db is postgres. will have to alter for mysql etc
   const st = knexPostgis(db);
@@ -104,6 +106,7 @@ export const ignite = async ({
     permissions,
     pageLimit,
     grpcPort: grpcPort || DEFAULT_GRPC_PORT,
+    redactedFields: redactedFields || {},
   });
 
   const { schema, context } = AppModule;

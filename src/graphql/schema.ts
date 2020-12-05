@@ -57,7 +57,10 @@ export const gqlTypes = ({
     for (const [field, record] of Object.entries(dbResources[name])) {
       const { notnull, type, primarykey }: any = record;
       const schemaScalar = toSchemaScalar(type);
-      const geoType = !!report.search[field].geoqueryType;
+      // the check for the search -> field is needed because of config `redactedFields`
+      const geoType = !!(
+        report.search[field] && report.search[field].geoqueryType
+      );
 
       schema[`input in${ResourceName}`].push(`${field}: ${schemaScalar}`);
       if (schemaScalar !== "Boolean") {
@@ -242,9 +245,7 @@ export const gqlTypes = ({
 };
 
 export const gqlSchema = async ({
-  validators,
   dbResources,
-  dbResourceRawRows,
   Resources,
   toSchemaScalar,
   metadata,

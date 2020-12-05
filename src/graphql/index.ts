@@ -13,9 +13,7 @@ import { makeServiceResolver } from "./resolvers";
 import { gqlSchema } from "./schema";
 
 export const gqlModule = async ({
-  validators,
   dbResources,
-  dbResourceRawRows,
   Resources,
   toSchemaScalar,
   hardDelete,
@@ -25,9 +23,7 @@ export const gqlModule = async ({
 }) => {
   // resolvers are built. now just need to add gqlschema for complexResources
   const { typeDefsString, typeDefs } = await gqlSchema({
-    validators,
     dbResources,
-    dbResourceRawRows,
     Resources,
     toSchemaScalar,
     metadata,

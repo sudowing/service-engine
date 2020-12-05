@@ -250,16 +250,25 @@ export const reducerValidatorInspector = (
 });
 
 /**
- * @description Used for swagger generation and for validating user queries. Real validator cannot be used as those are plain objects and may need to validate field multiple times (sql where field <= 5 and >= 12) <-- need to validate values against field twice.
+ * @description Used for swagger generation and for validating user queries. Real validator cannot be used as those are plain objects and may need to validate field multiple times (ex: sql where field <= 5 and >= 12 -- needs to validate high & low values against field level validator. `redactedFields` are omitted from this output as it powers openapi generation (which reads from resource.report[method]).
  * @param {Joi.Schema} validator
+ * @param {string[]} redactedFields
  * @returns {ts.IValidatorInspectorReport}
  */
 export const validatorInspector = (
-  validator: Joi.Schema
-): ts.IValidatorInspectorReport =>
-  (Array.from(
+  validator: Joi.Schema,
+  redactedFields: string[]
+): ts.IValidatorInspectorReport => {
+  const allFields = Array.from(
     validator[cnst.UNDERSCORE_IDS][cnst.UNDERSCORE_BYKEY].values()
-  ) as any).reduce(reducerValidatorInspector, {});
+  ) as any;
+
+  const approvedFields = redactedFields.length
+    ? allFields.filter((item) => !redactedFields.includes(item.id))
+    : allFields;
+
+  return approvedFields.reduce(reducerValidatorInspector, {});
+};
 
 // description Fn that generates error message when value submitted for search is of incorrect data type.
 export const errorMessageInvalidValue = (
@@ -526,12 +535,14 @@ export const uniqueKeyComponents = (report: ts.IValidatorInspectorReport) =>
 export const metersToDecimalDegrees = (meters: number) => meters / cnst.DD_BASE;
 
 /**
- * @description A core component of entire system. Each DB resource gets a single validator built on first pass that checks for types and values. This fn derives CRUD & Search specific validators from that original -- and applies flags to keys used in delete, update and read. The REPORT object, reviews each generated validator and generates an object describing each that is used for various logic through the system. Is simplier to perform here a single time and produce a comprehensive report object than continualy checking various properties (often deeply nested and private) in the validator.
+ * @description A core component of entire system. Each DB resource gets a single validator built on first pass that checks for types and values. This fn derives CRUD & Search specific validators from that original -- and applies flags to keys used in delete, update and read. The REPORT object, reviews each generated validator and generates an object describing each that is used for various logic through the system. Is simplier to perform here a single time and produce a comprehensive report object than continualy checking various properties (often deeply nested and private) in the validator. `redactedFields` is used to withold fields from report -- as it powers openapi generation.
  * @param {Joi.Schema} validator
+ * @param {string[]} redactedFields
  * @returns {ts.IValidationExpander}
  */
 export const validationExpander = (
-  validator: Joi.Schema
+  validator: Joi.Schema,
+  redactedFields: string[]
 ): ts.IValidationExpander => {
   const schema: ts.IValidationExpanderSchema = {
     create: modifyValidator(validator, cnst.CREATE),
@@ -541,11 +552,11 @@ export const validationExpander = (
     search: modifyValidator(validator, cnst.SEARCH),
   };
   const report: ts.IValidationExpanderReport = {
-    create: validatorInspector(schema.create),
-    read: validatorInspector(schema.read),
-    update: validatorInspector(schema.update),
-    delete: validatorInspector(schema.delete),
-    search: validatorInspector(schema.search),
+    create: validatorInspector(schema.create, redactedFields),
+    read: validatorInspector(schema.read, redactedFields),
+    update: validatorInspector(schema.update, redactedFields),
+    delete: validatorInspector(schema.delete, redactedFields),
+    search: validatorInspector(schema.search, redactedFields),
   };
   const meta: ts.IValidationExpanderMeta = {
     softDeleteFields: softDeleteFields(report.read),

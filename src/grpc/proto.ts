@@ -61,7 +61,11 @@ export const grpcTypes = ({
     for (const [field, record] of Object.entries(dbResources[name])) {
       const { notnull, type, primarykey }: any = record;
       const schemaScalar = toProtoScalar(type);
-      const geoType = !!report.search[field].geoqueryType;
+
+      // the check for the search -> field is needed because of config `redactedFields`
+      const geoType = !!(
+        report.search[field] && report.search[field].geoqueryType
+      );
 
       messages[`in${ResourceName}`].push(`optional ${schemaScalar} ${field}`);
       if (schemaScalar !== "Boolean") {
@@ -203,9 +207,7 @@ export const grpcTypes = ({
 };
 
 export const grpcSchema = ({
-  validators,
   dbResources,
-  dbResourceRawRows,
   Resources,
   toProtoScalar,
   metadata,

@@ -255,6 +255,7 @@ export interface IClassResourceConstructor {
   geoFields?: IObjectGeoFields;
   supportsReturn: boolean;
   pageLimit: number;
+  redactedFields?: string[];
 }
 
 export type TAsyncResourceResponse = Promise<

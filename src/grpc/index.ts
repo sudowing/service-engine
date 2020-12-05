@@ -3,9 +3,7 @@ import { grpcSchema } from "./proto";
 import { grpcMethodFactory } from "./methods";
 
 export const grpcModule = ({
-  validators,
   dbResources,
-  dbResourceRawRows,
   Resources,
   toProtoScalar,
   hardDelete,
@@ -16,9 +14,7 @@ export const grpcModule = ({
   logger,
 }: any) => {
   const { protoString } = grpcSchema({
-    validators,
     dbResources,
-    dbResourceRawRows,
     Resources,
     toProtoScalar,
     metadata,

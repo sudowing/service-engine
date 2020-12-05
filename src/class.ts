@@ -130,6 +130,7 @@ export class Resource implements ts.IClassResource {
     geoFields,
     supportsReturn,
     pageLimit,
+    redactedFields,
   }: ts.IClassResourceConstructor) {
     this.db = db;
     this.st = st;
@@ -145,7 +146,10 @@ export class Resource implements ts.IClassResource {
     this.supportsReturn = supportsReturn;
     this.pageLimit = pageLimit;
 
-    const { schema, report, meta } = util.validationExpander(validator);
+    const { schema, report, meta } = util.validationExpander(
+      validator,
+      redactedFields || []
+    );
     this.schema = schema;
     this.report = report;
     this.meta = meta;
@@ -335,7 +339,8 @@ export class Resource implements ts.IClassResource {
     const stDataAsWkt = this.db.client.config.client === "pg";
     if (stDataAsWkt && records.length) {
       const geoFields = Object.keys(records[0]).filter(
-        (field) => this.report.search[field].geoqueryType
+        (field) =>
+          this.report.search[field] && this.report.search[field].geoqueryType
       );
 
       const transform = (record) => {
