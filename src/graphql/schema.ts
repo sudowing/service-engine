@@ -281,9 +281,6 @@ export const gqlSchema = async ({
             service_healthz: serviceAppHealthz
             ${query.join(NEW_LINE)}
         }
-        type Mutation {
-            ${mutation.join(NEW_LINE)}
-        }
 
         type serviceAppMetadata {
           appShortName: String
@@ -382,9 +379,19 @@ export const gqlSchema = async ({
 
     `;
 
+    const mutationSchema = `
+        type Mutation {
+            ${mutation.join(NEW_LINE)}
+        }
+    `;
+
   let typeDefs = null;
   try {
-    typeDefs = gql(typeDefsString);
+    typeDefs = gql(
+      mutation.length ?
+        [typeDefsString, NEW_LINE, mutationSchema].join(NEW_LINE)
+        : typeDefsString
+    );
   } catch (err) {
     fs.writeFileSync("schema.error.typeDefsString.txt", typeDefsString);
     fs.writeFileSync("schema.error.json", JSON.stringify({ err }));
