@@ -46,6 +46,7 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
     * [Middleware](#application-configurations_middleware)
     * [Examples of Middleware Functionality](#application-configurations_examples-of-middleware-functionality)
     * [Complex Resources (subqueries)](#application-configurations_complex-resources-subqueries)
+    * [Redacted Fields](#application-configurations_redacted_fields)
 * [Application Recommendations](#application-recommendations)
     * [Database | PostgreSQL](#application-recommendations_database-postgre-sql)
     * [Change ](#application-recommendations_change-management-db-migrations)
@@ -439,6 +440,10 @@ This can be useful for appending submitted queries with additional search criter
 Below is an example of how to configure permissions for the service:
 
 ```js
+import { ignite, initPostProcessing } from "service-engine";
+
+// other setup ...
+
 // object keys are resource endpoints `${schema}_${db_resource}` that are listed in the OpenAPI3 docs at `/openapi`
 const resourceSearchMiddleware = {
   public_accounts: item => ({
@@ -488,6 +493,10 @@ The `subResourceName` is the real DB object that gets queried. The `topResourceN
 Below is an example of how to configure complex resources for the service:
 
 ```js
+import { ignite, initPostProcessing } from "service-engine";
+
+// other setup ...
+
 const complexResources = [
   {
     topResourceName: 'cms_providers',
@@ -519,6 +528,38 @@ In the second example, there are both **groupings** and **aggregation functions*
 To solve this.... I intentionally create a view that exists only for reference here in this complex query configuration. This resource, referenced as *topResourceName*,  `public_i001_city_state_entity_provider_n` is/could be a view I created specifically for the purpose of use in this complex resource (schema: `public` & view: `i001_city_state_entity_provider_n`). I use the `i`+`#` prefix to identify DB objects that "are not real".
 
 ##### **NOTE**: I know this is a bit clunky. I'll buy a beer for the person who comes up with something more elegant. But it works. And that's not nothing. :fire:
+
+
+
+## <a id="application-configurations_redacted_fields"></a>Redacted Fields
+
+In some situations, it may be useful to redact columns from database resources.
+
+Below is an example of how to redact fields for a given db resource:
+
+```js
+import { ignite, initPostProcessing } from "service-engine";
+
+// other setup ...
+
+const redactedFields = {
+    public_some_table: [
+        'this',
+        'that',
+        'the_other',
+        'part_key',
+    ],
+};
+
+const { App, logger, grpcService } = await ignite({
+  db, metadata, redactedFields
+});
+```
+
+
+
+
+
 
 
 # <a id="application-recommendations"></a>Application Recommendations
