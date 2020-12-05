@@ -138,7 +138,8 @@ describe("utils", () => {
 
     it("inspect original validator", async () => {
       const describeOriginal = fn(
-        utils.modifyValidator(mocks.testKeyedTable, "read")
+        utils.modifyValidator(mocks.testKeyedTable, "read"),
+        []
       );
       Object.entries(mocks.initDescribeOriginal).forEach(
         async ([key, value]) => {
@@ -162,7 +163,7 @@ describe("utils", () => {
     });
 
     it("inspect mutated validator", async () => {
-      const describeBizarro = fn(mocks.testKeyedTable);
+      const describeBizarro = fn(mocks.testKeyedTable, []);
       Object.entries(mocks.initDescribeBizarro).forEach(
         async ([key, value]) => {
           const { type, required, geoqueryType, softDeleteFlag } = value;

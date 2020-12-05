@@ -34,6 +34,7 @@ export const prepare = async ({
   permissions,
   pageLimit,
   grpcPort,
+  redactedFields,
 }) => {
   // these are specific to the db engine version
   const {
@@ -94,6 +95,18 @@ export const prepare = async ({
     joiBase,
   });
 
+  // once validators have been created -- remove any redacted fields.
+  // prevents publication to GraphQL, gRPC & REST responses.
+  Object.entries(redactedFields).forEach(
+    ([resourceName, columns]: [string, string[]]) => {
+      columns.forEach((column) => {
+        if (dbResources[resourceName] && dbResources[resourceName][column]) {
+          delete dbResources[resourceName][column];
+        }
+      });
+    }
+  );
+
   const mapSchemaResources = dbResourceRawRows.reduce(
     (resourceMap, { resource_schema, resource_name }) => ({
       ...resourceMap,
@@ -141,6 +154,7 @@ export const prepare = async ({
         geoFields: geoFields[name] || undefined,
         supportsReturn,
         pageLimit,
+        redactedFields: redactedFields[name] || [],
       }),
     ]
   );
@@ -178,15 +192,14 @@ export const prepare = async ({
           geoFields: geoFields[name] || undefined,
           supportsReturn,
           pageLimit,
+          redactedFields: redactedFields[name] || [],
         }),
       ]);
     }
   );
 
   const { AppModule } = await gqlModule({
-    validators,
     dbResources,
-    dbResourceRawRows,
     Resources,
     toSchemaScalar,
     hardDelete,
@@ -198,9 +211,7 @@ export const prepare = async ({
   const AppShortName = pascalCase(metadata.appShortName);
 
   const { protoString, grpcMethods } = await grpcModule({
-    validators,
     dbResources,
-    dbResourceRawRows,
     Resources,
     toProtoScalar,
     hardDelete,
