@@ -569,7 +569,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   const serviceRoutes = {
     "/healthz": {
       get: {
-        summary: "heathcheck resource",
+        summary: "healthcheck resource",
         operationId: "healthz",
         tags: ["_service"],
         responses: {
@@ -595,6 +595,27 @@ export const genDatabaseResourceOpenApiDocs = async ({
         },
       },
     },
+    "/schema": {
+      get: {
+        summary: "graphql schema txt",
+        operationId: "schema",
+        tags: ["_service"],
+        responses: {
+          "200": {
+            headers: {
+              "x-request-id": {
+                schema: {
+                  type: "string",
+                },
+                description:
+                  "uuid issued to each request. Injected into all server logs. useful for debugging",
+              },
+            },
+            description: "definition of dynamically generated graphql schema.",
+          },
+        },
+      },
+    },
     "/proto": {
       get: {
         summary: "proto txt",
@@ -611,7 +632,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
                   "uuid issued to each request. Injected into all server logs. useful for debugging",
               },
             },
-            description: "Text content for .proto file.",
+            description: "definition of dynamically generated .proto file.",
           },
         },
       },

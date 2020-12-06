@@ -360,6 +360,8 @@ export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
  */
 export const contextTransformer = (attribute, input) => {
   switch (attribute) {
+    case cnst.SEPERATOR:
+      return input.toString();
     case cnst.FIELDS:
       return input.split(cnst.COMMA);
     case cnst.ORDERBY:
@@ -466,10 +468,15 @@ export const queryContextParser = (
   apiType: string
 ): ts.IQueryContextResponse => {
   const errors = [];
+
   const context: ts.ISearchQueryContext = {
     ...cnst.SEARCH_QUERY_CONTEXT,
-    ...(query[cnst.SEPERATOR] ? { seperator: query[cnst.SEPERATOR] } : {}), // support user provided seperators for fields that support multiple values
   };
+
+  // support user provided seperators for fields that support multiple values
+  if (query[cnst.SEPERATOR]) {
+    context.seperator = query[cnst.SEPERATOR];
+  }
 
   Object.entries(query).forEach(([key, rawValue]) => {
     if (context.hasOwnProperty(key)) {
@@ -572,7 +579,7 @@ export const validationExpander = (
         validator,
         query,
         apiType,
-        context && context.sep ? context.sep : undefined
+        context && context.seperator ? context.seperator : undefined
       ),
   };
 
@@ -954,14 +961,6 @@ export const permit = (): ts.IServicePermission => ({
 });
 
 /**
- * @description Transform dot notation for schema.table to schema_table.
- * @param {*} str
- * @returns {string}
- */
-const prepCase = (str): string => str.split(".").join("_");
-// NOTE: be sure to change key case to match `db_resources`
-
-/**
  * @description Transforms permission object into bitwise flags
  * @param {ts.IObjectStringByGeneric<ts.IServicePermission>} permissions
  * @returns {ts.IObjectStringByNumber}
@@ -970,10 +969,7 @@ export const extractPermissions = (
   permissions: ts.IObjectStringByGeneric<ts.IServicePermission>
 ): ts.IObjectStringByNumber =>
   Object.fromEntries(
-    Object.entries(permissions).map(([key, value]) => [
-      prepCase(key),
-      value.get(),
-    ])
+    Object.entries(permissions).map(([key, value]) => [key, value.get()])
   );
 
 /**
@@ -1005,13 +1001,14 @@ export const operationFlag = (operation: string) => {
 export const permitted = (permissions: ts.IConfigServicePermission) => (
   resource: string,
   operation: string
-) =>
-  !!(
-    operationFlag(operation) &
-      (permissions.systemPermissions |
-        permissions.resourcePermissions[resource]) ||
-    operationFlag(operation) & permissions.resourcePermissions[resource]
-  );
+) => {
+  const hurdle = operationFlag(operation); // this is the base bitwise value for this operation
+  const sysPerms = permissions.systemPermissions;
+  const rsrcPerms = permissions.resourcePermissions[resource];
+  // if rsrcPerms set ? allowed by resource : allowed by system
+  const grant = rsrcPerms ? hurdle & rsrcPerms : hurdle & sysPerms;
+  return !!grant;
+};
 
 /**
  * @description Transforms nested object from REST, GraphQL, gRPC to simply entries. Used in validation and query building.
