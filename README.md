@@ -328,7 +328,7 @@ http://localhost:8080/sample-app-name/service/${schema}_${table}/?occupation=eng
 The service _should_ work out-of-the-box with minimal configuration. There are however a couple key requirements that must be satisfied before this service will function.
 
 ## <a id="application-considerations_unsupported-characters-in-graphql"></a>Unsupported Characters in GraphQL
-All schema names, resource names and field names must adhear to GraphQL SDL -- which limits supported characters to a very small subset of ascii chars (`[a-zA-Z0-9]`). It iss possible your db uses unsupported characters and any differences will need to be resolved before you can get this service to run.
+All schema names, resource names and field names must adhear to GraphQL SDL -- which limits supported characters to a very small subset of ascii chars (`[a-zA-Z0-9-]`). It iss possible your db uses unsupported characters and any differences will need to be resolved before you can get this service to run.
 
 Either update the field names or use the permissions to prohibit publication of resources (as setting a permission to `.none()` prohibits the addition of the resource into the GraphQL schema).
 
@@ -531,7 +531,9 @@ To solve this.... I intentionally create a view that exists only for reference h
 
 ## <a id="application-configurations_redacted_fields"></a>Redacted Fields
 
-In some situations, it may be useful to redact columns from database resources.
+In some situations, it may be useful to redact columns from database records -- while still maintaining the ability to support querying that dimension.
+
+This feature works best when paired with a middleware function that would to derive query conditions from a submitted query on the fly.
 
 Below is an example of how to redact fields for a given db resource:
 
@@ -540,17 +542,30 @@ import { ignite, initPostProcessing } from "service-engine";
 
 // other setup ...
 
+// the fields below will be removed from api responses and not published in OpenAPI3, gRPC proto or GraphQL Schema BUT... can be used in queries
 const redactedFields = {
-    public_some_table: [
+    public_people: [
         'this',
         'that',
         'the_other',
-        'part_key',
+        'partition_key',
     ],
 };
 
+// append the `partition_key` -- which has been redacted and the user doesnt know on the fly based on the query
+const resourceSearchMiddleware = {
+  public_people: query => ({
+    ...query,
+    partition_key: !!query.last_name
+      ? query.last_name.toLowerCase().substring(0, 3)
+      : null,
+  }),
+}
+
 const { App, logger, grpcService } = await ignite({
-  db, metadata, redactedFields
+  db, metadata,
+  redactedFields,
+  resourceSearchMiddleware
 });
 ```
 
