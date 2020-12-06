@@ -379,7 +379,7 @@ export const gqlSchema = async ({
 
     `;
 
-    const mutationSchema = `
+  const mutationSchema = `
         type Mutation {
             ${mutation.join(NEW_LINE)}
         }
@@ -388,8 +388,8 @@ export const gqlSchema = async ({
   let typeDefs = null;
   try {
     typeDefs = gql(
-      mutation.length ?
-        [typeDefsString, NEW_LINE, mutationSchema].join(NEW_LINE)
+      mutation.length
+        ? [typeDefsString, NEW_LINE, mutationSchema].join(NEW_LINE)
         : typeDefsString
     );
   } catch (err) {

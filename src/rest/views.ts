@@ -123,7 +123,7 @@ export const serviceView = ({
               record,
               reqId,
               operation,
-              sql: serviceResponse.result.sql.toString()
+              sql: serviceResponse.result.sql.toString(),
             },
           },
         ]; // put in array so `output` defined correcly with `record` ternary
