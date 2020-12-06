@@ -195,7 +195,7 @@ export const REGEX_NON_DIGIT = /\D/g;
 
 export const DEFAULT_PAGINATION_LIMIT = 250;
 
-export const SERVICE_VERSION = process.env.npm_package_version || "99.98.976"; // get app version
+export const SERVICE_VERSION = process.env.APP_VERSION || process.env.npm_package_version || "99.98.976"; // get app version
 
 export const SERVICE_RESOURCE_NOT_FOUND_BODY = {
   message: `use the checklist below to determine why you have received this response`,

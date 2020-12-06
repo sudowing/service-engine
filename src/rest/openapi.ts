@@ -569,7 +569,7 @@ export const genDatabaseResourceOpenApiDocs = async ({
   const serviceRoutes = {
     "/healthz": {
       get: {
-        summary: "heathcheck resource",
+        summary: "healthcheck resource",
         operationId: "healthz",
         tags: ["_service"],
         responses: {
