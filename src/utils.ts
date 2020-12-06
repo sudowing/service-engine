@@ -360,6 +360,8 @@ export const parseFieldAndOperation = (key: string): ts.IFieldAndOperation => {
  */
 export const contextTransformer = (attribute, input) => {
   switch (attribute) {
+    case cnst.SEPERATOR:
+      return input.toString();
     case cnst.FIELDS:
       return input.split(cnst.COMMA);
     case cnst.ORDERBY:
@@ -466,10 +468,15 @@ export const queryContextParser = (
   apiType: string
 ): ts.IQueryContextResponse => {
   const errors = [];
+
   const context: ts.ISearchQueryContext = {
     ...cnst.SEARCH_QUERY_CONTEXT,
-    ...(query[cnst.SEPERATOR] ? { seperator: query[cnst.SEPERATOR] } : {}), // support user provided seperators for fields that support multiple values
   };
+
+  // support user provided seperators for fields that support multiple values
+  if (query[cnst.SEPERATOR]) {
+    context.seperator = query[cnst.SEPERATOR];
+  }
 
   Object.entries(query).forEach(([key, rawValue]) => {
     if (context.hasOwnProperty(key)) {
@@ -572,7 +579,7 @@ export const validationExpander = (
         validator,
         query,
         apiType,
-        context && context.sep ? context.sep : undefined
+        context && context.seperator ? context.seperator : undefined
       ),
   };
 
