@@ -994,13 +994,14 @@ export const operationFlag = (operation: string) => {
 export const permitted = (permissions: ts.IConfigServicePermission) => (
   resource: string,
   operation: string
-) =>
-  !!(
-    operationFlag(operation) &
-      (permissions.systemPermissions |
-        permissions.resourcePermissions[resource]) ||
-    operationFlag(operation) & permissions.resourcePermissions[resource]
-  );
+) => {
+  const hurdle = operationFlag(operation); // this is the base bitwise value for this operation
+  const sysPerms = permissions.systemPermissions;
+  const rsrcPerms = permissions.resourcePermissions[resource];
+  // if rsrcPerms set ? allowed by resource : allowed by system
+  const grant = rsrcPerms ? hurdle & rsrcPerms : hurdle & sysPerms;
+  return !!grant;
+};
 
 /**
  * @description Transforms nested object from REST, GraphQL, gRPC to simply entries. Used in validation and query building.
