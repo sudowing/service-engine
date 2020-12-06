@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2020-12-06
+### Added
+- Added Redaction Feature that removes columns from records in API responses, but retains query funtionality for the redacted dimension.
+### Patched
+- Patched Permission Logic. `resourcePermissions` respected if provided, else defaults to `systemPermissions`.
+- Patched query.context.seperator functionality.
+
 ## [1.3.4] - 2020-12-04
 ### Added
 - Patched joi assignment based on db type prefix (in postgresql)
@@ -43,7 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial Release
 
-[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.3.4
+[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.4.0
+[1.4.0]: https://github.com/sudowing/service-engine/compare/v1.3.4...v1.4.0
 [1.3.4]: https://github.com/sudowing/service-engine/compare/v1.3.3...v1.3.4
 [1.3.3]: https://github.com/sudowing/service-engine/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/sudowing/service-engine/compare/v1.3.1...v1.3.2
