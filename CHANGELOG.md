@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2020-12-06
+### Patched
+- Patched config issue based on bad `appShortName` key in metadata.json key.
+
 ## [1.4.0] - 2020-12-06
 ### Added
 - Added Redaction Feature that removes columns from records in API responses, but retains query funtionality for the redacted dimension.
@@ -50,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial Release
 
-[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.4.0
+[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.4.1
+[1.4.1]: https://github.com/sudowing/service-engine/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/sudowing/service-engine/compare/v1.3.4...v1.4.0
 [1.3.4]: https://github.com/sudowing/service-engine/compare/v1.3.3...v1.3.4
 [1.3.3]: https://github.com/sudowing/service-engine/compare/v1.3.2...v1.3.3
