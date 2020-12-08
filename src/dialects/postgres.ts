@@ -514,6 +514,7 @@ export const dialect = ({ migrationTable }) => {
               s.nspname resource_schema,
               case
                 when c.relkind = 'r' then 'table'
+                when c.relkind = 'p' then 'partition'
                 when c.relkind = 'v' then 'view'
                 when c.relkind = 'm' then 'materialized view'
                 else 'unknown'
@@ -546,7 +547,7 @@ export const dialect = ({ migrationTable }) => {
               p.conrelid = c.oid
               and a.attnum = any (p.conkey)
             where
-              c.relkind in ('r', 'v', 'm') -- tables, views, materialized views
+              c.relkind in ('r', 'p', 'v', 'm') -- tables, views, materialized views
               and a.attnum > 0
               and not a.attisdropped
               and s.nspname not in ('information_schema', 'pg_catalog')
