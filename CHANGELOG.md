@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2020-12-13
+### Added
+- Updated GraphQL and gRPC inputs for `in` && `not_in` to be arrays of values opposed to strings seperated by commas. This interface is more intuitive and it solves a problem as bool, int and floats were being parsed as strings by the service-engine query parser.
+
 ## [1.5.0] - 2020-12-07
 ### Added
 - Support for PostgreSQL partitions in DB Survey.
@@ -62,7 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial Release
 
-[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.5.0
+[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.6.0
+[1.6.0]: https://github.com/sudowing/service-engine/compare/1.5.0...v1.6.0
 [1.5.0]: https://github.com/sudowing/service-engine/compare/1.4.2...v1.5.0
 [1.4.2]: https://github.com/sudowing/service-engine/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/sudowing/service-engine/compare/v1.4.0...v1.4.1
