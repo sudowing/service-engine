@@ -7,6 +7,7 @@ import {
   contextTransformer,
   callComplexResource,
   extractSelectedFields,
+  gqlParsePayload,
 } from "../utils";
 
 const apiType = "GRAPHQL";
@@ -20,34 +21,6 @@ export const makeServiceResolver = (resourcesMap: IClassResourceMap) => (
 
   const input = { ...defaultInput, ...args };
   const { payload, context, options, keys, subquery } = input;
-
-  const parseGraphQLInput = (field, op, value) => {
-    if (op === "geo") {
-      const [_op, ..._field] = field.split("_");
-      const _value =
-        _op === "polygon"
-          ? [value]
-          : _op === "radius"
-          ? [value.long, value.lat, value.meters]
-          : [value.xMin, value.yMin, value.xMax, value.yMax];
-      return [`${_field}.geo_${_op}`, _value];
-    } else if (["not_range", "range"].includes(op)) {
-      return [`${field}.${op}`, [value.min, value.max]];
-    } else if (["not_in", "in"].includes(op)) {
-      return [`${field}.${op}`, value];
-    }
-
-    return [`${field}.${op}`, value];
-  };
-
-  const gqlParsePayload = (i: object) =>
-    Object.fromEntries(
-      Object.entries(i).flatMap(([op, values]) =>
-        Object.entries(values).map(([field, value]) =>
-          parseGraphQLInput(field, op, value)
-        )
-      )
-    );
 
   // tslint:disable-next-line: prefer-const
   let { props, fields } = extractSelectedFields(info);

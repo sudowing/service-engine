@@ -14,6 +14,7 @@ import {
   permitted,
   genResourcesMap,
   getFirstIfSeperated,
+  gqlParsePayload,
 } from "../utils";
 
 import { encodeStruct } from "../utils";
@@ -23,35 +24,6 @@ const nonReturningResponse = (val: any) =>
 
 const apiType = "GRPC";
 
-// TODO: if this works for grpc -- expport from GRAPHQL module and use here and there
-const parseGraphQLInput = (field, op, value) => {
-  if (op === "geo") {
-    const [_op, ..._field] = field.split("_");
-    const _value =
-      _op === "polygon"
-        ? [value]
-        : _op === "radius"
-        ? [value.long, value.lat, value.meters]
-        : [value.xMin, value.yMin, value.xMax, value.yMax];
-    return [`${_field}.geo_${_op}`, _value];
-  } else if (["not_range", "range"].includes(op)) {
-    return [`${field}.${op}`, [value.min, value.max]];
-  } else if (["not_in", "in"].includes(op)) {
-    return [`${field}.${op}`, value];
-  }
-
-  return [`${field}.${op}`, value];
-};
-
-// TODO: this is copy/paste from the resolvers module. need to unite
-const gqlParsePayload = (obj: object) =>
-  Object.fromEntries(
-    Object.entries(obj).flatMap(([op, values]) =>
-      Object.entries(values).map(([field, value]) =>
-        parseGraphQLInput(field, op, value)
-      )
-    )
-  );
 const DEFAULT_INPUT = () => ({
   payload: {},
   context: {},

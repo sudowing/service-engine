@@ -50,6 +50,7 @@ export const grpcTypes = ({
     messages[`${ResourceName}`] = [];
     messages[`keys${ResourceName}`] = [];
     messages[`in${ResourceName}`] = [];
+    messages[`in_arr_${ResourceName}`] = [];
     messages[`in_range${ResourceName}`] = [];
 
     if (hasGeoQueryType) {
@@ -68,6 +69,10 @@ export const grpcTypes = ({
       );
 
       messages[`in${ResourceName}`].push(`optional ${schemaScalar} ${field}`);
+      messages[`in_arr_${ResourceName}`].push(
+        `repeated ${schemaScalar} ${field}`
+      );
+
       if (schemaScalar !== "Boolean") {
         messages[`in_range${ResourceName}`].push(
           `repeated ${schemaScalar === "string" ? "string" : "float"} ${field}`
@@ -114,8 +119,8 @@ export const grpcTypes = ({
       `optional in${ResourceName} null`,
       `optional in${ResourceName} not_null`,
       // accept multiple values
-      `optional in${ResourceName} in`,
-      `optional in${ResourceName} not_in`,
+      `optional in_arr_${ResourceName} in`,
+      `optional in_arr_${ResourceName} not_in`,
       // accept DEFINED multiple values {object keys}
       `optional in_range${ResourceName} range`,
       `optional in_range${ResourceName} not_range`,

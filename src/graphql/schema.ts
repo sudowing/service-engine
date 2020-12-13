@@ -46,6 +46,7 @@ export const gqlTypes = ({
     schema[`type ${ResourceName}`] = [];
     schema[`input keys${ResourceName}`] = [];
     schema[`input in${ResourceName}`] = [];
+    schema[`input in_arr_${ResourceName}`] = [];
     schema[`input in_range${ResourceName}`] = [];
 
     if (hasGeoQueryType) {
@@ -63,6 +64,10 @@ export const gqlTypes = ({
       );
 
       schema[`input in${ResourceName}`].push(`${field}: ${schemaScalar}`);
+      schema[`input in_arr_${ResourceName}`].push(
+        `${field}: [${schemaScalar}]`
+      );
+
       if (schemaScalar !== "Boolean") {
         schema[`input in_range${ResourceName}`].push(
           `${field}: ${
@@ -112,15 +117,21 @@ export const gqlTypes = ({
       `lt: in${ResourceName}`,
       `lte: in${ResourceName}`,
       `not: in${ResourceName}`,
-      `like: in${ResourceName}`,
       `null: in${ResourceName}`,
       `not_null: in${ResourceName}`,
+
+      // STRINGS ONLY
+      `like: in${ResourceName}`,
+
+      // ACCEPT ARRAYS
       // accept multiple values
-      `in: in${ResourceName}`,
-      `not_in: in${ResourceName}`,
+      `in: in_arr_${ResourceName}`,
+      `not_in: in_arr_${ResourceName}`,
+
       // accept DEFINED multiple values {object keys}
       `range: in_range${ResourceName}`,
       `not_range: in_range${ResourceName}`,
+
       // accept DEFINED multiple values of DEFINED type
       `geo: st_${ResourceName}`,
     ].filter(spatialType(hasGeoQueryType));
