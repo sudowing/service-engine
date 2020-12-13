@@ -1190,3 +1190,32 @@ export const modularMigration = (dirname, filename) => {
     down: processModularSQL(down),
   };
 };
+
+export const parseGraphQLInput = (field, op, value) => {
+  if (op === "geo") {
+    const [_op, ..._field] = field.split("_");
+    const _value =
+      _op === "polygon"
+        ? [value]
+        : _op === "radius"
+        ? [value.long, value.lat, value.meters]
+        : [value.xMin, value.yMin, value.xMax, value.yMax];
+    return [`${_field}.geo_${_op}`, _value];
+  } else if (["not_range", "range"].includes(op)) {
+    return [`${field}.${op}`, [value.min, value.max]];
+  } else if (["not_in", "in"].includes(op)) {
+    return [`${field}.${op}`, value.join(",")];
+  }
+
+  return [`${field}.${op}`, value];
+};
+
+export const gqlParsePayload = (userQuery: object) => {
+  return Object.fromEntries(
+    Object.entries(userQuery).flatMap(([op, values]) =>
+      Object.entries(values).map(([field, value]) =>
+        parseGraphQLInput(field, op, value)
+      )
+    )
+  );
+};
