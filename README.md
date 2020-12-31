@@ -64,6 +64,7 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
     * [Node Implementation & Public Docker Image ](#related-projects_node-implementation-public-docker-image)
     * [Forkable Service Template ](#related-projects_forkable-service-template)
     * [Local DB Development Guide](#related-projects_local-db-development-guide)
+* [Setup & Feature Video Walkthrough](#video-walkthrough-setup-and-features)
 * [Design & Development Walkthroughs](#design-and-development-walkthroughs)
 * [Versioning](#versioning)
 * [License](#license)
@@ -76,8 +77,6 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
 The fastest way to get up and running with this project, is to fork a [prebuilt docker app](https://github.com/sudowing/service-engine-template)  that implements the framework.
 
 This project runs the public Docker container and contains only migrations and related configurations.
-
-
 
 # <a id="overview"></a>Overview
 
@@ -130,6 +129,8 @@ Instead, the approach provided here is to simply offload the validation to the s
 
 ## <a id="overview_database-migrations"></a>Database Migrations
 
+##### [Video Overview](https://youtu.be/84D8_--K5cs)
+
 Database migrations (a.k.a. [Schema Migrations](https://en.wikipedia.org/wiki/Schema_migration)) are an awesome way for managing changes to db state and since this project will act as the DAL for a specific DB, it makes a logical place to also hold migration files.
 
 If implementing this service by forking the [Dockerized Template project](https://github.com/sudowing/service-engine-template), you will just be building the migration files manually and placing them in the appropriate directory.
@@ -164,7 +165,6 @@ The need for jdbc/odbc drivers, and the packages that leverage them, will not be
 `REST`, `GraphQL` & `gRPC` Services for interacting with the DB.
 
 As a result, native features (like [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)) or lighter dependencies (like [gRPC](https://www.npmjs.com/package/@grpc/grpc-js)) can be used instead.
-
 
 # <a id="key-concepts-interfaces"></a>Key Concepts & Interfaces
 
@@ -228,6 +228,8 @@ offset 120
 
 ## <a id="key-concepts-interfaces_supported-sql-operators"></a>Supported SQL Operators
 
+##### [Video Overview](https://youtu.be/698lXrclFIs)
+
 The example above uses three **operators** (`equal`, `in`, `like`), this Framework supports sixteen `operators`. The table below details each supported **operator**, how it's implemented in `REST`, if it will support multiple seperated values and if the operator has a fixed number of arguments.
 
 |field.**`operator`**|sql operator|multiple seperated args|# of args|
@@ -250,10 +252,14 @@ The example above uses three **operators** (`equal`, `in`, `like`), this Framewo
 |field.`geo_radius`|geo_radius|true|3|
 |field.`geo_polygon`|geo_polygon|false||
 
-##### **NOTE 1:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the Greater-than sign (`>`) as a prefix.
+##### **NOTE 1:** Qeoqueries (bbox & radius) us long/lat formatted arguments. I've opened an issue to support a config option to flip that as it is more intuitive.
+
+##### **NOTE 2:** Subquery Payload parameters in REST (which are available on defined **complexResources**) use the Greater-than sign (`>`) as a prefix.
 > Example, `|page` & `>state` are the query string parameters for context option `page` on the **`topResourceName`** and sub query **`state`** on the **`subResourceName`**.
 
 ## <a id="key-concepts-interfaces_supported-context-keys"></a>Supported Context Keys
+
+##### [Video Overview](https://youtu.be/wITo_oHjSvM)
 
 Inbound calls for Search Resources (REST, GraphQL & gRPC) accept a query context that is used to define the sql to be executed. Additionally -- all resources support `fields` context, meaning no matter what operation you are executing, you can limit the fields being returned.
 
@@ -274,6 +280,8 @@ Below are all the supported `context` keys available for use within a query:
 ##### **NOTE 2:** Context parameters in REST use the pipe (`|`) as a prefix. Example, `|page` & `|limit` are the query string parameters for context options `page` & `limit`.
 
 ## <a id="key-concepts-interfaces_query-metadata"></a>Query Metadata
+
+##### [Video Overview](https://youtu.be/fjuTBT08ELE)
 
 There are several standardized components that exist in both `REST` & `GraphQL` interfaces.
 `REST` data returns in Response Headers, while `GraphQL` data is returned in response types. `gRPC` currently does not support these features.
@@ -307,6 +315,7 @@ This way -- you can choose to request the count for the first page, which does r
 
 ## <a id="key-concepts-interfaces_debug-mode"></a>Debug Mode
 
+##### [Video Overview](https://youtu.be/LjRpv6JZxhI)
 Every resource can be called in a normal mode, which submits valid queries to the DB and debug mode -- which stops at the DB's door. If you are interested in seeing how a given REST/GraphQL query was parsed, validation responses and the SQL query built (before it's executed) -- you can do so via debug mode in REST & GraphQL.
 
 ### <a id="key-concepts-interfaces_debug-mode_example-urls"></a>Example URLs
@@ -403,6 +412,8 @@ The port that the `gRPC` service will listen on.
 
 ## <a id="application-configurations_permissions"></a>Permissions
 
+##### [Video Overview](https://youtu.be/4ptSSnaqvqw)
+
 Service permissions are managed via permissions objects defined at the system & resource levels:
 
 - `systemPermissions` apply to all db resources published on service (REST & GraphQL).
@@ -432,6 +443,8 @@ const { App, logger, grpcService } = await ignite({
 ```
 
 ## <a id="application-configurations_middleware"></a>Middleware
+
+##### [Video Overview](https://youtu.be/AopYx2XM3yc)
 
 Sometimes it can be useful to intercept an inbound query before submitting for processing. To accomplish this, this framework supports middleware -- which are a set of functions that take as `input` a **`query object`** and returns a new **`query object`** (that will still pass the validation).
 
@@ -476,6 +489,8 @@ const { App, logger, grpcService } = await ignite({
 ```
 
 ## <a id="application-configurations_complex-resources-subqueries"></a>Complex Resources (subqueries)
+
+##### [Video Overview@](https://youtu.be/rzhQlPAoVeI)
 
 Subqueries & Aggregate functions in SQL are fully supported in this framework. The configuration of these features are a little clunky, but once setup they support the same common interfaces as all other resources (full validation, middleware support, REST query standards, OpenAPI generation, GraphqL support, etc).
 
@@ -598,6 +613,8 @@ Even to support with GDPR or CCPA requirements, I'd not support deleting via thi
 
 #  <a id="rest-endpoints"></a>Key REST Endpoints
 
+##### [Video Overview](https://youtu.be/sfmAO4pWC14)
+
 ## <a id="rest-endpoints_health_check"></a>Health Check
 **endpoint**: `/healthz`
 
@@ -691,6 +708,26 @@ Additionally, the process of loading spatial data into PostGIS was completely ne
 In [this repo](https://github.com/sudowing/guide-local-databases#postgis-local-development-guide)
 I've included instructions on how to run PostGIS via a container **AND** I've provided the steps needed to load it. From downloading source material (shapefiles), to converting them to `SQL` insert statements and using the `CLI` to import the data -- every step is documented.
 
+# <a id="video-walkthrough-setup-and-features"></a>Setup & Feature Video Walkthrough
+
+A series of videos, showing how to configure the application and how several features work, have been published as a [playlist on YouTube](https://www.youtube.com/playlist?list=PLxiODQNSQfKOVmNZ1ZPXbPh6LeVDWtDRc).
+
+Videos have been produced covering the following topics related to setup & Features:
+- [GIS DB Setup & Load](https://youtu.be/UjvvPgdT_Y8)
+- [Quick Start](https://youtu.be/zwpPLM5LPgo)
+- [Insomnia Import](https://youtu.be/PzV19iHs-IU)
+- [Key REST Endpoints](https://youtu.be/sfmAO4pWC14)
+- [Permissions](https://youtu.be/4ptSSnaqvqw)
+- [API Response Metadata](https://youtu.be/fjuTBT08ELE)
+- [Query Context](https://youtu.be/wITo_oHjSvM)
+- [SQL Operators](https://youtu.be/698lXrclFIs)
+- [CRUD Operations](https://youtu.be/KUDqqlxb26M)
+- [Debug Mode](https://youtu.be/LjRpv6JZxhI)
+- [Complex Resources (subqueries & aggregate queries)](https://youtu.be/rzhQlPAoVeI)
+- [Middleware & Redactions](https://youtu.be/AopYx2XM3yc)
+- [GraphQL Playground and Geoqueries](https://youtu.be/8y5BMjHVRUA)
+- [gRPC Service (CRUD & Geoqueries)](https://youtu.be/HFzwwLIqrfQ)
+- [DB Schema Migrations](https://youtu.be/84D8_--K5cs)
 
 # <a id="design-and-development-walkthroughs"></a>Design & Development Walkthroughs
 
