@@ -13,25 +13,27 @@ import {
 import { IValidationExpanderReport } from "../interfaces";
 import { permitted } from "../utils";
 
-const genSearchParams = (oa3DataSchema, resource) => ([
-  name,
-  {
-    type,
+const genSearchParams =
+  (oa3DataSchema, resource) =>
+  ([
+    name,
+    {
+      type,
+      required,
+      keyComponent,
+      geoqueryType,
+      softDeleteFlag,
+      updateDisabled,
+      createRequired,
+      createDisabled,
+    },
+  ]: any) => ({
+    name,
+    description: name,
+    in: "query",
     required,
-    keyComponent,
-    geoqueryType,
-    softDeleteFlag,
-    updateDisabled,
-    createRequired,
-    createDisabled,
-  },
-]: any) => ({
-  name,
-  description: name,
-  in: "query",
-  required,
-  schema: oa3DataSchema({ resource, name, type }),
-});
+    schema: oa3DataSchema({ resource, name, type }),
+  });
 
 // TODO: eval these usages. complexqueries wont be implemented into GraphQL and OpenAPI until this is done
 const parseComplexResources = (str) =>
@@ -95,12 +97,15 @@ export const searchHeaders = {
 
 const contextNumbers = ["page", "limit"];
 
-const genSearchContextParam = (seperator = PIPE) => (key) => ({
-  name: `${seperator}${key}`,
-  description: SEARCH_QUERY_CONTEXT_DESCRIPTION[key] || `query context: ${key}`,
-  in: "query",
-  schema: { type: contextNumbers.includes(key) ? "number" : "string" },
-});
+const genSearchContextParam =
+  (seperator = PIPE) =>
+  (key) => ({
+    name: `${seperator}${key}`,
+    description:
+      SEARCH_QUERY_CONTEXT_DESCRIPTION[key] || `query context: ${key}`,
+    in: "query",
+    schema: { type: contextNumbers.includes(key) ? "number" : "string" },
+  });
 
 const searchContextParams = Object.keys(SEARCH_QUERY_CONTEXT).map(
   genSearchContextParam()
@@ -118,20 +123,22 @@ export const fieldsContext = searchContextParams.filter(
   ({ name }) => name === "|fields"
 )[0];
 
-export const keyParams = (fn) => (
-  input: {
-    field: string;
-    type: string;
-  }[],
-  resource: string
-) =>
-  input.map(({ field: name, type }) => ({
-    name,
-    description: name,
-    in: "query",
-    required: true,
-    schema: fn({ resource, name, type }),
-  }));
+export const keyParams =
+  (fn) =>
+  (
+    input: {
+      field: string;
+      type: string;
+    }[],
+    resource: string
+  ) =>
+    input.map(({ field: name, type }) => ({
+      name,
+      description: name,
+      in: "query",
+      required: true,
+      schema: fn({ resource, name, type }),
+    }));
 
 export const ServiceModels = {
   _service_count: {

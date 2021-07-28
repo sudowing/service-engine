@@ -8,93 +8,95 @@ import * as database from "./database";
 import * as ts from "./interfaces";
 import * as util from "./utils";
 
-export const genericResourceCall = (
-  operation: string,
-  schema: Joi.Schema,
-  fields: string[],
-  toQuery: any,
-  caller: ts.IClassResource
-) => async (
-  input:
-    | ts.IParamsProcessBase
-    | ts.IParamsProcessWithSearch
-    | ts.IParamsProcessDelete
-) => {
-  const resource = caller.name;
-  const { requestId } = input;
-  caller.logger.debug(
-    {
-      ...input,
-      resource,
-      operation,
-    },
-    cnst.RESOURCE_CALL
-  );
+export const genericResourceCall =
+  (
+    operation: string,
+    schema: Joi.Schema,
+    fields: string[],
+    toQuery: any,
+    caller: ts.IClassResource
+  ) =>
+  async (
+    input:
+      | ts.IParamsProcessBase
+      | ts.IParamsProcessWithSearch
+      | ts.IParamsProcessDelete
+  ) => {
+    const resource = caller.name;
+    const { requestId } = input;
+    caller.logger.debug(
+      {
+        ...input,
+        resource,
+        operation,
+      },
+      cnst.RESOURCE_CALL
+    );
 
-  const { context, ...parsed } = caller.contextParser(input);
-  if (parsed.error) {
-    caller.logger.error(
+    const { context, ...parsed } = caller.contextParser(input);
+    if (parsed.error) {
+      caller.logger.error(
+        {
+          requestId,
+          resource,
+          operation,
+          errors: parsed.error,
+        },
+        cnst.CONTEXT_ERRORS
+      );
+      return util.rejectResource(parsed.errorType, parsed.error);
+    }
+
+    // set fields to all available by default
+    context.fields = context.fields || fields;
+
+    // this now throws errors. Need to catch and process
+
+    const info = { error: null, value: null };
+
+    try {
+      info.value = await util.validateOneOrMany(schema, input.payload);
+    } catch (err) {
+      info.error = err;
+    }
+
+    const { error, value: query } = info;
+
+    if (error) {
+      caller.logger.error(
+        {
+          requestId,
+          resource,
+          operation,
+          error,
+        },
+        cnst.VALIDATION_ERROR
+      );
+
+      return util.rejectResource(cnst.VALIDATION_ERROR, error);
+    }
+
+    const sql = toQuery({
+      ...caller.queryBase(),
+      query,
+      context,
+      // tslint:disable-next-line: no-string-literal
+      hardDelete: !!input["hardDelete"],
+      supportsReturn: caller.supportsReturn,
+    });
+
+    caller.logger.info(
       {
         requestId,
         resource,
         operation,
-        errors: parsed.error,
+        sql: sql.toString(),
       },
-      cnst.CONTEXT_ERRORS
-    );
-    return util.rejectResource(parsed.errorType, parsed.error);
-  }
-
-  // set fields to all available by default
-  context.fields = context.fields || fields;
-
-  // this now throws errors. Need to catch and process
-
-  const info = { error: null, value: null };
-
-  try {
-    info.value = await util.validateOneOrMany(schema, input.payload);
-  } catch (err) {
-    info.error = err;
-  }
-
-  const { error, value: query } = info;
-
-  if (error) {
-    caller.logger.error(
-      {
-        requestId,
-        resource,
-        operation,
-        error,
-      },
-      cnst.VALIDATION_ERROR
+      cnst.RESOURCE_RESPONSE
     );
 
-    return util.rejectResource(cnst.VALIDATION_ERROR, error);
-  }
-
-  const sql = toQuery({
-    ...caller.queryBase(),
-    query,
-    context,
-    // tslint:disable-next-line: no-string-literal
-    hardDelete: !!input["hardDelete"],
-    supportsReturn: caller.supportsReturn,
-  });
-
-  caller.logger.info(
-    {
-      requestId,
-      resource,
-      operation,
-      sql: sql.toString(),
-    },
-    cnst.RESOURCE_RESPONSE
-  );
-
-  return util.resolveResource({ sql, context, query });
-};
+    return util.resolveResource({ sql, context, query });
+  };
 
 export class Resource implements ts.IClassResource {
   public db: knex;

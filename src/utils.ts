@@ -777,9 +777,10 @@ export const callComplexResource = async (
   }
 
   const resource = resourcesMap[resourceName];
-  const subquery = await resourcesMap[resource.subResourceName][
-    operation
-  ](subPayload, { subqueryContext: true });
+  const subquery = await resourcesMap[resource.subResourceName][operation](
+    subPayload,
+    { subqueryContext: true }
+  );
 
   // need to return the 400 already
   if (!subquery.result) return subquery;
@@ -998,17 +999,16 @@ export const operationFlag = (operation: string) => {
  * @description Used to determine if a given method is permitted on a resource.
  * @param {ts.IConfigServicePermission} permissions
  */
-export const permitted = (permissions: ts.IConfigServicePermission) => (
-  resource: string,
-  operation: string
-) => {
-  const hurdle = operationFlag(operation); // this is the base bitwise value for this operation
-  const sysPerms = permissions.systemPermissions;
-  const rsrcPerms = permissions.resourcePermissions[resource];
-  // if rsrcPerms set ? allowed by resource : allowed by system
-  const grant = rsrcPerms ? hurdle & rsrcPerms : hurdle & sysPerms;
-  return !!grant;
-};
+export const permitted =
+  (permissions: ts.IConfigServicePermission) =>
+  (resource: string, operation: string) => {
+    const hurdle = operationFlag(operation); // this is the base bitwise value for this operation
+    const sysPerms = permissions.systemPermissions;
+    const rsrcPerms = permissions.resourcePermissions[resource];
+    // if rsrcPerms set ? allowed by resource : allowed by system
+    const grant = rsrcPerms ? hurdle & rsrcPerms : hurdle & sysPerms;
+    return !!grant;
+  };
 
 /**
  * @description Transforms nested object from REST, GraphQL, gRPC to simply entries. Used in validation and query building.
@@ -1156,9 +1156,10 @@ export const reducerSqlContent = (accum, curr) => {
  * @returns
  */
 export const gatherModularSQLContentByID = (dir, id) => {
-  const source = surveyDirectory(
-    [dir, "sql", id].join("/")
-  ).reduce(reducerSqlContent, { up: [], down: [] });
+  const source = surveyDirectory([dir, "sql", id].join("/")).reduce(
+    reducerSqlContent,
+    { up: [], down: [] }
+  );
   source.up.sort();
   source.down.sort();
   return source;

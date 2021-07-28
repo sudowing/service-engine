@@ -127,100 +127,104 @@ export const toReadQuery = ({
     .select(context.fields)
     .where(query); // fields exists. was set in generic
 
-export const toUpdateQuery = (keys: string[]) => ({
-  db,
-  st,
-  resource,
-  query,
-  context,
-  searchQuery,
-  schemaResource,
-  supportsReturn,
-}: ts.IParamsToQueryWithSearch) => {
-  const { pk, values } = Object.entries(query).reduce(
-    (bundle, [key, value]) => {
-      const data = keys.includes(key) ? bundle.pk : bundle.values;
-      data[key] = value;
-      return bundle;
-    },
-    { pk: {}, values: {} }
-  );
-
-  return db(sqlSchemaResource(schemaResource))
-    .where(pk) // pull only keys from query || ensure it's being done upstream
-    .update(values, supportsReturn ? context.fields : undefined); // remove keys & cannot update fields from query && fields exists. was set in generic
-};
-
-export const toDeleteQuery = (keys: string[]) => ({
-  db,
-  st,
-  resource,
-  query,
-  searchQuery,
-  hardDelete,
-  schemaResource,
-}: ts.IParamsToDeleteQueryWithSearch) => {
-  const { pk }: any = Object.entries(query).reduce(
-    (bundle, [key, value]) => {
-      const data = keys.includes(key) ? bundle.pk : bundle.values;
-      data[key] = value;
-      return bundle;
-    },
-    { pk: {}, values: {} }
-  );
-
-  if (hardDelete) {
-    return db(sqlSchemaResource(schemaResource)).where(pk).delete();
-  }
-
-  // if soft delete [this will need to support custom `active` columns as dbs likely have these flags with different names]
-  pk.active = true;
-
-  const sqlcount = db(sqlSchemaResource(schemaResource)).count().where(pk);
-  const sqlUpdate = db(sqlSchemaResource(schemaResource))
-    .where(pk)
-    .update({ active: false });
-
-  const softDelete = new Promise(async (resolve, reject) => {
-    try {
-      const [{ count }]: any = await sqlcount;
-
-      const n = Number(count);
-
-      if (n !== 0) {
-        // no need to do the delete if no matching records exist. Call it a day
-        await sqlUpdate;
-      }
-
-      resolve(n);
-    } catch (err) {
-      reject(err);
-    }
-  });
-  softDelete.toString = () => sqlUpdate.toString();
-  return softDelete;
-};
-
-export const aggregationFnBuilder = (db: Knex) => (
-  calculatedFields: any,
-  groupBy?: string[]
-) => (knex_query: Knex.QueryBuilder): Knex.QueryBuilder => {
-  const defineCalculatedFields = (arr: string[]): (string | Knex.Raw)[] =>
-    arr.map((item) =>
-      calculatedFields[item]
-        ? db.raw(`${calculatedFields[item]} as ${item}`)
-        : item
+export const toUpdateQuery =
+  (keys: string[]) =>
+  ({
+    db,
+    st,
+    resource,
+    query,
+    context,
+    searchQuery,
+    schemaResource,
+    supportsReturn,
+  }: ts.IParamsToQueryWithSearch) => {
+    const { pk, values } = Object.entries(query).reduce(
+      (bundle, [key, value]) => {
+        const data = keys.includes(key) ? bundle.pk : bundle.values;
+        data[key] = value;
+        return bundle;
+      },
+      { pk: {}, values: {} }
     );
 
-  // @ts-ignore // replace field name with calculation def before executing
-  knex_query._statements = knex_query._statements.map(
-    ({ grouping, value }) => ({
-      grouping,
-      value: grouping !== "columns" ? value : defineCalculatedFields(value),
-    })
-  );
-  return groupBy ? knex_query.groupBy(groupBy) : knex_query;
-};
+    return db(sqlSchemaResource(schemaResource))
+      .where(pk) // pull only keys from query || ensure it's being done upstream
+      .update(values, supportsReturn ? context.fields : undefined); // remove keys & cannot update fields from query && fields exists. was set in generic
+  };
+
+export const toDeleteQuery =
+  (keys: string[]) =>
+  ({
+    db,
+    st,
+    resource,
+    query,
+    searchQuery,
+    hardDelete,
+    schemaResource,
+  }: ts.IParamsToDeleteQueryWithSearch) => {
+    const { pk }: any = Object.entries(query).reduce(
+      (bundle, [key, value]) => {
+        const data = keys.includes(key) ? bundle.pk : bundle.values;
+        data[key] = value;
+        return bundle;
+      },
+      { pk: {}, values: {} }
+    );
+
+    if (hardDelete) {
+      return db(sqlSchemaResource(schemaResource)).where(pk).delete();
+    }
+
+    // if soft delete [this will need to support custom `active` columns as dbs likely have these flags with different names]
+    pk.active = true;
+
+    const sqlcount = db(sqlSchemaResource(schemaResource)).count().where(pk);
+    const sqlUpdate = db(sqlSchemaResource(schemaResource))
+      .where(pk)
+      .update({ active: false });
+
+    const softDelete = new Promise(async (resolve, reject) => {
+      try {
+        const [{ count }]: any = await sqlcount;
+
+        const n = Number(count);
+
+        if (n !== 0) {
+          // no need to do the delete if no matching records exist. Call it a day
+          await sqlUpdate;
+        }
+
+        resolve(n);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    softDelete.toString = () => sqlUpdate.toString();
+    return softDelete;
+  };
+
+export const aggregationFnBuilder =
+  (db: Knex) =>
+  (calculatedFields: any, groupBy?: string[]) =>
+  (knex_query: Knex.QueryBuilder): Knex.QueryBuilder => {
+    const defineCalculatedFields = (arr: string[]): (string | Knex.Raw)[] =>
+      arr.map((item) =>
+        calculatedFields[item]
+          ? db.raw(`${calculatedFields[item]} as ${item}`)
+          : item
+      );
+
+    // @ts-ignore // replace field name with calculation def before executing
+    knex_query._statements = knex_query._statements.map(
+      ({ grouping, value }) => ({
+        grouping,
+        value: grouping !== "columns" ? value : defineCalculatedFields(value),
+      })
+    );
+    return groupBy ? knex_query.groupBy(groupBy) : knex_query;
+  };
 
 export const genCountQuery = (
   db,

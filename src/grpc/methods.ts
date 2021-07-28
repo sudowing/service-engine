@@ -31,224 +31,225 @@ const DEFAULT_INPUT = () => ({
   subquery: {},
 });
 
-export const grpcMethodGenerator = (resourcesMap: IClassResourceMap) => (
-  resource,
-  hardDelete: boolean
-) => (operation: string) => async ({ request: args }, callback) => {
-  const reqId = uuidv4();
+export const grpcMethodGenerator =
+  (resourcesMap: IClassResourceMap) =>
+  (resource, hardDelete: boolean) =>
+  (operation: string) =>
+  async ({ request: args }, callback) => {
+    const reqId = uuidv4();
 
-  const report = resource.report[operation];
-  const resourceFields = Object.keys(report);
+    const report = resource.report[operation];
+    const resourceFields = Object.keys(report);
 
-  const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
-  const argKeys = ["read", "delete"].includes(operation); // used to id if response needs to pluck first item in array
+    const singleRecord = ["read", "update"].includes(operation); // used to id if response needs to pluck first item in array
+    const argKeys = ["read", "delete"].includes(operation); // used to id if response needs to pluck first item in array
 
-  const input = argKeys
-    ? { ...DEFAULT_INPUT(), payload: args }
-    : { ...DEFAULT_INPUT(), ...args };
+    const input = argKeys
+      ? { ...DEFAULT_INPUT(), payload: args }
+      : { ...DEFAULT_INPUT(), ...args };
 
-  const { payload, context, options, keys, subquery } = input;
+    const { payload, context, options, keys, subquery } = input;
 
-  context.fields = context.fields
-    ? contextTransformer("fields", context.fields)
-    : resourceFields;
+    context.fields = context.fields
+      ? contextTransformer("fields", context.fields)
+      : resourceFields;
 
-  if (!resource.supportsReturn && ["create", "update"].includes(operation)) {
-    context.fields = [];
-  }
+    if (!resource.supportsReturn && ["create", "update"].includes(operation)) {
+      context.fields = [];
+    }
 
-  if (context.orderBy) {
-    context.orderBy = contextTransformer("orderBy", context.orderBy);
-  }
-  const query = {
-    payload:
-      operation === "update"
-        ? { ...payload, ...keys }
-        : operation === "search"
-        ? gqlParsePayload(payload)
-        : payload,
-    context,
-    requestId: reqId,
-    apiType,
-    hardDelete,
-  };
+    if (context.orderBy) {
+      context.orderBy = contextTransformer("orderBy", context.orderBy);
+    }
+    const query = {
+      payload:
+        operation === "update"
+          ? { ...payload, ...keys }
+          : operation === "search"
+          ? gqlParsePayload(payload)
+          : payload,
+      context,
+      requestId: reqId,
+      apiType,
+      hardDelete,
+    };
 
-  const subPayload = {
-    payload: gqlParsePayload(subquery), // subquery has `payload` & `context` keys. needs to be typed
-    requestId: reqId,
-    apiType,
-  };
+    const subPayload = {
+      payload: gqlParsePayload(subquery), // subquery has `payload` & `context` keys. needs to be typed
+      requestId: reqId,
+      apiType,
+    };
 
-  const _serviceResponse = resource.hasSubquery
-    ? callComplexResource(
-        resourcesMap,
-        resource.name,
-        operation,
-        query,
-        subPayload
-      )
-    : resource[operation](query);
+    const _serviceResponse = resource.hasSubquery
+      ? callComplexResource(
+          resourcesMap,
+          resource.name,
+          operation,
+          query,
+          subPayload
+        )
+      : resource[operation](query);
 
-  const serviceResponse = await _serviceResponse;
+    const serviceResponse = await _serviceResponse;
 
-  if (serviceResponse.result) {
-    try {
-      const _records = await serviceResponse.result.sql;
+    if (serviceResponse.result) {
+      try {
+        const _records = await serviceResponse.result.sql;
 
-      const data =
-        !resource.supportsReturn && ["create", "update"].includes(operation)
-          ? operation === "update"
-            ? [nonReturningResponse(_records)]
-            : nonReturningResponse(_records)
-          : resource.transformRecords(_records);
+        const data =
+          !resource.supportsReturn && ["create", "update"].includes(operation)
+            ? operation === "update"
+              ? [nonReturningResponse(_records)]
+              : nonReturningResponse(_records)
+            : resource.transformRecords(_records);
 
-      // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
+        // TODO: add error logging and `dbCallSuccessful` type flag (like in routers) to prevent count if db call failed
 
-      // update & delete will one day support search query for bulk mutation (already supported in the class I think)
+        // update & delete will one day support search query for bulk mutation (already supported in the class I think)
 
-      delete serviceResponse.result.sql;
+        delete serviceResponse.result.sql;
 
-      // send count as additional field
-      const response: IServiceResolverResponseBase = {
-        data: singleRecord ? (data.length ? data[0] : null) : data,
-      };
-
-      if (operation === "search" && options.count) {
-        // later could apply to update & delete
-
-        const { seperator, notWhere, statementContext } = query.context;
-        query.context = { seperator, notWhere, statementContext };
-
-        const _searchCountResult = resource.hasSubquery
-          ? callComplexResource(
-              resourcesMap,
-              resource.name,
-              operation,
-              query,
-              subPayload
-            )
-          : resource[operation](query);
-
-        const { result: searchCountResult } = await _searchCountResult; // validation is now async!
-
-        const sqlSearchCount = genCountQuery(
-          resource.db,
-          searchCountResult.sql
-        );
-
-        const [{ count }] = await sqlSearchCount; // can/should maybe log this
-
-        response.count = count;
-      }
-
-      const transformJson = (record) => {
-        const jsonFields = Object.keys(record).filter(
-          (key) =>
-            !!(
-              report[key] &&
-              (report[key].geoqueryType || report[key].jsonType)
-            )
-        );
-        for (const jsonField of jsonFields) {
-          record[jsonField] = encodeStruct(record[jsonField]);
-        }
-        return {
-          ...record,
+        // send count as additional field
+        const response: IServiceResolverResponseBase = {
+          data: singleRecord ? (data.length ? data[0] : null) : data,
         };
-      };
 
-      const jsonToStructs = ({ data: _data, ...other }) => {
-        let output = { ..._data, ...other };
-        if (_data) {
-          output = {
-            ...other,
-            data: Array.isArray(_data)
-              ? _data.map(transformJson)
-              : transformJson(_data),
+        if (operation === "search" && options.count) {
+          // later could apply to update & delete
+
+          const { seperator, notWhere, statementContext } = query.context;
+          query.context = { seperator, notWhere, statementContext };
+
+          const _searchCountResult = resource.hasSubquery
+            ? callComplexResource(
+                resourcesMap,
+                resource.name,
+                operation,
+                query,
+                subPayload
+              )
+            : resource[operation](query);
+
+          const { result: searchCountResult } = await _searchCountResult; // validation is now async!
+
+          const sqlSearchCount = genCountQuery(
+            resource.db,
+            searchCountResult.sql
+          );
+
+          const [{ count }] = await sqlSearchCount; // can/should maybe log this
+
+          response.count = count;
+        }
+
+        const transformJson = (record) => {
+          const jsonFields = Object.keys(record).filter(
+            (key) =>
+              !!(
+                report[key] &&
+                (report[key].geoqueryType || report[key].jsonType)
+              )
+          );
+          for (const jsonField of jsonFields) {
+            record[jsonField] = encodeStruct(record[jsonField]);
+          }
+          return {
+            ...record,
           };
+        };
+
+        const jsonToStructs = ({ data: _data, ...other }) => {
+          let output = { ..._data, ...other };
+          if (_data) {
+            output = {
+              ...other,
+              data: Array.isArray(_data)
+                ? _data.map(transformJson)
+                : transformJson(_data),
+            };
+          }
+
+          return output;
+        };
+
+        let final;
+
+        if (
+          !resource.supportsReturn &&
+          ["create", "update"].includes(operation)
+        ) {
+          final = response.data;
+        } else if (operation === "delete") {
+          final = { number: response.data };
+        } else if (operation === "read") {
+          if (!response.data) {
+            throw new Error(UNIQUE_RECORD_NOT_FOUND_WITH_KEYS);
+          }
+          final = transformJson(response.data);
+        } else if (operation === "update") {
+          final = transformJson(response.data);
+        } else if (operation === "create") {
+          // need to check create one-and-many
+          final = Array.isArray(response.data)
+            ? { data: response.data.map(transformJson) }
+            : jsonToStructs(response).data[0];
+        } else if (operation === "search") {
+          // need to check create one-and-many
+          final = { ...response, data: response.data.map(transformJson) };
         }
 
-        return output;
-      };
+        callback(null, final);
 
-      let final;
+        // if single record searched and not returned -- 404
+        // if ([null, undefined].includes(output)) {
+      } catch (err) {
+        const message =
+          err.message === UNIQUE_RECORD_NOT_FOUND_WITH_KEYS
+            ? "BAD_REQUEST"
+            : "INTERNAL_SERVER_ERROR";
 
-      if (
-        !resource.supportsReturn &&
-        ["create", "update"].includes(operation)
-      ) {
-        final = response.data;
-      } else if (operation === "delete") {
-        final = { number: response.data };
-      } else if (operation === "read") {
-        if (!response.data) {
-          throw new Error(UNIQUE_RECORD_NOT_FOUND_WITH_KEYS);
-        }
-        final = transformJson(response.data);
-      } else if (operation === "update") {
-        final = transformJson(response.data);
-      } else if (operation === "create") {
-        // need to check create one-and-many
-        final = Array.isArray(response.data)
-          ? { data: response.data.map(transformJson) }
-          : jsonToStructs(response).data[0];
-      } else if (operation === "search") {
-        // need to check create one-and-many
-        final = { ...response, data: response.data.map(transformJson) };
+        resource.logger.error(
+          {
+            message,
+            reqId,
+            err,
+            detail: err.message,
+          },
+          "grpc method call error"
+        );
+
+        callback(
+          new Error(
+            JSON.stringify({
+              message,
+              reqId,
+              err,
+              detail: err.message,
+            })
+          )
+        );
       }
-
-      callback(null, final);
-
-      // if single record searched and not returned -- 404
-      // if ([null, undefined].includes(output)) {
-    } catch (err) {
-      const message =
-        err.message === UNIQUE_RECORD_NOT_FOUND_WITH_KEYS
-          ? "BAD_REQUEST"
-          : "INTERNAL_SERVER_ERROR";
-
+    } else {
       resource.logger.error(
         {
-          message,
+          message: "BAD_REQUEST",
+          detail: serviceResponse,
           reqId,
-          err,
-          detail: err.message,
         },
-        "grpc method call error"
+        "grpc method call error: bad request"
       );
 
       callback(
         new Error(
           JSON.stringify({
-            message,
+            message: "BAD_REQUEST",
+            detail: serviceResponse,
             reqId,
-            err,
-            detail: err.message,
           })
         )
       );
     }
-  } else {
-    resource.logger.error(
-      {
-        message: "BAD_REQUEST",
-        detail: serviceResponse,
-        reqId,
-      },
-      "grpc method call error: bad request"
-    );
-
-    callback(
-      new Error(
-        JSON.stringify({
-          message: "BAD_REQUEST",
-          detail: serviceResponse,
-          reqId,
-        })
-      )
-    );
-  }
-};
+  };
 
 export const grpcMethodFactory = ({
   Resources,
