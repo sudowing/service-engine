@@ -222,6 +222,8 @@ export const UNSUPPORTED_CHARACTER_IN_DB =
 export const BAD_CONFIG_COMPLEX_RESOURCE =
   "one of the resources provided for a complexResource does not exist. Make sure both are reflected in the DB as tables, views or materialized views. They must exist at boot so this system can auto generate the appropriate JOI validators -- which drive all of the REST & GraphQL interfaces (and auto documentation)";
 
+export const BAD_GRPC_BIND = "gRPC Service not bound to ports";
+
 export const PERMIT_CREATE = 1;
 export const PERMIT_READ = 2;
 export const PERMIT_UPDATE = 4;

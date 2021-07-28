@@ -645,6 +645,27 @@ The resources above were used repeatedly during development to get an idea of th
 
 # <a id="development-notes"></a>Development Notes
 
+## <a id="development-notes_node-versions"></a>Node Version
+
+These are the versions of Node & NPM used to build the most recent versions of this package.
+
+```sh
+# node version
+node -v
+v14.17.3
+
+# npm version
+npm -v
+7.20.2
+```
+
+## <a id="development-notes_npm-peer-dependencies-issue"></a>NPM Peer Dependencies Issue
+
+```sh
+# knex has a sqlite v4 dependency. We are using v5
+npm i --legacy-peer-deps
+```
+
 ## <a id="development-notes_npm-link"></a>NPM Link
 
 Developing this framework requires using `npm link` to add a local branch of this repo as a dependency for another project that implements it.

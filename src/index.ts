@@ -88,26 +88,21 @@ export const ignite = async ({
     ? Number(paginationLimit)
     : DEFAULT_PAGINATION_LIMIT;
 
-  const {
-    appRouter,
-    serviceRouter,
-    AppModule,
-    AppShortName,
-    grpcService,
-  } = await prepare({
-    db,
-    st,
-    metadata,
-    logger,
-    middleware: resourceSearchMiddleware,
-    supportsReturn,
-    complexResources,
-    hardDelete: ENABLE_HARD_DELETE,
-    permissions,
-    pageLimit,
-    grpcPort: grpcPort || DEFAULT_GRPC_PORT,
-    redactedFields: redactedFields || {},
-  });
+  const { appRouter, serviceRouter, AppModule, AppShortName, grpcService } =
+    await prepare({
+      db,
+      st,
+      metadata,
+      logger,
+      middleware: resourceSearchMiddleware,
+      supportsReturn,
+      complexResources,
+      hardDelete: ENABLE_HARD_DELETE,
+      permissions,
+      pageLimit,
+      grpcPort: grpcPort || DEFAULT_GRPC_PORT,
+      redactedFields: redactedFields || {},
+    });
 
   const { schema, context } = AppModule;
   const apolloServer = new ApolloServer({ schema, context }); // ,debug
