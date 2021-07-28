@@ -2,12 +2,13 @@ import { writeFileSync } from "fs";
 
 import * as protoLoader from "@grpc/proto-loader";
 import { pascalCase } from "change-case";
-import * as grpc from "grpc";
+import * as grpc from "@grpc/grpc-js";
 
 import { Resource } from "./class";
 import {
   STARTUP_FAILED,
   BAD_CONFIG_COMPLEX_RESOURCE,
+  BAD_GRPC_BIND,
   UNSUPPORTED_CHARACTER_IN_DB,
 } from "./const";
 import { aggregationFnBuilder } from "./database";
@@ -251,9 +252,25 @@ export const prepare = async ({
   const protoService = grpc.loadPackageDefinition(packageDefinition).service;
   const grpcService = new grpc.Server();
   grpcService.addService(protoService[AppShortName].service, grpcMethods);
-  grpcService.bind(
+  grpcService.bindAsync(
     `0.0.0.0:${grpcPort}`,
-    grpc.ServerCredentials.createInsecure()
+    grpc.ServerCredentials.createInsecure(),
+    (err, port) => {
+      if (err) {
+        logger.fatal(
+          {
+            summary: "gRPC service not bound to port",
+            detail: BAD_GRPC_BIND,
+            error: err,
+            port,
+          },
+          STARTUP_FAILED
+        );
+        process.exit(1);
+      }
+
+      grpcService.start();
+    }
   );
 
   return { appRouter, serviceRouter, AppModule, AppShortName, grpcService };
