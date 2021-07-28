@@ -8,7 +8,7 @@
     "build": "rm -R lib/ && npx tsc",
     "lint": "npm run lint:prettier && npm run lint:tslint",
     "lint:fix": "npm run lint:prettier:fix && npm run lint:tslint:fix",
-    "lint:prettier": "npx prettier --list-different 'src/**/*.ts'",
+    "lint:prettier": "npx prettier -l 'src/**/*.ts'",
     "lint:prettier:fix": "npx prettier --write 'src/**/*.ts'",
     "lint:tslint": "npx tslint -p tsconfig.json",
     "lint:tslint:fix": "npx tslint -p tsconfig.json --fix",
