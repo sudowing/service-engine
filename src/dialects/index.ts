@@ -15,7 +15,7 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
 
   if (db.client.config.client === "redshift") {
     return { ...redshift({ migrationTable }), dbGeometryColumns: undefined };
-  }  
+  }
 
   if (db.client.config.client === "sqlite3") {
     return { ...sqlite3({ migrationTable }), dbGeometryColumns: undefined };

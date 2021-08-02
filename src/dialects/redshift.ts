@@ -5,126 +5,126 @@ import * as Joi from "joi";
 
 export const joiBase = (type: string) => {
   switch (type) {
-    case 'smallint':
-    case 'int2':
-    case 'integer':
-    case 'int':
-    case 'int4':
-        return Joi.number().integer();
-    case 'bigint':
-    case 'int8':
-    case 'decimal':
-    case 'numeric':
-        return Joi.string();
-    case 'real':
-        return Joi.number();
-    case 'float4':
-    case 'double precision':
-    case 'float8':
-    case 'float':
-        return Joi.string();
-    case 'boolean':
-    case 'bool':
-        return Joi.boolean();
-    case 'char':
-    case 'character':
-    case 'nchar':
-    case 'bpchar':
-    case 'varchar':
-    case 'character varying':
-    case 'nvarchar':
-    case 'text':
-    case 'date':
-    case 'timestamp':
-    case 'timestamp without time zone':
-        return Joi.string();
+    case "smallint":
+    case "int2":
+    case "integer":
+    case "int":
+    case "int4":
+      return Joi.number().integer();
+    case "bigint":
+    case "int8":
+    case "decimal":
+    case "numeric":
+      return Joi.string();
+    case "real":
+      return Joi.number();
+    case "float4":
+    case "double precision":
+    case "float8":
+    case "float":
+      return Joi.string();
+    case "boolean":
+    case "bool":
+      return Joi.boolean();
+    case "char":
+    case "character":
+    case "nchar":
+    case "bpchar":
+    case "varchar":
+    case "character varying":
+    case "nvarchar":
+    case "text":
+    case "date":
+    case "timestamp":
+    case "timestamp without time zone":
+      return Joi.string();
     default:
-        return Joi.string();
+      return Joi.string();
   }
 };
 
 export const toSchemaScalar = (type: string) => {
   switch (type) {
-    case 'smallint':
-    case 'int2':
-    case 'integer':
-    case 'int':
-    case 'int4':
-        return 'Float';
-    case 'bigint':
-    case 'int8':
-    case 'decimal':
-    case 'numeric':
-        return 'String';
-    case 'real':
-        return 'Float';
-    case 'float4':
-    case 'double precision':
-    case 'float8':
-    case 'float':
-        return 'String';
-    case 'boolean':
-    case 'bool':
-        return 'Boolean';
-    case 'char':
-    case 'character':
-    case 'nchar':
-    case 'bpchar':
-    case 'varchar':
-    case 'character varying':
-    case 'nvarchar':
-    case 'text':
-    case 'date':
-    case 'timestamp':
-    case 'timestamp without time zone':
-        return 'String';
+    case "smallint":
+    case "int2":
+    case "integer":
+    case "int":
+    case "int4":
+      return "Float";
+    case "bigint":
+    case "int8":
+    case "decimal":
+    case "numeric":
+      return "String";
+    case "real":
+      return "Float";
+    case "float4":
+    case "double precision":
+    case "float8":
+    case "float":
+      return "String";
+    case "boolean":
+    case "bool":
+      return "Boolean";
+    case "char":
+    case "character":
+    case "nchar":
+    case "bpchar":
+    case "varchar":
+    case "character varying":
+    case "nvarchar":
+    case "text":
+    case "date":
+    case "timestamp":
+    case "timestamp without time zone":
+      return "String";
     default:
-        return 'String';
+      return "String";
   }
 };
 
 export const toProtoScalar = (type: string) => {
   switch (type) {
-    case 'smallint':
-    case 'int2':
-    case 'integer':
-    case 'int':
-    case 'int4':
-        return 'uint32';
-    case 'bigint':
-    case 'int8':
-    case 'decimal':
-    case 'numeric':
-        return 'string';
-    case 'real':
-        return 'string';
-    case 'float4':
-    case 'double precision':
-    case 'float8':
-    case 'float':
-        return 'string';
-    case 'boolean':
-    case 'bool':
-        return 'bool';
-    case 'char':
-    case 'character':
-    case 'nchar':
-    case 'bpchar':
-    case 'varchar':
-    case 'character varying':
-    case 'nvarchar':
-    case 'text':
-    case 'date':
-    case 'timestamp':
-    case 'timestamp without time zone':
-        return 'string';
+    case "smallint":
+    case "int2":
+    case "integer":
+    case "int":
+    case "int4":
+      return "uint32";
+    case "bigint":
+    case "int8":
+    case "decimal":
+    case "numeric":
+      return "string";
+    case "real":
+      return "string";
+    case "float4":
+    case "double precision":
+    case "float8":
+    case "float":
+      return "string";
+    case "boolean":
+    case "bool":
+      return "bool";
+    case "char":
+    case "character":
+    case "nchar":
+    case "bpchar":
+    case "varchar":
+    case "character varying":
+    case "nvarchar":
+    case "text":
+    case "date":
+    case "timestamp":
+    case "timestamp without time zone":
+      return "string";
     default:
-        return 'string';
+      return "string";
   }
 };
 
 export const dialect = ({ migrationTable }) => {
-    const dbSurveyQuery = `
+  const dbSurveyQuery = `
         select distinct
         resource_schema,
         resource_type,

@@ -1009,7 +1009,8 @@ export const permitted =
     const sysPerms = permissions.systemPermissions;
     const rsrcPerms = permissions.resourcePermissions[resource];
     // if rsrcPerms set ? allowed by resource : allowed by system
-    const grant = rsrcPerms !== undefined ? hurdle & rsrcPerms : hurdle & sysPerms;
+    const grant =
+      rsrcPerms !== undefined ? hurdle & rsrcPerms : hurdle & sysPerms;
     return !!grant;
   };
 
