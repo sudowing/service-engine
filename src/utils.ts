@@ -895,6 +895,7 @@ export const initPostProcessing = (knexConfig) =>
  * @description checks against whitelist to see if db named supports return on DML
  * @param {string} client
  */
+
 export const supportsReturnOnCreateAndUpdate = (client: string) =>
   ["pg", "mssql", "oracledb"].includes(client);
 
@@ -1006,7 +1007,8 @@ export const permitted =
     const sysPerms = permissions.systemPermissions;
     const rsrcPerms = permissions.resourcePermissions[resource];
     // if rsrcPerms set ? allowed by resource : allowed by system
-    const grant = rsrcPerms !== undefined ? hurdle & rsrcPerms : hurdle & sysPerms;
+    const grant =
+      rsrcPerms !== undefined ? hurdle & rsrcPerms : hurdle & sysPerms;
     return !!grant;
   };
 
