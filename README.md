@@ -39,6 +39,8 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
         * [PostgreSQL (Version 12)](#application-considerations_postgre-sql-version-12)
         * [MySQL (Version 8)](#application-considerations_my-sql-version-8)
         * [SQLite (Version 3)](#application-considerations_sq-lite-version-3)
+        * [MSSQL [SQL-Server]](#application-considerations_mssql)
+        * [RedShift](#application-considerations_redshift)
 * [Application Configurations](#application-configurations)
     * [Default & Max Page Limit](#application-configurations_default-page-limit)
     * [gRPC Service Port](#application-configurations_grpc_port)
@@ -386,7 +388,19 @@ In time -- its possible that version specific DB Engine support will be provided
 - Map: [DB Data Type -> GraphQL Schema](./src/dialects/sqlite3.ts#L55)
 - Map: [DB Data Type -> gRPC Proto Scalar](./src/dialects/sqlite3.ts#L104)
 
+### <a id="application-considerations_mssql"></a>MSSQL [SQL-Server]
+- [DB Survey Query](./src/dialects/mssql.ts#L180)
+- [Data Types](https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql?view=sql-server-ver15)
+- Map: [DB Data Type -> JOI Validation](./src/dialects/mssql.ts#L6)
+- Map: [DB Data Type -> GraphQL Schema](./src/dialects/mssql.ts#L64)
+- Map: [DB Data Type -> gRPC Proto Scalar](./src/dialects/mssql.ts#L122)
 
+### <a id="application-considerations_redshift"></a>RedShift
+- [DB Survey Query](./src/dialects/redshift.ts#L127)
+- [Data Types](https://docs.aws.amazon.com/redshift/latest/dg/c_Supported_data_types.html)
+- Map: [DB Data Type -> JOI Validation](./src/dialects/redshift.ts#L6)
+- Map: [DB Data Type -> GraphQL Schema](./src/dialects/redshift.ts#L46)
+- Map: [DB Data Type -> gRPC Proto Scalar](./src/dialects/redshift.ts#L86)
 
 # <a id="application-configurations"></a>Application Configurations
 

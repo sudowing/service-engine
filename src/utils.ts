@@ -896,10 +896,8 @@ export const initPostProcessing = (knexConfig) =>
  * @param {string} client
  */
 
-// tedious => mssql
-// https://tediousjs.github.io/tedious/
 export const supportsReturnOnCreateAndUpdate = (client: string) =>
-  ["pg", "tedious", "oracledb"].includes(client);
+  ["pg", "mssql", "oracledb"].includes(client);
 
 // tslint:disable: no-bitwise
 /**
