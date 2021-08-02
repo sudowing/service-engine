@@ -20,7 +20,7 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
     sqlite3: loadDialectConfig(sqlite3),
     mysql: loadDialectConfig(mysql),
     mysql2: loadDialectConfig(mysql),
-    tedious: loadDialectConfig(mssql),
+    mssql: loadDialectConfig(mssql),
   };
 
   if (supportedClients.hasOwnProperty(db.client.config.client)) {
