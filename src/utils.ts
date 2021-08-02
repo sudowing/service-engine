@@ -895,8 +895,11 @@ export const initPostProcessing = (knexConfig) =>
  * @description checks against whitelist to see if db named supports return on DML
  * @param {string} client
  */
+
+// tedious => mssql
+// https://tediousjs.github.io/tedious/
 export const supportsReturnOnCreateAndUpdate = (client: string) =>
-  ["pg", "mssql", "oracledb"].includes(client);
+  ["pg", "tedious", "oracledb"].includes(client);
 
 // tslint:disable: no-bitwise
 /**
