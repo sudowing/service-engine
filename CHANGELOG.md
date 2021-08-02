@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2021-08-02
+### Added
+- Support for Redshift & MSSQL (sql-server).
+### Patched
+- Permission config issue caused by falsey conflict between `0` && `undefined`. `permit().none()` == `0`.
+
 ## [1.6.0] - 2020-12-13
 ### Added
 - Updated GraphQL and gRPC inputs for `in` && `not_in` to be arrays of values opposed to strings seperated by commas. This interface is more intuitive and it solves a problem as bool, int and floats were being parsed as strings by the service-engine query parser.
