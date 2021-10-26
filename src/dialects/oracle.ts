@@ -51,7 +51,7 @@ export const dialect = ({ migrationTable }) => {
 				WHEN col.nullable <> 'Y' THEN 1
 				ELSE 0
 			END notnull
-			,col.data_type TYPE
+			,col.data_type type
 			,col.data_precision
 			,col.data_length
 			,CASE
@@ -167,7 +167,7 @@ export const dialect = ({ migrationTable }) => {
 				WHEN col.nullable <> 'Y' THEN 1
 				ELSE 0
 			END notnull,
-			col.data_type TYPE,
+			col.data_type type,
 			col.data_precision,
 			col.data_length,
 			0 primarykey,
@@ -192,7 +192,7 @@ export const dialect = ({ migrationTable }) => {
 				WHEN col.nullable <> 'Y' THEN 1
 				ELSE 0
 			END notnull
-			,col.data_type TYPE
+			,col.data_type type
 			,col.data_precision
 			,col.data_length
 			,0 primarykey
@@ -213,7 +213,19 @@ export const dialect = ({ migrationTable }) => {
 		UNION
 		SELECT * FROM mat_views
 	)
-	SELECT * FROM resources
+	SELECT
+		 resource_schema "resource_schema"
+		,resource_type "resource_type"
+		,resource_name "resource_name"
+		,resource_column_id "resource_column_id"
+		,resource_column_name "resource_column_name"
+		,notnull "notnull"
+		,type "type"
+		,data_precision "data_precision"
+		,data_length "data_length"
+		,primarykey "primarykey"
+		,uniquekey "uniquekey"
+	FROM resources
 	WHERE
 		resource_schema NOT IN (
 			'ANONYMOUS'
@@ -256,10 +268,9 @@ export const dialect = ({ migrationTable }) => {
 		,resource_type
 		,resource_name
 		,resource_column_id
-	;
-  `;
+  `.replace(/[\n\r\t]/g, " ");
 
-  const versionQuery = `SELECT BANNER_FULL db_version FROM v$version;`;
+  const versionQuery = `SELECT BANNER_FULL "db_version" FROM v$version`;
 
   return {
     dbSurveyQuery,
