@@ -5,6 +5,7 @@ import { dialect as redshift } from "./redshift";
 import { dialect as sqlite3 } from "./sqlite3";
 import { dialect as mysql } from "./mysql";
 import { dialect as mssql } from "./mssql";
+import { dialect as oracle } from "./oracle";
 
 export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
   const migrationTable: string = db.client.config.migrations.tableName || "";
@@ -21,6 +22,7 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
     mysql: loadDialectConfig(mysql),
     mysql2: loadDialectConfig(mysql),
     mssql: loadDialectConfig(mssql),
+    oracle: loadDialectConfig(oracle),
   };
 
   if (supportedClients.hasOwnProperty(db.client.config.client)) {
