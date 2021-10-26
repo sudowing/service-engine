@@ -15,6 +15,7 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
     dbGeometryColumns: undefined,
   });
 
+  // keys in this object map to the knex client value
   const supportedClients = {
     pg: postgres({ migrationTable }),
     redshift: loadDialectConfig(redshift),
@@ -22,12 +23,14 @@ export const getDatabaseResources = ({ db }: ts.IDatabaseBootstrap) => {
     mysql: loadDialectConfig(mysql),
     mysql2: loadDialectConfig(mysql),
     mssql: loadDialectConfig(mssql),
-    oracle: loadDialectConfig(oracle),
+    oracledb: loadDialectConfig(oracle),
   };
 
   if (supportedClients.hasOwnProperty(db.client.config.client)) {
     return supportedClients[db.client.config.client];
   }
 
-  throw new Error("unsupported db engine: postgres, mysql & sqlite3 only");
+  throw new Error(
+    "unsupported db engine: postgres, mysql, mssql, redshift, sqlite3, oracledb only"
+  );
 };
