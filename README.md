@@ -189,7 +189,7 @@ Standardized API Requests are comprised of (among other things) a `payload` & `c
 	},
 	"context": {
 		"page": 5,
-		"limit": 3,
+		"limit": 30,
 		"orderBy": "handle,name_last:desc",
 		"fields": "id,handle,email,name_first",
 		"seperator": "|"
