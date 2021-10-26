@@ -30,8 +30,8 @@ export const toProtoScalar = (type: string) => {
     case "smallint":
     case "integer":
     case "bigint":
-	// return "uint32";
-	// return "sint32";		
+      // return "uint32";
+      // return "sint32";
       return "sint32";
     default:
       return "string";
