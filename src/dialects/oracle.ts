@@ -8,9 +8,9 @@ export const joiBase = (type: string) => {
     case "smallint":
     case "integer":
     case "bigint":
-      Joi.number();
+      return Joi.number();
     default:
-      Joi.string();
+      return Joi.string();
   }
 };
 
@@ -229,6 +229,11 @@ export const dialect = ({ migrationTable }) => {
 	WHERE
 		resource_schema NOT IN (
 			'ANONYMOUS'
+			,'DBSFWUSER'
+			,'AUDSYS'
+			,'DVSYS'
+			,'OJVMSYS'
+			,'GSMADMIN_INTERNAL'
 			,'CTXSYS'
 			,'DBSNMP'
 			,'EXFSYS'
