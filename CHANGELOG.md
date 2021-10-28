@@ -72,9 +72,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial Release
 
-[Unreleased]: https://github.com/sudowing/service-engine/compare/HEAD...v1.6.0
-[1.6.0]: https://github.com/sudowing/service-engine/compare/1.5.0...v1.6.0
-[1.5.0]: https://github.com/sudowing/service-engine/compare/1.4.2...v1.5.0
+[Unreleased]: https://github.com/sudowing/service-engine/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/sudowing/service-engine/compare/v1.6.0...v1.7.0
+[1.6.0]: https://github.com/sudowing/service-engine/compare/v1.5.0...v1.6.0
+[1.5.0]: https://github.com/sudowing/service-engine/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/sudowing/service-engine/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/sudowing/service-engine/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/sudowing/service-engine/compare/v1.3.4...v1.4.0

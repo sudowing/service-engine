@@ -23,8 +23,13 @@ export const toSearchQuery = ({
   geoFields,
 }: ts.IParamsToSearchQuery) => {
   const prefix = subquery ? "top_" : "";
+
+  // oracle does not accept the `as` alias_name
+  const alais_declaration =
+    db.client.config.client == "oracledb" ? " " : " as ";
+
   const main: any = !!subquery
-    ? db.raw(`(${subquery.toString()}) as ${prefix}main`)
+    ? db.raw(`(${subquery.toString()})${alais_declaration}${prefix}main`)
     : sqlSchemaResource(schemaResource);
 
   const base = db.select(context.fields).from(main);
@@ -33,7 +38,11 @@ export const toSearchQuery = ({
     : db
         .select()
         .from(
-          db.raw(`(${aggregationFn(base).toString()}) as ${prefix}complex`)
+          db.raw(
+            `(${aggregationFn(
+              base
+            ).toString()})${alais_declaration}${prefix}complex`
+          )
         );
   return (
     query
@@ -236,8 +245,11 @@ export const genCountQuery = (
   // @ts-ignore -- accessing private property
   knex_query._single.limit = undefined;
 
+  const count_alias =
+    db.client.config.client == "oracledb" ? "" : " as count_query";
+
   const count_query = db.from(
-    db.raw(`(${knex_query.toString()}) as count_query`)
+    db.raw(`(${knex_query.toString()})${count_alias}`)
   );
   // this is needed to make the db result mysql/postgres agnostic
   return count_query.count("* as count");
