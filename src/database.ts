@@ -236,8 +236,11 @@ export const genCountQuery = (
   // @ts-ignore -- accessing private property
   knex_query._single.limit = undefined;
 
+  const count_alias =
+    db.client.config.client == "oracledb" ? "" : " as count_query";
+
   const count_query = db.from(
-    db.raw(`(${knex_query.toString()}) as count_query`)
+    db.raw(`(${knex_query.toString()})${count_alias}`)
   );
   // this is needed to make the db result mysql/postgres agnostic
   return count_query.count("* as count");
