@@ -41,6 +41,7 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
         * [SQLite (Version 3)](#application-considerations_sq-lite-version-3)
         * [MSSQL [SQL-Server]](#application-considerations_mssql)
         * [RedShift](#application-considerations_redshift)
+        * [Oracle](#application-considerations_oracle)
 * [Application Configurations](#application-configurations)
     * [Default & Max Page Limit](#application-configurations_default-page-limit)
     * [gRPC Service Port](#application-configurations_grpc_port)
@@ -401,6 +402,14 @@ In time -- its possible that version specific DB Engine support will be provided
 - Map: [DB Data Type -> JOI Validation](./src/dialects/redshift.ts#L6)
 - Map: [DB Data Type -> GraphQL Schema](./src/dialects/redshift.ts#L46)
 - Map: [DB Data Type -> gRPC Proto Scalar](./src/dialects/redshift.ts#L86)
+
+### <a id="application-considerations_oracle"></a>Oracle
+- [DB Survey Query](./src/dialects/oracle.ts#L127)
+- [Data Types](https://docs.aws.amazon.com/oracle/latest/dg/c_Supported_data_types.html)
+- Map: [DB Data Type -> JOI Validation](./src/dialects/oracle.ts#L6)
+- Map: [DB Data Type -> GraphQL Schema](./src/dialects/oracle.ts#L16)
+- Map: [DB Data Type -> gRPC Proto Scalar](./src/dialects/oracle.ts#L26)
+- Note: Not all Oracle DB types are supported by the `oracledb` npm drivers (example: BFILE). This is an issue until knex extends `fetchAsString` to support these types. In the meantime, the app will run, but you should simply omit these fields from a response using the `|fields` context.
 
 # <a id="application-configurations"></a>Application Configurations
 

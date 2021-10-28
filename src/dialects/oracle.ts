@@ -5,9 +5,8 @@ import * as Joi from "joi";
 
 export const joiBase = (type: string) => {
   switch (type) {
-    case "smallint":
-    case "integer":
-    case "bigint":
+    case "NUMBER":
+    case "FLOAT":
       return Joi.number();
     default:
       return Joi.string();
@@ -16,9 +15,8 @@ export const joiBase = (type: string) => {
 
 export const toSchemaScalar = (type: string) => {
   switch (type) {
-    case "smallint":
-    case "integer":
-    case "bigint":
+    case "NUMBER":
+    case "FLOAT":
       return "Float";
     default:
       return "String";
@@ -27,11 +25,8 @@ export const toSchemaScalar = (type: string) => {
 
 export const toProtoScalar = (type: string) => {
   switch (type) {
-    case "smallint":
-    case "integer":
-    case "bigint":
-      // return "uint32";
-      // return "sint32";
+    case "NUMBER":
+    case "FLOAT":
       return "sint32";
     default:
       return "string";
