@@ -899,7 +899,8 @@ export const initPostProcessing = (knexConfig) =>
  */
 
 export const supportsReturnOnCreateAndUpdate = (client: string) =>
-  ["pg", "mssql", "oracledb"].includes(client);
+  ["pg", "mssql"].includes(client);
+// oracledb removed from ^^ as knex failed to product useful sql.
 
 // tslint:disable: no-bitwise
 /**

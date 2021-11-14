@@ -114,8 +114,8 @@ export const makeServiceResolver =
         if (callDatabase && operation === "search" && options.count) {
           // later could apply to update & delete
 
-          const { seperator, notWhere, statementContext } = query.context;
-          query.context = { seperator, notWhere, statementContext };
+          const { seperator, notWhere, statementContext, distinct, fields } = query.context;
+          query.context = { seperator, notWhere, statementContext, distinct, fields };
 
           const _searchCountResult = resource.hasSubquery
             ? callComplexResource(
