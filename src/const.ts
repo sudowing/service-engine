@@ -32,6 +32,7 @@ export const QUOTED_VALUE = '"value"';
 
 export const FIELDS = "fields";
 export const ORDERBY = "orderBy";
+export const DISTINCT = "distinct";
 export const PAGE = "page";
 export const LIMIT = "limit";
 export const NOTWHERE = "notWhere";
@@ -133,6 +134,7 @@ export const SEARCH_QUERY_CONTEXT = {
   notWhere: undefined,
   statementContext: "and",
   orderBy: undefined,
+  distinct: undefined,
   page: undefined,
   limit: undefined,
 };
@@ -153,8 +155,9 @@ export const SEARCH_QUERY_CONTEXT_DESCRIPTION = {
     "SQL query context. Apply query components all together (and each) OR select any matching (OR).",
   orderBy:
     "seperated list of orderBy fields + direction (field desc || field asc). acs is default.",
+  distinct: "return distinct records from result set",
   page: "pagination page",
-  limit: "pagination limit",
+    limit: "pagination limit",
   "x-get-count":
     "Request Search Query count(*) be sent back in a response header.",
   "x-get-sql": "Request plaintext SQL be sent back in a response header.",

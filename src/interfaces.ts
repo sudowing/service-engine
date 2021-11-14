@@ -74,6 +74,7 @@ export interface ISearchQueryContext {
     column: string;
     order: string;
   }[];
+  distinct?: boolean;
   page?: number;
   limit?: number;
 }
