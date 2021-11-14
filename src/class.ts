@@ -287,6 +287,7 @@ export class Resource implements ts.IClassResource {
     if (subqueryContext) {
       delete context.seperator;
       delete context.orderBy;
+      delete context.distinct;
       delete context.page;
       delete context.limit;
       // TODO: what about context.fields? confirm this works correctly
@@ -339,6 +340,8 @@ export class Resource implements ts.IClassResource {
   transformRecords(records: any[]) {
     let output = records;
     const stDataAsWkt = this.db.client.config.client === "pg";
+
+    // transform geo fields to geoJSON
     if (stDataAsWkt && records.length) {
       const geoFields = Object.keys(records[0]).filter(
         (field) =>
@@ -356,8 +359,6 @@ export class Resource implements ts.IClassResource {
         output = records.map(transform);
       }
     }
-
-    // transform to geoJSON
 
     return output;
   }

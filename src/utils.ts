@@ -372,6 +372,8 @@ export const contextTransformer = (attribute, input) => {
           order: direction && cnst.DESC === direction ? direction : cnst.ASC,
         };
       });
+    case cnst.DISTINCT:
+      return !!castBoolean(input)
     case cnst.PAGE:
     case cnst.LIMIT:
       return Number(input);
