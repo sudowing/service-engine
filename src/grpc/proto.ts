@@ -345,7 +345,7 @@ export const grpcSchema = ({
         optional float page = 5;
         optional float limit = 6;
         optional string fields = 7;
-        optional bool distinct = 4;
+        optional bool distinct = 8;
       }
 
 

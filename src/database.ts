@@ -32,7 +32,10 @@ export const toSearchQuery = ({
     ? db.raw(`(${subquery.toString()})${alais_declaration}${prefix}main`)
     : sqlSchemaResource(schemaResource);
 
-  const base = db.select(context.fields).from(main);
+  // db_lookup: select or distinct
+  const db_lookup = context.distinct ? db.distinct(context.fields) : db.select(context.fields);
+
+  const base = db_lookup.from(main);
   const query = !aggregationFn
     ? base
     : db
@@ -44,6 +47,7 @@ export const toSearchQuery = ({
             ).toString()})${alais_declaration}${prefix}complex`
           )
         );
+
   return (
     query
       // notWhere where/notWhere

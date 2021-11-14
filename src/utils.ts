@@ -373,7 +373,7 @@ export const contextTransformer = (attribute, input) => {
         };
       });
     case cnst.DISTINCT:
-      return !!castBoolean(input)
+      return !!castBoolean(input);
     case cnst.PAGE:
     case cnst.LIMIT:
       return Number(input);
