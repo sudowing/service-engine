@@ -1,6 +1,6 @@
 {
   "name": "service-engine",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Microservice Framework for publishing REST, GraphQL & gRPC Services that provide CRUD functionality to Database Resources (tables, views, materialized views).",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
