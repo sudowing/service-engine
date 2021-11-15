@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2021-11-14
+### Fixed
+- Updated `x-get-count` query builder for REST calls with using `distinct`.
+
 ## [1.9.0] - 2021-11-14
 ### Added
 - Distinct support via `query.context`.
@@ -82,7 +86,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial Release
 
-[Unreleased]: https://github.com/sudowing/service-engine/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/sudowing/service-engine/compare/v1.9.1...HEAD
+[1.9.0]: https://github.com/sudowing/service-engine/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/sudowing/service-engine/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/sudowing/service-engine/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/sudowing/service-engine/compare/v1.6.0...v1.7.0
