@@ -361,6 +361,7 @@ export const gqlSchema = async ({
           notWhere: Boolean
           statementContext: String
           orderBy: String
+          distinct: Boolean
           page: Float
           limit: Float
         }

@@ -372,6 +372,8 @@ export const contextTransformer = (attribute, input) => {
           order: direction && cnst.DESC === direction ? direction : cnst.ASC,
         };
       });
+    case cnst.DISTINCT:
+      return !!castBoolean(input);
     case cnst.PAGE:
     case cnst.LIMIT:
       return Number(input);
@@ -897,7 +899,8 @@ export const initPostProcessing = (knexConfig) =>
  */
 
 export const supportsReturnOnCreateAndUpdate = (client: string) =>
-  ["pg", "mssql", "oracledb"].includes(client);
+  ["pg", "mssql"].includes(client);
+// oracledb removed from ^^ as knex failed to product useful sql.
 
 // tslint:disable: no-bitwise
 /**

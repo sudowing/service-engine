@@ -68,7 +68,6 @@ It can be implemented via an [NPM package](https://www.npmjs.com/package/service
     * [Forkable Service Template ](#related-projects_forkable-service-template)
     * [Local DB Development Guide](#related-projects_local-db-development-guide)
 * [Setup & Feature Video Walkthrough](#video-walkthrough-setup-and-features)
-* [Design & Development Walkthroughs](#design-and-development-walkthroughs)
 * [Versioning](#versioning)
 * [License](#license)
 
@@ -275,6 +274,7 @@ Below are all the supported `context` keys available for use within a query:
 |orderBy|fields to order results by. can accept multiple values seperated by `","`. Format: `field:desc` (`:asc` is default so you can omit)|
 |page|Pagination Page|
 |limit|Pagination Limit| (set for service in .env)
+|distinct|used to select distict records from a resultset. (any truthy value is respected)|
 |notWhere|used to determine if knex uses `WHERE` or `NOT WHERE` when applying filters. **NOT IMPLEMENTED**|
 |statementContext|used to determine how filters should be applied together (AND, OR, and NOT operators) **NOT IMPLEMENTED**|
 
@@ -772,21 +772,6 @@ Videos have been produced covering the following topics related to setup & Featu
 - [GraphQL Playground and Geoqueries](https://youtu.be/8y5BMjHVRUA)
 - [gRPC Service (CRUD & Geoqueries)](https://youtu.be/HFzwwLIqrfQ)
 - [DB Schema Migrations](https://youtu.be/84D8_--K5cs)
-
-# <a id="design-and-development-walkthroughs"></a>Design & Development Walkthroughs
-
-##### [Patreon Link](https://www.patreon.com/sudowing)
-
-This README provides an overview of how to use this framework to (quickly) build `REST`, `GraphQL` and `gRPC` services -- detailing all features and configuration options. 
-
-Anyone intested in exploring how this all works is free to inspect the source.
-
-That being said, there are a great many people who would benefit from a guided overview of this project and a walkthrough of implementing against different DBs.
-
-To support this, I've produced a series of videos
-where I provide a detailed walk-through of how this system works, detail each component and explain the requirements and various considerations that went into each  design decision.
- 
-Any engineers interested in such content, can find it available via subscription via [Patreon](https://www.patreon.com/sudowing).
 
 #  <a id="versioning"></a>Versioning
 
