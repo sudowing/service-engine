@@ -145,9 +145,9 @@ export const serviceView =
             reqId,
           };
 
-          const unsupported_search_context_keys = ['orderBy' ,'page' ,'limit'];
-          unsupported_search_context_keys.forEach(key => {
-            if (args.context.hasOwnProperty(key)){
+          const unsupportedSearchContextKeys = ["orderBy", "page", "limit"];
+          unsupportedSearchContextKeys.forEach((key) => {
+            if (args.context.hasOwnProperty(key)) {
               delete args.context[key];
             }
           });
