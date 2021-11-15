@@ -141,9 +141,16 @@ export const serviceView =
         ) {
           // TODO: instead of building new object `args` -- can prob just delete keys from `payload`
           const args = {
-            payload: input.payload,
+            ...payload,
             reqId,
           };
+
+          const unsupportedSearchContextKeys = ["orderBy", "page", "limit"];
+          unsupportedSearchContextKeys.forEach((key) => {
+            if (args.context.hasOwnProperty(key)) {
+              delete args.context[key];
+            }
+          });
 
           const _asyncServiceResponseCount = resourcesMap[resource].hasSubquery
             ? callComplexResource(resourcesMap, resource, operation, args)

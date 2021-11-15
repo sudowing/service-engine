@@ -33,7 +33,9 @@ export const toSearchQuery = ({
     : sqlSchemaResource(schemaResource);
 
   // db_lookup: select or distinct
-  const db_lookup = context.distinct ? db.distinct(context.fields) : db.select(context.fields);
+  const db_lookup = context.distinct
+    ? db.distinct(context.fields)
+    : db.select(context.fields);
 
   const base = db_lookup.from(main);
   const query = !aggregationFn
